@@ -43,9 +43,9 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
-        fullName: user.fullName,
+        full_name: user.fullName,
         role: user.role,
-        departmentId: loginDto.departmentId || user.departmentId,
+        department_id: loginDto.departmentId || user.departmentId,
       },
     };
   }

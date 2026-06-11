@@ -73,7 +73,7 @@ export class InitialSchema1718200000000 implements MigrationInterface {
         remarks TEXT NULL,
         status ENUM('not_started','pending','on_hold','completed') DEFAULT 'not_started',
         created_by INT NOT NULL,
-        created_at DATETIME NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         completed_at DATETIME NULL,
         FOREIGN KEY (request_type_id) REFERENCES setting_options(id),
         FOREIGN KEY (car_color_id) REFERENCES setting_options(id),

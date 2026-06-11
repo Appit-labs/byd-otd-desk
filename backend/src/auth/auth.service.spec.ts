@@ -74,7 +74,9 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('access_token', 'test-jwt-token');
       expect(result).toHaveProperty('user');
       expect(result.user).toHaveProperty('id', 1);
+      expect(result.user).toHaveProperty('full_name', 'Super Admin');
       expect(result.user).toHaveProperty('role', UserRole.SUPER_ADMIN);
+      expect(result.user).toHaveProperty('department_id', null);
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: 1,
         username: 'superadmin',

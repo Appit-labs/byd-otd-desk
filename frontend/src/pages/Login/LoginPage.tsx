@@ -33,8 +33,7 @@ export function LoginPage() {
     control,
     handleSubmit,
     setValue,
-    watch,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: 'onChange',
@@ -48,7 +47,7 @@ export function LoginPage() {
   // Fetch departments on mount
   useEffect(() => {
     api
-      .get<Department[]>('/departments/v1')
+      .get<Department[]>('/v1/departments')
       .then((res) => {
         const deptOptions = res.data.map((d) => ({
           value: d.name,
@@ -96,12 +95,6 @@ export function LoginPage() {
         localStorage.setItem('login_department', data.department);
         await login(data.department, data.username, data.password);
         setIsLeaving(true);
-        setTimeout(() => {
-          const state = useAuthStore.getState();
-          if (state.user) {
-            navigate(getRoleBasedDefaultPath(state.user.role), { replace: true });
-          }
-        }, 300);
       } catch (err: unknown) {
         const msg =
           (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -112,10 +105,7 @@ export function LoginPage() {
     [login, navigate]
   );
 
-  const deptValue = watch('department');
-  const usernameValue = watch('username');
-  const passwordValue = watch('password');
-  const formFilled = deptValue && usernameValue && passwordValue;
+  const formFilled = isValid;
 
   return (
     <div className={styles.page}>

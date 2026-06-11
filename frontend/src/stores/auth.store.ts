@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { z } from 'zod';
 import type { User, UserRole } from '@/types';
 import api from '@/services/api';
 
@@ -22,7 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
 
     try {
-      const response = await api.post('/auth/v1/login', {
+      const response = await api.post('/v1/auth/login', {
         department,
         username,
         password,
@@ -30,12 +31,26 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const { accessToken, user } = response.data;
 
-      localStorage.setItem('auth_token', accessToken);
-      localStorage.setItem('auth_user', JSON.stringify(user));
+      const loginResponseSchema = z.object({
+        accessToken: z.string(),
+        user: z.object({
+          id: z.number(),
+          username: z.string(),
+          full_name: z.string().optional(),
+          role: z.custom<UserRole>(),
+          department: z.string(),
+          department_id: z.number().optional(),
+        }),
+      });
+
+      const validated = loginResponseSchema.parse({ accessToken, user });
+
+      localStorage.setItem('auth_token', validated.accessToken);
+      localStorage.setItem('auth_user', JSON.stringify(validated.user));
 
       set({
-        user,
-        token: accessToken,
+        user: validated.user,
+        token: validated.accessToken,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -48,6 +63,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('login_department');
     set({
       user: null,
       token: null,

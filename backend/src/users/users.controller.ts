@@ -6,10 +6,11 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { UsersService } from './users.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
@@ -26,8 +27,13 @@ export class UsersController {
   @Get()
   @Roles('super_admin', 'admin')
   @ApiOperation({ summary: 'List all users' })
-  async findAll() {
-    return this.usersService.findAll();
+  @ApiQuery({ name: 'skip', required: false, type: Number })
+  @ApiQuery({ name: 'take', required: false, type: Number })
+  async findAll(
+    @Query('skip') skip?: number,
+    @Query('take') take?: number,
+  ) {
+    return this.usersService.findAll(skip ?? 0, take ?? 20);
   }
 
   @Get(':id')

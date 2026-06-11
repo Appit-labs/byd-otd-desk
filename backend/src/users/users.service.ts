@@ -17,8 +17,12 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  async findAll(skip = 0, take = 20): Promise<{ items: User[]; total: number }> {
+    const [items, total] = await this.usersRepository.findAndCount({
+      skip,
+      take,
+    });
+    return { items, total };
   }
 
   async findById(id: number): Promise<User | null> {
@@ -61,7 +65,6 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    user.isActive = false;
-    await this.usersRepository.save(user);
+    await this.usersRepository.update(id, { isActive: false });
   }
 }

@@ -33,7 +33,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 : (exceptionResponse as Record<string, unknown>).message as string
               : exception.message;
     } else if (exception instanceof Error) {
-      message = exception.message;
+      // In production, don't leak internal error details to clients
+      message =
+        process.env.NODE_ENV === 'production'
+          ? 'Internal server error'
+          : exception.message;
     }
 
     response.status(status).send({

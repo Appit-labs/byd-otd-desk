@@ -132,8 +132,9 @@ async function seed() {
     const userRepo = dataSource.getRepository(User);
     const existingAdmin = await userRepo.findOneBy({ username: 'superadmin' });
     if (!existingAdmin) {
+      const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'Admin@123';
       const salt = await bcrypt.genSalt(12);
-      const hashedPassword = await bcrypt.hash('Admin@123', salt);
+      const hashedPassword = await bcrypt.hash(adminPassword, salt);
       await userRepo.save(
         userRepo.create({
           username: 'superadmin',

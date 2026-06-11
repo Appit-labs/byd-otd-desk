@@ -15,11 +15,17 @@ export class RequestsService {
     private requestsRepository: Repository<CarRequest>,
   ) {}
 
-  async findAll(): Promise<CarRequest[]> {
-    return this.requestsRepository.find({
+  async findAll(
+    skip = 0,
+    take = 20,
+  ): Promise<{ items: CarRequest[]; total: number }> {
+    const [items, total] = await this.requestsRepository.findAndCount({
       relations: ['requestType', 'carColor', 'carSpec', 'paymentMethod', 'seller', 'creator'],
       order: { createdAt: 'DESC' },
+      skip,
+      take,
     });
+    return { items, total };
   }
 
   async findById(id: number): Promise<CarRequest | null> {
@@ -46,7 +52,7 @@ export class RequestsService {
     if (!request) {
       throw new NotFoundException('Request not found');
     }
-    Object.assign(request, updateRequestDto);
-    return this.requestsRepository.save(request);
+    await this.requestsRepository.update(id, updateRequestDto);
+    return this.findById(id) as Promise<CarRequest>;
   }
 }

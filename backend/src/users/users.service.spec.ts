@@ -22,10 +22,12 @@ describe('UsersService', () => {
 
   const mockRepository = () => ({
     find: jest.fn(),
+    findAndCount: jest.fn(),
     findOne: jest.fn(),
     findOneBy: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
+    update: jest.fn(),
   });
 
   beforeEach(async () => {
@@ -44,11 +46,11 @@ describe('UsersService', () => {
   });
 
   describe('findAll', () => {
-    it('should return all users', async () => {
-      mockRepo.find.mockResolvedValue([mockUser]);
+    it('should return paginated users', async () => {
+      mockRepo.findAndCount.mockResolvedValue([[mockUser], 1]);
       const result = await service.findAll();
-      expect(result).toEqual([mockUser]);
-      expect(mockRepo.find).toHaveBeenCalled();
+      expect(result).toEqual({ items: [mockUser], total: 1 });
+      expect(mockRepo.findAndCount).toHaveBeenCalledWith({ skip: 0, take: 20 });
     });
   });
 
@@ -131,12 +133,10 @@ describe('UsersService', () => {
   describe('deactivate', () => {
     it('should deactivate a user', async () => {
       mockRepo.findOne.mockResolvedValue(mockUser);
-      mockRepo.save.mockResolvedValue({ ...mockUser, isActive: false });
+      mockRepo.update.mockResolvedValue({ affected: 1 });
 
       await service.deactivate(1);
-      expect(mockRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ isActive: false }),
-      );
+      expect(mockRepo.update).toHaveBeenCalledWith(1, { isActive: false });
     });
 
     it('should throw if user not found', async () => {

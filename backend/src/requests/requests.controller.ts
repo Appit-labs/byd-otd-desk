@@ -5,10 +5,11 @@ import {
   Patch,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { RequestsService } from './requests.service.js';
 import { CreateRequestDto } from './dto/create-request.dto.js';
 import { UpdateRequestDto } from './dto/update-request.dto.js';
@@ -23,8 +24,13 @@ export class RequestsController {
 
   @Get()
   @ApiOperation({ summary: 'List all car requests' })
-  async findAll() {
-    return this.requestsService.findAll();
+  @ApiQuery({ name: 'skip', required: false, type: Number })
+  @ApiQuery({ name: 'take', required: false, type: Number })
+  async findAll(
+    @Query('skip') skip?: number,
+    @Query('take') take?: number,
+  ) {
+    return this.requestsService.findAll(skip ?? 0, take ?? 20);
   }
 
   @Get(':id')

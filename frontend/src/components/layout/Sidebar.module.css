@@ -17,7 +17,8 @@
   transition: width var(--transition-base);
 }
 
-.sidebar.open {
+.sidebar.open,
+.sidebar:hover {
   width: 200px;
 }
 

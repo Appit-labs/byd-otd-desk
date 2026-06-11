@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { motion } from 'motion/react';
 import { Eye, EyeOff, Car } from 'lucide-react';
 import { useAuthStore, getRoleBasedDefaultPath } from '@/stores/auth.store';
 import { Button } from '@/components/ui/Button';
@@ -25,7 +26,6 @@ export function LoginPage() {
   const { login, isAuthenticated, user, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [shakeKey, setShakeKey] = useState(0);
   const [isLeaving, setIsLeaving] = useState(false);
   const [departments, setDepartments] = useState<{ value: string; label: string }[]>([]);
 
@@ -107,7 +107,6 @@ export function LoginPage() {
           (err as { response?: { data?: { message?: string } } })?.response?.data
             ?.message ?? 'Invalid credentials';
         setLoginError(msg);
-        setShakeKey((k) => k + 1);
       }
     },
     [login, navigate]
@@ -120,10 +119,17 @@ export function LoginPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.meshBg} />
-      <div
-        className={`${styles.card} ${isLeaving ? styles.cardLeave : ''}`}
-        key={shakeKey}
+      <motion.div
+        className={styles.meshBg}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.2 }}
+      />
+      <motion.div
+        className={`${styles.card} ${loginError ? styles.shake : ''} ${isLeaving ? styles.cardLeave : ''}`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
       >
         <div className={styles.header}>
           <Car size={32} color="var(--color-accent)" style={{ margin: '0 auto 12px' }} />
@@ -197,7 +203,7 @@ export function LoginPage() {
             Sign In
           </Button>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

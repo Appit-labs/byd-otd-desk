@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Car, Eye, Settings } from 'lucide-react';
+import { LayoutDashboard, Car, Eye, Settings, Menu, X } from 'lucide-react';
 import { useAuthStore, getRoleBasedDefaultPath } from '@/stores/auth.store';
 import type { UserRole } from '@/types';
 import styles from './Sidebar.module.css';
@@ -38,7 +38,12 @@ const navItems: NavItemConfig[] = [
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
 
   const visibleItems = navItems.filter(
@@ -46,25 +51,43 @@ export function Sidebar() {
   );
 
   return (
-    <aside className={styles.sidebar}>
-      <NavLink to={getRoleBasedDefaultPath(user?.role)} className={styles.logo}>
-        <span className={styles.logoText}>BYD</span>
-      </NavLink>
+    <>
+      <button
+        className={styles.hamburger}
+        onClick={onToggle}
+        aria-label={isOpen ? 'Close sidebar' : 'Open sidebar'}
+      >
+        {isOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
 
-      <nav className={styles.nav}>
-        {visibleItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `${styles.navItem} ${isActive ? styles.active : ''}`
-            }
-          >
-            <span className={styles.navIcon}>{item.icon}</span>
-            <span className={styles.navLabel}>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-    </aside>
+      {/* Mobile overlay backdrop */}
+      {isOpen && (
+        <div className={styles.overlay} onClick={onToggle} />
+      )}
+
+      <aside
+        className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}
+      >
+        <NavLink to={getRoleBasedDefaultPath(user?.role)} className={styles.logo}>
+          <span className={styles.logoText}>BYD</span>
+        </NavLink>
+
+        <nav className={styles.nav}>
+          {visibleItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={onToggle}
+              className={({ isActive }) =>
+                `${styles.navItem} ${isActive ? styles.active : ''}`
+              }
+            >
+              <span className={styles.navIcon}>{item.icon}</span>
+              <span className={styles.navLabel}>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }

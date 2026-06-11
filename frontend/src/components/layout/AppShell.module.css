@@ -1,15 +1,12 @@
 .shell {
   display: grid;
-  grid-template-columns: 64px 1fr;
+  grid-template-columns: 1fr;
   grid-template-rows: auto 1fr;
   grid-template-areas:
-    "sidebar topbar"
-    "sidebar main";
+    "topbar"
+    "main";
   min-height: 100vh;
-}
-
-.sidebarArea {
-  grid-area: sidebar;
+  padding-left: 64px;
 }
 
 .topbarArea {
@@ -21,4 +18,10 @@
   padding: var(--spacing-6);
   overflow-y: auto;
   min-height: calc(100vh - 56px);
+}
+
+@media (max-width: 1024px) {
+  .shell {
+    padding-left: 0;
+  }
 }

@@ -1,0 +1,11 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BYD OTD Desk - Frontend",
+  "scripts": {
+    "dev": "echo 'Frontend skeleton - install dependencies in Task 0.2'",
+    "build": "echo 'Frontend skeleton - install dependencies in Task 0.2'",
+    "preview": "echo 'Frontend skeleton - install dependencies in Task 0.2'"
+  }
+}

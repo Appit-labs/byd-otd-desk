@@ -95,10 +95,6 @@
   opacity: 1;
 }
 
-.spacer {
-  flex: 1;
-}
-
 /* Mobile overlay backdrop */
 .overlay {
   display: none;

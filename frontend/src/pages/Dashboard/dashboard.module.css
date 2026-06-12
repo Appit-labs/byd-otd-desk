@@ -1,0 +1,137 @@
+.page {
+  padding: var(--spacing-6);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-6);
+}
+
+.pageTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* ── Period Toggle ─────────────────────────────────────────────────── */
+
+.toggleGroup {
+  display: inline-flex;
+  background-color: var(--color-primary-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2px;
+  gap: 2px;
+}
+
+.toggleButton {
+  padding: var(--spacing-1) var(--spacing-3);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.toggleButton:hover {
+  color: var(--color-text-primary);
+}
+
+.toggleButtonActive {
+  background-color: var(--color-accent);
+  color: var(--color-primary-bg);
+  font-weight: 600;
+}
+
+.toggleButtonActive:hover {
+  color: var(--color-primary-bg);
+}
+
+/* ── Dashboard Grid Layout ─────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: var(--spacing-5);
+  grid-template-areas:
+    "welcome    daily-requests    completed"
+    "chart      chart             chart"
+    "pipeline   pipeline          recent";
+}
+
+/* Grid area assignments — assigned via inline styles on each child,
+   but we keep them here as a fallback / documentation */
+
+/* ── Responsive breakpoints ────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "welcome    welcome"
+      "daily-requests completed"
+      "chart      chart"
+      "pipeline   pipeline"
+      "recent     recent";
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "welcome"
+      "daily-requests"
+      "completed"
+      "chart"
+      "pipeline"
+      "recent";
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+}
+
+/* ── Error state ───────────────────────────────────────────────────── */
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: var(--spacing-4);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.errorTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--color-danger);
+  margin: 0;
+}
+
+.errorMessage {
+  font-size: var(--text-sm);
+  max-width: 400px;
+}

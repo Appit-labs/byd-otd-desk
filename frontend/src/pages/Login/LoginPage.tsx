@@ -57,7 +57,8 @@ export function LoginPage() {
         // Add admin/super_admin as non-department options
         deptOptions.push(
           { value: 'Admin', label: 'Admin' },
-          { value: 'Super Admin', label: 'Super Admin' }
+          { value: 'Super Admin', label: 'Super Admin' },
+          { value: 'Viewer', label: 'Viewer' }
         );
         setDepartments(deptOptions);
       })
@@ -66,6 +67,7 @@ export function LoginPage() {
         setDepartments([
           { value: 'Admin', label: 'Admin' },
           { value: 'Super Admin', label: 'Super Admin' },
+          { value: 'Viewer', label: 'Viewer' },
           { value: 'Sales', label: 'Sales' },
           { value: 'Logistics', label: 'Logistics' },
           { value: 'Production', label: 'Production' },

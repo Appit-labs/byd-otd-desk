@@ -7,10 +7,10 @@ import { UserManagementPanel } from '@/components/settings/UserManagementPanel';
 import styles from '@/components/settings/settings.module.css';
 
 const dropdownManagers = [
-  { key: 'requestTypes', label: 'Request Types' },
-  { key: 'carColors', label: 'Car Colors' },
-  { key: 'carSpecs', label: 'Car Specs' },
-  { key: 'paymentMethods', label: 'Payment Methods' },
+  { key: 'request_type', label: 'Request Types' },
+  { key: 'car_color', label: 'Car Colors' },
+  { key: 'car_spec', label: 'Car Specs' },
+  { key: 'payment_method', label: 'Payment Methods' },
 ];
 
 export default function SettingsPage() {

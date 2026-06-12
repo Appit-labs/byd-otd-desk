@@ -9,19 +9,28 @@ export interface SettingsOption {
   sort_order: number;
 }
 
-interface SettingsResponse {
-  requestTypes: SettingsOption[];
-  carColors: SettingsOption[];
-  carSpecs: SettingsOption[];
-  paymentMethods: SettingsOption[];
+interface SettingItem {
+  key: string;
+  label: string;
+  options: SettingsOption[];
 }
 
+// Settings data keyed by setting key (e.g. request_type, car_color)
+type SettingsMap = Record<string, SettingsOption[]>;
+
 export function useSettings() {
-  return useQuery<SettingsResponse>({
+  return useQuery<SettingsMap>({
     queryKey: ['settings'],
     queryFn: async () => {
       const response = await api.get('/v1/settings');
-      return response.data.data ?? response.data;
+      const data = response.data.data ?? response.data;
+      const settings: SettingsMap = {};
+      if (Array.isArray(data)) {
+        for (const item of data as SettingItem[]) {
+          settings[item.key] = item.options ?? [];
+        }
+      }
+      return settings;
     },
     staleTime: 5 * 60 * 1000,
   });

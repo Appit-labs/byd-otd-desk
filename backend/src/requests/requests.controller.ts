@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   UseGuards,
+  Res,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -17,6 +18,7 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
+import type { FastifyReply } from 'fastify';
 import { RequestsService } from './requests.service.js';
 import { StageTransitionsService } from './stage-transitions.service.js';
 import { CreateRequestDto } from './dto/create-request.dto.js';
@@ -148,5 +150,29 @@ export class RequestsController {
       dto.action,
       user,
     );
+  }
+
+  @Get('export')
+  @Roles('super_admin', 'admin')
+  @ApiOperation({ summary: 'Export requests as CSV' })
+  @ApiQuery({
+    name: 'period',
+    required: true,
+    enum: ['week', 'month', 'year', 'all'],
+  })
+  @ApiResponse({ status: 200, description: 'CSV file download' })
+  async exportCsv(
+    @Query('period') period: 'week' | 'month' | 'year' | 'all',
+    @Res() res: FastifyReply,
+  ) {
+    const csv = await this.requestsService.exportCsv(period);
+    const filename = `byd-otd-requests-${period}-${new Date().toISOString().split('T')[0]}.csv`;
+
+    res.header('Content-Type', 'text/csv; charset=utf-8');
+    res.header(
+      'Content-Disposition',
+      `attachment; filename="${filename}"`,
+    );
+    res.send(csv);
   }
 }

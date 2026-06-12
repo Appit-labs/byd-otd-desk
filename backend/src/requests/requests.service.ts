@@ -12,6 +12,8 @@ import { CreateRequestDto } from './dto/create-request.dto.js';
 import { UpdateRequestDto } from './dto/update-request.dto.js';
 import { QueryRequestsDto } from './dto/query-requests.dto.js';
 
+type ExportPeriod = 'week' | 'month' | 'year' | 'all';
+
 @Injectable()
 export class RequestsService {
   private readonly logger = new Logger(RequestsService.name);
@@ -277,5 +279,98 @@ export class RequestsService {
     }
 
     return this.requestsRepository.save(request);
+  }
+
+  async exportCsv(period: ExportPeriod): Promise<string> {
+    // Calculate date range
+    const now = new Date();
+    let dateFrom: Date | undefined;
+
+    switch (period) {
+      case 'week':
+        dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'year':
+        dateFrom = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      case 'all':
+        dateFrom = undefined;
+        break;
+    }
+
+    // Build query — fetch ALL matching requests (no pagination)
+    const qb = this.requestsRepository
+      .createQueryBuilder('r')
+      .leftJoinAndSelect('r.requestType', 'requestType')
+      .leftJoinAndSelect('r.carColor', 'carColor')
+      .leftJoinAndSelect('r.carSpec', 'carSpec')
+      .leftJoinAndSelect('r.paymentMethod', 'paymentMethod')
+      .leftJoinAndSelect('r.seller', 'seller')
+      .leftJoinAndSelect('r.creator', 'creator')
+      .leftJoinAndSelect('r.transitions', 'transitions')
+      .leftJoinAndSelect('transitions.department', 'transitionDepartment')
+      .leftJoinAndSelect('transitions.actionedByUser', 'actionedByUser')
+      .orderBy('r.createdAt', 'DESC');
+
+    if (dateFrom) {
+      qb.andWhere('r.createdAt >= :dateFrom', { dateFrom });
+    }
+
+    const items = await qb.getMany();
+
+    // Helper: escape CSV value
+    const esc = (value: unknown): string => {
+      const str = value == null ? '' : String(value);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    // Build CSV rows
+    const header = [
+      'Request Number',
+      'Car Number',
+      'Body Number',
+      'Request Type',
+      'Car Color',
+      'Car Spec',
+      'Client Name',
+      'Client Tel',
+      'Payment Method',
+      'Seller',
+      'Status',
+      'Created At',
+      'Completed At',
+      'Remarks',
+    ];
+
+    const rows = items.map((r) => [
+      esc(r.requestNumber),
+      esc(r.carNumber),
+      esc(r.bodyNumber),
+      esc(r.requestType?.label ?? ''),
+      esc(r.carColor?.label ?? ''),
+      esc(r.carSpec?.label ?? ''),
+      esc(r.clientName),
+      esc(r.clientTel),
+      esc(r.paymentMethod?.label ?? ''),
+      esc(r.seller?.fullName ?? ''),
+      esc(r.status),
+      esc(r.createdAt?.toISOString() ?? ''),
+      esc(r.completedAt?.toISOString() ?? ''),
+      esc(r.remarks),
+    ]);
+
+    const bom = '﻿';
+    const csvContent = [
+      header.join(','),
+      ...rows.map((row) => row.join(',')),
+    ].join('\n');
+
+    return bom + csvContent;
   }
 }

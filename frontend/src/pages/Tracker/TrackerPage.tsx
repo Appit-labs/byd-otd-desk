@@ -296,6 +296,7 @@ function TrackerPageInner({
         columnVisibility={columnVisibility}
         onColumnToggle={handleColumnToggle}
         onNewRequest={handleNewRequest}
+        onError={showError}
       />
 
       <TrackerTable

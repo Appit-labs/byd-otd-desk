@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import { Search, Plus, Filter, Columns3 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, Plus, Filter, Columns3, Download } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useExportRequests } from '@/hooks/useExportRequests';
 import type { Department } from '@/types/request';
 import styles from './tracker.module.css';
 
@@ -16,6 +17,7 @@ interface TrackerToolbarProps {
   columnVisibility: Record<string, boolean>;
   onColumnToggle: (column: string) => void;
   onNewRequest: () => void;
+  onError?: (message: string) => void;
 }
 
 const columnLabels: Record<string, string> = {
@@ -38,12 +40,19 @@ export function TrackerToolbar({
   columnVisibility,
   onColumnToggle,
   onNewRequest,
+  onError,
 }: TrackerToolbarProps) {
   const [localSearch, setLocalSearch] = useState(search);
   const [filterOpen, setFilterOpen] = useState(false);
   const [columnMenuOpen, setColumnMenuOpen] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [exportFeedback, setExportFeedback] = useState<string | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const columnRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { mutate: exportRequests, isPending: isExporting } = useExportRequests();
 
   // Debounce search
   useEffect(() => {
@@ -53,7 +62,7 @@ export function TrackerToolbar({
     return () => clearTimeout(timer);
   }, [localSearch, onSearchChange]);
 
-  // Close filter/column menus on outside click
+  // Close filter/column/export menus on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
@@ -62,10 +71,46 @@ export function TrackerToolbar({
       if (columnRef.current && !columnRef.current.contains(e.target as Node)) {
         setColumnMenuOpen(false);
       }
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setExportMenuOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
+
+  const handleExport = useCallback(
+    (period: string) => {
+      setExportMenuOpen(false);
+      exportRequests(period, {
+        onSuccess: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `byd-otd-requests-${period}-${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+
+          // Show success feedback
+          setExportFeedback('Exported!');
+          if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+          feedbackTimerRef.current = setTimeout(() => setExportFeedback(null), 2500);
+        },
+        onError: (err: unknown) => {
+          const message =
+            err instanceof Error ? err.message : 'Export failed';
+          if (onError) {
+            onError(message);
+          }
+          // Reset feedback
+          setExportFeedback(null);
+        },
+      });
+    },
+    [exportRequests, onError],
+  );
 
   const stageColumns = departments.map((d) => d.slug);
   const allColumns = ['requestNumber', 'carNumber', 'clientName', 'status', 'progress', ...stageColumns];
@@ -131,6 +176,60 @@ export function TrackerToolbar({
       </div>
 
       <div className={styles.toolbarRight}>
+        {/* Export Button — only for super_admin and admin */}
+        {(userRole === 'super_admin' || userRole === 'admin') && (
+          <div className={styles.exportPopover} ref={exportRef}>
+            <button
+              className={`${styles.exportButton} ${exportMenuOpen ? styles.active : ''}`}
+              onClick={() => setExportMenuOpen((v) => !v)}
+              disabled={isExporting}
+              aria-label="Export requests"
+            >
+              {isExporting ? (
+                <>
+                  <span className={styles.exportSpinner} aria-hidden="true" />
+                  Exporting...
+                </>
+              ) : exportFeedback ? (
+                <>{exportFeedback}</>
+              ) : (
+                <>
+                  <Download size={16} />
+                  Export
+                </>
+              )}
+            </button>
+            {exportMenuOpen && (
+              <div className={styles.exportDropdown}>
+                <button
+                  className={styles.exportOption}
+                  onClick={() => handleExport('week')}
+                >
+                  Last Week
+                </button>
+                <button
+                  className={styles.exportOption}
+                  onClick={() => handleExport('month')}
+                >
+                  Last Month
+                </button>
+                <button
+                  className={styles.exportOption}
+                  onClick={() => handleExport('year')}
+                >
+                  Last Year
+                </button>
+                <button
+                  className={styles.exportOption}
+                  onClick={() => handleExport('all')}
+                >
+                  All Time
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Column Visibility */}
         <div className={styles.columnVisibilityPopover} ref={columnRef}>
           <button

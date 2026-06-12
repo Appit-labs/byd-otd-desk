@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         access_token: z.string(),
         user: z.object({
           id: z.number(),
-          username: z.string(),
+          username: z.string().optional(),
           full_name: z.string().optional(),
           role: z.custom<UserRole>(),
           department_id: z.number().optional().nullable(),
@@ -51,7 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Normalize snake_case to camelCase for the frontend
       const user: User = {
         id: validated.user.id,
-        username: validated.user.username,
+        username: validated.user.username || validated.user.full_name || '',
         fullName: validated.user.full_name,
         role: validated.user.role,
         department_id: validated.user.department_id ?? undefined,

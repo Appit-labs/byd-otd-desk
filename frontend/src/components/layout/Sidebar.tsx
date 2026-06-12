@@ -2,7 +2,6 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Car, Eye, Settings, Menu, X, LogOut } from 'lucide-react';
 import { useAuthStore, getRoleBasedDefaultPath } from '@/stores/auth.store';
 import type { UserRole } from '@/types';
-import miniLogo from '@/assets/logos/BYD-OTD-Desk_mini-logo.png';
 import fullLogo from '@/assets/logos/BYD-OTP-DESK_full-logo.png';
 import styles from './Sidebar.module.css';
 
@@ -89,8 +88,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       >
         {/* Logo */}
         <NavLink to={getRoleBasedDefaultPath(user?.role)} className={styles.logo}>
-          <img src={miniLogo} alt="BYD" className={styles.logoMini} />
-          <img src={fullLogo} alt="BYD OTD Desk" className={styles.logoFull} />
+          <img src={fullLogo} alt="BYD OTD Desk" className={styles.logoImg} />
         </NavLink>
 
         {/* Top nav items */}

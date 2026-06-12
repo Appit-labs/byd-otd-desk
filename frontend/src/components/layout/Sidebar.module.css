@@ -40,30 +40,18 @@
   width: 100%;
 }
 
-.logoMini {
+.logoImg {
   display: block;
-  height: 36px;
-  width: auto;
+  height: auto;
+  width: 48px;
+  max-width: 100%;
   filter: brightness(0) invert(1);
   transition: all var(--transition-base);
 }
 
-.logoFull {
-  display: none;
-  height: 30px;
-  width: auto;
-  filter: brightness(0) invert(1);
-  transition: all var(--transition-base);
-}
-
-.sidebar:hover .logoMini,
-.sidebar.open .logoMini {
-  display: none;
-}
-
-.sidebar:hover .logoFull,
-.sidebar.open .logoFull {
-  display: block;
+.sidebar:hover .logoImg,
+.sidebar.open .logoImg {
+  width: 140px;
 }
 
 /* ── Nav ───────────────────────────────────────────── */
@@ -261,13 +249,8 @@
     padding: var(--spacing-3) var(--spacing-3);
   }
 
-  .logoMini {
-    display: none;
-  }
-
-  .logoFull {
-    display: block;
-    height: 30px;
+  .logoImg {
+    width: 140px;
   }
 
   .overlay {

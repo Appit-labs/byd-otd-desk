@@ -15,7 +15,7 @@ export interface User {
   id: number;
   username: string;
   fullName?: string;
-  department: string;
+  department?: string;
   department_id?: number;
   role: UserRole;
   is_active?: boolean;

@@ -19,38 +19,51 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   isLoading: false,
 
-  login: async (department: string, username: string, password: string) => {
+  login: async (_department: string, username: string, password: string) => {
     set({ isLoading: true });
 
     try {
+      // The backend LoginDto expects { username, password, departmentId? }
+      // departmentId is optional — will fallback to user's own department if omitted
       const response = await api.post('/v1/auth/login', {
-        department,
         username,
         password,
       });
 
-      const { accessToken, user } = response.data;
+      // Response is wrapped by interceptor: { success, data: { access_token, user } }
+      const body = response.data.data ?? response.data;
+
+      const { access_token, user: rawUser } = body;
 
       const loginResponseSchema = z.object({
-        accessToken: z.string(),
+        access_token: z.string(),
         user: z.object({
           id: z.number(),
           username: z.string(),
           full_name: z.string().optional(),
           role: z.custom<UserRole>(),
-          department: z.string(),
-          department_id: z.number().optional(),
+          department_id: z.number().optional().nullable(),
         }),
       });
 
-      const validated = loginResponseSchema.parse({ accessToken, user });
+      const validated = loginResponseSchema.parse({ access_token, user: rawUser });
 
-      localStorage.setItem('auth_token', validated.accessToken);
-      localStorage.setItem('auth_user', JSON.stringify(validated.user));
+      // Normalize snake_case to camelCase for the frontend
+      const user: User = {
+        id: validated.user.id,
+        username: validated.user.username,
+        fullName: validated.user.full_name,
+        role: validated.user.role,
+        department_id: validated.user.department_id ?? undefined,
+        department: validated.user.full_name ?? '',
+      };
+
+      localStorage.setItem('auth_token', validated.access_token);
+      localStorage.setItem('auth_user', JSON.stringify(user));
 
       set({
-        user: validated.user,
-        token: validated.accessToken,
+        user,
+        token: validated.access_token,
         isAuthenticated: true,
         isLoading: false,
       });

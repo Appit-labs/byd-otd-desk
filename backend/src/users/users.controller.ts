@@ -67,4 +67,14 @@ export class UsersController {
     await this.usersService.deactivate(+id);
     return { message: 'User deactivated' };
   }
+
+  @Patch(':id/status')
+  @Roles('super_admin')
+  @ApiOperation({ summary: 'Toggle user active status' })
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() body: { is_active: boolean },
+  ) {
+    return this.usersService.updateStatus(+id, body.is_active);
+  }
 }

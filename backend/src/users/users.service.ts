@@ -67,4 +67,13 @@ export class UsersService {
     }
     await this.usersRepository.update(id, { isActive: false });
   }
+
+  async updateStatus(id: number, isActive: boolean): Promise<User> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    await this.usersRepository.update(id, { isActive });
+    return this.findById(id) as Promise<User>;
+  }
 }

@@ -14,7 +14,7 @@ interface PreviewFiltersProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
+  { value: 'all', label: 'All Statuses' },
   { value: 'not_started', label: 'Not Started' },
   { value: 'pending', label: 'Pending' },
   { value: 'on_hold', label: 'On Hold' },
@@ -22,7 +22,7 @@ const STATUS_OPTIONS = [
 ];
 
 const DATE_OPTIONS = [
-  { value: '', label: 'All Time' },
+  { value: 'all', label: 'All Time' },
   { value: 'today', label: 'Today' },
   { value: 'week', label: 'This Week' },
   { value: 'month', label: 'This Month' },
@@ -34,7 +34,7 @@ export function PreviewFilters({
   onFiltersChange,
 }: PreviewFiltersProps) {
   const departmentOptions = [
-    { value: '', label: 'All Departments' },
+    { value: 'all', label: 'All Departments' },
     ...departments.map((d) => ({
       value: String(d.id),
       label: d.name,

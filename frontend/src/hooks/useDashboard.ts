@@ -63,7 +63,9 @@ export function usePipelineSummary() {
     queryFn: async () => {
       const response = await api.get('/v1/dashboard/pipeline-summary');
       const body = response.data;
-      return (body.data ?? body) as PipelineStage[];
+      const unwrapped = body.data ?? body;
+      // Backend returns { stages: [...] }, extract the array
+      return (unwrapped.stages ?? unwrapped) as PipelineStage[];
     },
   });
 }

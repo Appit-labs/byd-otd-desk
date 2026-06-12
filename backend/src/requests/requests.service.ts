@@ -94,19 +94,21 @@ export class RequestsService {
       qb.andWhere('r.sellerId = :sellerId', { sellerId: query.sellerId });
     }
 
-    // Sort
-    const sortBy = query.sortBy ?? 'created_at';
+    // Sort — accepts both snake_case (API convention) and camelCase (entity properties)
+    const sortBy = query.sortBy ?? 'createdAt';
     const sortOrder = query.sortOrder ?? 'DESC';
-    const allowedSortColumns = [
-      'created_at',
-      'request_number',
-      'car_number',
-      'client_name',
-      'status',
-    ];
-    const safeSortBy = allowedSortColumns.includes(sortBy)
-      ? sortBy
-      : 'created_at';
+    const columnMap: Record<string, string> = {
+      created_at: 'createdAt',
+      request_number: 'requestNumber',
+      car_number: 'carNumber',
+      client_name: 'clientName',
+      createdAt: 'createdAt',
+      requestNumber: 'requestNumber',
+      carNumber: 'carNumber',
+      clientName: 'clientName',
+      status: 'status',
+    };
+    const safeSortBy = columnMap[sortBy] || 'createdAt';
     const safeSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
 
     qb.orderBy(`r.${safeSortBy}`, safeSortOrder);

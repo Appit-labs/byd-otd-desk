@@ -4,7 +4,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'motion/react';
-import { Eye, EyeOff, Car } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
+import fullLogo from '@/assets/logos/BYD-OTP-DESK_full-logo.png';
 import { useAuthStore, getRoleBasedDefaultPath } from '@/stores/auth.store';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -122,7 +123,11 @@ export function LoginPage() {
         transition={{ duration: 0.4, ease: 'easeOut' }}
       >
         <div className={styles.header}>
-          <Car size={32} color="var(--color-accent)" style={{ margin: '0 auto 12px' }} />
+          <img
+            src={fullLogo}
+            alt="BYD OTD Desk"
+            style={{ height: 40, margin: '0 auto 16px', filter: 'brightness(0) invert(1)' }}
+          />
           <h1 className={styles.title}>BYD OTD Desk</h1>
           <p className={styles.subtitle}>Sign in to your account</p>
         </div>

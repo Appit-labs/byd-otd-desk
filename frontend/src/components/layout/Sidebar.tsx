@@ -2,6 +2,8 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Car, Eye, Settings, Menu, X } from 'lucide-react';
 import { useAuthStore, getRoleBasedDefaultPath } from '@/stores/auth.store';
 import type { UserRole } from '@/types';
+import miniLogo from '@/assets/logos/BYD-OTD-Desk_mini-logo.png';
+import fullLogo from '@/assets/logos/BYD-OTP-DESK_full-logo.png';
 import styles from './Sidebar.module.css';
 
 interface NavItemConfig {
@@ -11,7 +13,7 @@ interface NavItemConfig {
   allowedRoles: UserRole[];
 }
 
-const navItems: NavItemConfig[] = [
+const topNavItems: NavItemConfig[] = [
   {
     path: '/dashboard',
     label: 'Dashboard',
@@ -30,6 +32,9 @@ const navItems: NavItemConfig[] = [
     icon: <Eye size={20} />,
     allowedRoles: ['super_admin', 'admin', 'department_user', 'viewer'],
   },
+];
+
+const bottomNavItems: NavItemConfig[] = [
   {
     path: '/settings',
     label: 'Settings',
@@ -46,7 +51,11 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
 
-  const visibleItems = navItems.filter(
+  const visibleTopItems = topNavItems.filter(
+    (item) => user && item.allowedRoles.includes(user.role)
+  );
+
+  const visibleBottomItems = bottomNavItems.filter(
     (item) => user && item.allowedRoles.includes(user.role)
   );
 
@@ -69,15 +78,23 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}
       >
         <NavLink to={getRoleBasedDefaultPath(user?.role)} className={styles.logo}>
-          <span className={styles.logoText}>BYD</span>
+          <img
+            src={miniLogo}
+            alt="BYD OTD Desk"
+            className={styles.logoMini}
+          />
+          <img
+            src={fullLogo}
+            alt="BYD OTD Desk"
+            className={styles.logoFull}
+          />
         </NavLink>
 
         <nav className={styles.nav}>
-          {visibleItems.map((item) => (
+          {visibleTopItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              onClick={onToggle}
               className={({ isActive }) =>
                 `${styles.navItem} ${isActive ? styles.active : ''}`
               }
@@ -87,6 +104,23 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             </NavLink>
           ))}
         </nav>
+
+        {visibleBottomItems.length > 0 && (
+          <nav className={styles.navBottom}>
+            {visibleBottomItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+              >
+                <span className={styles.navIcon}>{item.icon}</span>
+                <span className={styles.navLabel}>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        )}
       </aside>
     </>
   );

@@ -26,18 +26,35 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
   height: 40px;
   margin-bottom: var(--spacing-8);
   flex-shrink: 0;
+  padding: 0 var(--spacing-2);
+  overflow: hidden;
 }
 
-.logoText {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: var(--color-accent);
-  white-space: nowrap;
+.logoMini {
+  display: block;
+  height: 28px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.logoFull {
+  display: none;
+  height: 24px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.sidebar:hover .logoMini,
+.sidebar.open .logoMini {
+  display: none;
+}
+
+.sidebar:hover .logoFull,
+.sidebar.open .logoFull {
+  display: block;
 }
 
 .nav {
@@ -47,6 +64,14 @@
   width: 100%;
   padding: 0 var(--spacing-3);
   flex: 1;
+}
+
+.navBottom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  width: 100%;
+  padding: 0 var(--spacing-3);
 }
 
 .navItem {

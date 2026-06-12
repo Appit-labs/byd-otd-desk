@@ -98,20 +98,6 @@ export function TrackerTable({
     [toggleExpand]
   );
 
-  if (isLoading && requests.length === 0) {
-    return (
-      <div className={styles.tableWrapper}>
-        <div style={{ padding: 'var(--spacing-3)' }}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className={styles.skeletonRow}>
-              <Skeleton variant="tableRow" width="100%" height="20px" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const canSelect = userRole === 'super_admin' || userRole === 'department_user';
 
   const visibleStageCols = useMemo(
@@ -132,6 +118,20 @@ export function TrackerTable({
     (columnVisibility.status !== false ? 1 : 0) +
     (columnVisibility.progress !== false ? 1 : 0) +
     visibleStageCols.length;
+
+  if (isLoading && requests.length === 0) {
+    return (
+      <div className={styles.tableWrapper}>
+        <div style={{ padding: 'var(--spacing-3)' }}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className={styles.skeletonRow}>
+              <Skeleton variant="tableRow" width="100%" height="20px" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -55,6 +55,7 @@
 .sidebar:hover .logoFull,
 .sidebar.open .logoFull {
   display: block;
+  height: 32px;
 }
 
 .nav {

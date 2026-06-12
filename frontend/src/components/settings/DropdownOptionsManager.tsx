@@ -40,14 +40,14 @@ export function DropdownOptionsManager({
   const options =
     (settings as Record<string, SettingsOption[]> | undefined)?.[settingKey] ?? [];
 
-  const activeOptions = options.filter((opt) => opt.is_active);
-  const deprecatedOptions = options.filter((opt) => !opt.is_active);
+  const activeOptions = options.filter((opt) => opt.isActive);
+  const deprecatedOptions = options.filter((opt) => !opt.isActive);
 
   const sortedActive = [...activeOptions].sort(
-    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+    (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
   );
   const sortedDeprecated = [...deprecatedOptions].sort(
-    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+    (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
   );
 
   const handleAdd = () => {

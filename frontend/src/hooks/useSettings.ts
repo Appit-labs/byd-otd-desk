@@ -5,8 +5,8 @@ export interface SettingsOption {
   id: number;
   label: string;
   value: string;
-  is_active: boolean;
-  sort_order: number;
+  isActive: boolean;
+  sortOrder: number;
 }
 
 interface SettingItem {

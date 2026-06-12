@@ -18,7 +18,7 @@ export interface User {
   department?: string;
   department_id?: number;
   role: UserRole;
-  is_active?: boolean;
+  isActive?: boolean;
 }
 
 // Department moved to request.ts — export from there

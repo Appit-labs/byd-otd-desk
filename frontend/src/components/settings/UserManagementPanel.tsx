@@ -159,7 +159,7 @@ export function UserManagementPanel() {
   };
 
   const handleToggleStatus = (user: User) => {
-    const isActive = user.is_active !== false;
+    const isActive = user.isActive !== false;
     const label = isActive ? 'deactivate' : 'activate';
     const confirmed = window.confirm(
       `Are you sure you want to ${label} user "${user.fullName ?? user.username}"?`
@@ -233,7 +233,7 @@ export function UserManagementPanel() {
             </tr>
           )}
           {filteredUsers.map((user) => {
-            const isActive = user.is_active !== false;
+            const isActive = user.isActive !== false;
             return (
               <tr key={user.id}>
                 <td className={styles.tableCellName}>

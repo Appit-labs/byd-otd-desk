@@ -1,8 +1,7 @@
-import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Car, Eye, Settings, Menu, X, Plus, LogOut } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { LayoutDashboard, Car, Eye, Settings, Menu, X, LogOut } from 'lucide-react';
 import { useAuthStore, getRoleBasedDefaultPath } from '@/stores/auth.store';
 import type { UserRole } from '@/types';
-import miniLogo from '@/assets/logos/BYD-OTD-Desk_mini-logo.png';
 import fullLogo from '@/assets/logos/BYD-OTP-DESK_full-logo.png';
 import styles from './Sidebar.module.css';
 
@@ -60,7 +59,6 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
-  const navigate = useNavigate();
 
   const visibleTopItems = topNavItems.filter(
     (item) => user && item.allowedRoles.includes(user.role)
@@ -88,25 +86,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       <aside
         className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}
       >
-        {/* Wave decoration on right edge */}
-        <div className={styles.waveDecor} />
-
-        {/* Action button in wave protrusion */}
-        {user?.role === 'super_admin' && (
-          <button
-            className={styles.waveBtn}
-            onClick={() => navigate('/tracker')}
-            aria-label="New request"
-            title="New Request"
-          >
-            <Plus size={18} strokeWidth={2.5} />
-          </button>
-        )}
-
         {/* Logo */}
         <NavLink to={getRoleBasedDefaultPath(user?.role)} className={styles.logo}>
-          <img src={miniLogo} alt="BYD" className={styles.logoMini} />
-          <img src={fullLogo} alt="BYD OTD Desk" className={styles.logoFull} />
+          <img src={fullLogo} alt="BYD OTD Desk" className={styles.logoImg} />
         </NavLink>
 
         {/* Top nav items */}

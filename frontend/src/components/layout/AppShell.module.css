@@ -6,7 +6,7 @@
     "topbar"
     "main";
   min-height: 100vh;
-  padding-left: 64px;
+  padding-left: calc(64px + var(--spacing-3) * 2);
 }
 
 .topbarArea {

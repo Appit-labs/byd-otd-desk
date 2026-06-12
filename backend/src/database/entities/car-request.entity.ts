@@ -4,10 +4,12 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity.js';
 import { SettingOption } from './setting-option.entity.js';
+import { RequestStageTransition } from './request-stage-transition.entity.js';
 
 export enum RequestStatus {
   NOT_STARTED = 'not_started',
@@ -93,4 +95,7 @@ export class CarRequest {
 
   @Column({ name: 'completed_at', nullable: true })
   completedAt: Date;
+
+  @OneToMany(() => RequestStageTransition, (transition) => transition.request)
+  transitions: RequestStageTransition[];
 }

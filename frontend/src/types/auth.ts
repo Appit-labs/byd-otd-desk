@@ -14,14 +14,14 @@ export interface LoginResponse {
 export interface User {
   id: number;
   username: string;
+  fullName?: string;
   department: string;
+  department_id?: number;
   role: UserRole;
+  is_active?: boolean;
 }
 
-export interface Department {
-  id: number;
-  name: string;
-}
+// Department moved to request.ts — export from there
 
 export interface ApiError {
   message: string;

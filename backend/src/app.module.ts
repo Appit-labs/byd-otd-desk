@@ -15,6 +15,7 @@ import { CarRequest } from './database/entities/car-request.entity.js';
 import { RequestStageTransition } from './database/entities/request-stage-transition.entity.js';
 import { Setting } from './database/entities/setting.entity.js';
 import { SettingOption } from './database/entities/setting-option.entity.js';
+import { SeederService } from './common/seeder.service.js';
 
 @Module({
   imports: [
@@ -44,6 +45,14 @@ import { SettingOption } from './database/entities/setting-option.entity.js';
       }),
       inject: [ConfigService],
     }),
+    TypeOrmModule.forFeature([
+      User,
+      Department,
+      CarRequest,
+      RequestStageTransition,
+      Setting,
+      SettingOption,
+    ]),
     AuthModule,
     UsersModule,
     DepartmentsModule,
@@ -52,6 +61,6 @@ import { SettingOption } from './database/entities/setting-option.entity.js';
     DashboardModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, SeederService],
 })
 export class AppModule {}

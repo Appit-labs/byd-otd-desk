@@ -3,19 +3,20 @@ FROM node:24-alpine AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+COPY frontend/package.json ./frontend/
+RUN npm ci --workspace=frontend
 
-COPY tsconfig.json ./
-COPY index.html ./
-COPY vite.config.ts ./
-COPY src ./src
+COPY frontend/tsconfig.json ./frontend/
+COPY frontend/index.html ./frontend/
+COPY frontend/vite.config.ts ./frontend/
+COPY frontend/src ./frontend/src
 
-RUN npm run build
+RUN npm run build --workspace=frontend
 
 FROM nginx:alpine
 
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/frontend/dist /usr/share/nginx/html
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

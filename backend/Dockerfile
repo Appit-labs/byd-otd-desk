@@ -3,21 +3,23 @@ FROM node:24-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+COPY backend/package.json ./backend/
+RUN npm ci --workspace=backend
 
-COPY tsconfig.json tsconfig.build.json nest-cli.json ./
-COPY src ./src
-RUN npm run build
+COPY backend/tsconfig.json backend/tsconfig.build.json backend/nest-cli.json ./backend/
+COPY backend/src ./backend/src
+RUN npm run build --workspace=backend
 
 FROM node:24-alpine AS production
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --production
+COPY backend/package.json ./backend/
+RUN npm ci --workspace=backend --production
 
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/backend/dist ./backend/dist
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "backend/dist/main.js"]

@@ -1,11 +1,8 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Param } from '@nestjs/common';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { DepartmentsService } from './departments.service.js';
 
 @ApiTags('Departments')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
 @Controller({ path: 'departments', version: '1' })
 export class DepartmentsController {
   constructor(private departmentsService: DepartmentsService) {}

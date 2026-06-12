@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Sidebar } from './Sidebar';
-import { TopBar } from './TopBar';
 import styles from './AppShell.module.css';
 
 export function AppShell() {
@@ -15,9 +14,6 @@ export function AppShell() {
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen((v) => !v)}
       />
-      <div className={styles.topbarArea}>
-        <TopBar />
-      </div>
       <main className={styles.mainArea}>
         <AnimatePresence mode="wait">
           <motion.div

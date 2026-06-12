@@ -1,23 +1,14 @@
 .shell {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
-  grid-template-areas:
-    "topbar"
-    "main";
+  display: flex;
   min-height: 100vh;
   padding-left: calc(64px + var(--spacing-3) * 2);
 }
 
-.topbarArea {
-  grid-area: topbar;
-}
-
 .mainArea {
-  grid-area: main;
+  flex: 1;
   padding: var(--spacing-6);
   overflow-y: auto;
-  min-height: calc(100vh - 56px);
+  min-height: 100vh;
 }
 
 @media (max-width: 1024px) {

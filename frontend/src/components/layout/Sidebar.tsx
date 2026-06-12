@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Car, Eye, Settings, Menu, X, Plus, LogOut } from 'lucide-react';
 import { useAuthStore, getRoleBasedDefaultPath } from '@/stores/auth.store';
 import type { UserRole } from '@/types';
+import miniLogo from '@/assets/logos/BYD-OTD-Desk_mini-logo.png';
 import fullLogo from '@/assets/logos/BYD-OTP-DESK_full-logo.png';
 import styles from './Sidebar.module.css';
 
@@ -42,11 +43,6 @@ const bottomNavItems: NavItemConfig[] = [
   },
 ];
 
-interface SidebarProps {
-  isOpen: boolean;
-  onToggle: () => void;
-}
-
 function roleLabel(role: UserRole): string {
   switch (role) {
     case 'super_admin': return 'Super Admin';
@@ -56,53 +52,26 @@ function roleLabel(role: UserRole): string {
   }
 }
 
+interface SidebarProps {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
 
-  const visibleTop = topNavItems.filter(
+  const visibleTopItems = topNavItems.filter(
     (item) => user && item.allowedRoles.includes(user.role)
   );
-  const visibleBottom = bottomNavItems.filter(
+
+  const visibleBottomItems = bottomNavItems.filter(
     (item) => user && item.allowedRoles.includes(user.role)
   );
 
   return (
     <>
-      {/* SVG clip path for fluid wave shape */}
-      <svg width="0" height="0" style={{ position: 'absolute' }}>
-        <defs>
-          <clipPath id="sidebar-wave" clipPathUnits="objectBoundingBox">
-            <path d="
-              M 0.08,0
-              L 0.88,0
-              C 0.92,0.03 0.96,0.05 0.95,0.07
-              C 0.93,0.09 0.86,0.11 0.78,0.10
-              C 0.7,0.09 0.62,0.07 0.58,0.06
-              C 0.54,0.05 0.52,0.04 0.54,0.03
-              L 0.78,0.08
-              C 0.82,0.10 0.88,0.12 0.94,0.13
-              L 1,0.14
-              C 0.96,0.17 0.88,0.19 0.78,0.18
-              C 0.68,0.17 0.6,0.15 0.56,0.14
-              C 0.52,0.13 0.50,0.13 0.50,0.14
-              C 0.50,0.16 0.56,0.18 0.68,0.19
-              C 0.74,0.20 0.82,0.20 0.90,0.19
-              C 0.94,0.18 0.98,0.16 1,0.15
-              L 1,0.90
-              C 0.98,0.95 0.94,0.98 0.88,1
-              L 0.08,1
-              C 0.04,1 0,0.96 0,0.92
-              C 0,0.50 0,0.50 0,0.08
-              C 0,0.04 0.04,0 0.08,0
-              Z
-            " />
-          </clipPath>
-        </defs>
-      </svg>
-
-      {/* Mobile hamburger */}
       <button
         className={styles.hamburger}
         onClick={onToggle}
@@ -111,47 +80,38 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         {isOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* Mobile overlay */}
-      {isOpen && <div className={styles.overlay} onClick={onToggle} />}
-
-      {/* Fluid wave action button */}
-      {user?.role === 'super_admin' && (
-        <button
-          className={styles.actionButton}
-          onClick={() => navigate('/tracker')}
-          aria-label="New request"
-          title="New Request"
-        >
-          <Plus size={24} strokeWidth={2.5} />
-        </button>
+      {/* Mobile overlay backdrop */}
+      {isOpen && (
+        <div className={styles.overlay} onClick={onToggle} />
       )}
 
-      {/* Sidebar */}
-      <aside className={`${styles.sidebar} ${isOpen ? styles.mobileOpen : ''}`}>
+      <aside
+        className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}
+      >
+        {/* Wave decoration on right edge */}
+        <div className={styles.waveDecor} />
+
+        {/* Action button in wave protrusion */}
+        {user?.role === 'super_admin' && (
+          <button
+            className={styles.waveBtn}
+            onClick={() => navigate('/tracker')}
+            aria-label="New request"
+            title="New Request"
+          >
+            <Plus size={18} strokeWidth={2.5} />
+          </button>
+        )}
+
         {/* Logo */}
         <NavLink to={getRoleBasedDefaultPath(user?.role)} className={styles.logo}>
+          <img src={miniLogo} alt="BYD" className={styles.logoMini} />
           <img src={fullLogo} alt="BYD OTD Desk" className={styles.logoFull} />
         </NavLink>
 
-        {/* Navigation */}
+        {/* Top nav items */}
         <nav className={styles.nav}>
-          {visibleTop.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `${styles.navItem} ${isActive ? styles.active : ''}`
-              }
-            >
-              <span className={styles.navIcon}>{item.icon}</span>
-              <span className={styles.navLabel}>{item.label}</span>
-            </NavLink>
-          ))}
-
-          {/* Spacer */}
-          <div style={{ flex: 1 }} />
-
-          {visibleBottom.map((item) => (
+          {visibleTopItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
@@ -165,10 +125,31 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           ))}
         </nav>
 
-        {/* User Profile */}
+        {/* Spacer pushes bottom items down */}
+        <div style={{ flex: 1 }} />
+
+        {/* Bottom nav items */}
+        {visibleBottomItems.length > 0 && (
+          <nav className={styles.navBottom}>
+            {visibleBottomItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+              >
+                <span className={styles.navIcon}>{item.icon}</span>
+                <span className={styles.navLabel}>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        )}
+
+        {/* User profile at bottom */}
         {user && (
           <div className={styles.profile}>
-            <div className={styles.avatar}>
+            <div className={styles.profileAvatar}>
               {user.username.charAt(0).toUpperCase()}
             </div>
             <div className={styles.profileInfo}>
@@ -176,12 +157,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               <span className={styles.profileRole}>{roleLabel(user.role)}</span>
             </div>
             <button
-              className={styles.logoutBtn}
+              className={styles.profileLogout}
               onClick={logout}
               aria-label="Log out"
               title="Log out"
             >
-              <LogOut size={16} />
+              <LogOut size={14} />
             </button>
           </div>
         )}

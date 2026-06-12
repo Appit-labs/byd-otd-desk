@@ -126,9 +126,8 @@ export function LoginPage() {
           <img
             src={fullLogo}
             alt="BYD OTD Desk"
-            style={{ height: 40, margin: '0 auto 16px', filter: 'brightness(0) invert(1)' }}
+            style={{ height: 60, margin: '0 auto 20px', filter: 'brightness(0) invert(1)' }}
           />
-          <h1 className={styles.title}>BYD OTD Desk</h1>
           <p className={styles.subtitle}>Sign in to your account</p>
         </div>
 

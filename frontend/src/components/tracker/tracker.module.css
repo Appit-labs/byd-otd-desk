@@ -335,8 +335,8 @@
 }
 
 .colStage {
-  min-width: 140px;
-  width: 140px;
+  min-width: 170px;
+  width: 170px;
 }
 
 /* Checkbox */
@@ -400,11 +400,9 @@
 
 /* Stage Cell */
 .stageCell {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-  min-height: 48px;
-  justify-content: center;
+  padding: var(--spacing-2) var(--spacing-3);
+  vertical-align: middle;
+  min-width: 170px;
 }
 
 .stageEmpty {
@@ -416,6 +414,7 @@
 .stageTimestamp {
   font-size: var(--text-xs);
   line-height: 1.4;
+  white-space: nowrap;
 }
 
 .stageTimestamp .label {
@@ -730,7 +729,7 @@
 /* ── Ready for columns ─────────────────────────────── */
 
 .colReady {
-  min-width: 150px;
+  min-width: 170px;
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   background: rgba(107, 122, 153, 0.04);
@@ -741,7 +740,11 @@
   vertical-align: middle;
   background: rgba(107, 122, 153, 0.02);
   border-left: 1px dashed rgba(30, 34, 48, 0.5);
-  min-width: 150px;
+  min-width: 170px;
+}
+
+.readyCell .stageTimestamp {
+  white-space: nowrap;
 }
 
 .readyEmpty {

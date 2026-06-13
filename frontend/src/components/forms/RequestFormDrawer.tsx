@@ -165,14 +165,14 @@ export function RequestFormDrawer({
   const onSubmit = form.handleSubmit(async (values) => {
     try {
       const payload = {
-        requestType: values.requestType,
+        requestTypeId: Number(values.requestType),
         carNumber: values.carNumber,
         bodyNumber: values.bodyNumber || undefined,
-        carColor: values.carColor || undefined,
-        carSpec: values.carSpec || undefined,
+        carColorId: values.carColor ? Number(values.carColor) : undefined,
+        carSpecId: values.carSpec ? Number(values.carSpec) : undefined,
         clientName: values.clientName,
         clientTel: values.clientTel,
-        paymentMethod: values.paymentMethod,
+        paymentMethodId: Number(values.paymentMethod),
         sellerId: Number(values.sellerId),
         remarks: values.remarks || undefined,
       };

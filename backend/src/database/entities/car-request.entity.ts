@@ -69,9 +69,9 @@ export class CarRequest {
   @Column({ name: 'seller_id' })
   sellerId: number;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => SettingOption)
   @JoinColumn({ name: 'seller_id' })
-  seller: User;
+  seller: SettingOption;
 
   @Column({ type: 'text', nullable: true })
   remarks: string;

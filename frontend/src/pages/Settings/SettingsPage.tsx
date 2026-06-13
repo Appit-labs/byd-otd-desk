@@ -11,6 +11,7 @@ const dropdownManagers = [
   { key: 'car_color', label: 'Car Colors' },
   { key: 'car_spec', label: 'Car Specs' },
   { key: 'payment_method', label: 'Payment Methods' },
+  { key: 'seller', label: 'Sellers' },
 ];
 
 export default function SettingsPage() {

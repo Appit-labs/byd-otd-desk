@@ -96,6 +96,15 @@ export class SeederService implements OnModuleInit {
           { label: 'Corporate', value: 'corporate', sortOrder: 4 },
         ],
       },
+      {
+        key: 'seller',
+        label: 'Seller',
+        options: [
+          { label: 'Ahmed Hassan', value: 'ahmed_hassan', sortOrder: 1 },
+          { label: 'Mohamed Ali', value: 'mohamed_ali', sortOrder: 2 },
+          { label: 'Sara Ibrahim', value: 'sara_ibrahim', sortOrder: 3 },
+        ],
+      },
     ];
 
     for (const settingData of settingsData) {

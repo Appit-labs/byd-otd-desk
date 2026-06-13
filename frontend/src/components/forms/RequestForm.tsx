@@ -3,13 +3,11 @@ import { useFormContext } from 'react-hook-form';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { useSettings } from '@/hooks/useSettings';
-import { useUsers } from '@/hooks/useUsers';
 import type { RequestFormValues } from './RequestFormDrawer';
 import styles from './request-form.module.css';
 
 export function RequestForm() {
   const { data: settings, isLoading: settingsLoading } = useSettings();
-  const { data: users = [], isLoading: usersLoading } = useUsers();
   const {
     register,
     formState: { errors },
@@ -57,14 +55,14 @@ export function RequestForm() {
 
   const sellerOptions = useMemo(
     () =>
-      users.map((user) => ({
-        value: String(user.id),
-        label: user.fullName ?? user.username,
+      (settings?.seller ?? []).map((opt) => ({
+        value: String(opt.id),
+        label: opt.label,
       })),
-    [users]
+    [settings?.seller]
   );
 
-  const isLoading = settingsLoading || usersLoading;
+  const isLoading = settingsLoading;
 
   if (isLoading) {
     return (

@@ -358,7 +358,7 @@ export class RequestsService {
       esc(r.clientName),
       esc(r.clientTel),
       esc(r.paymentMethod?.label ?? ''),
-      esc(r.seller?.fullName ?? ''),
+      esc(r.seller?.label ?? ''),
       esc(r.status),
       esc(r.createdAt?.toISOString() ?? ''),
       esc(r.completedAt?.toISOString() ?? ''),

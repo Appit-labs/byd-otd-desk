@@ -731,10 +731,15 @@
 /* ── Ready for columns ─────────────────────────────── */
 
 .colReady {
-  min-width: 170px;
+  min-width: 200px;
+  width: 200px;
   font-size: var(--text-xs);
-  color: var(--color-text-muted);
-  background: rgba(107, 122, 153, 0.04);
+  font-weight: 600;
+  color: var(--color-warning);
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 2px solid rgba(245, 158, 11, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .readyCell {

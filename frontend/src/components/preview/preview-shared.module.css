@@ -135,21 +135,20 @@
 
 .dotConnector {
   flex: 1;
-  height: 2px;
-  background: rgba(107, 122, 153, 0.2);
+  height: 3px;
+  background: rgba(107, 122, 153, 0.25);
   min-width: 8px;
+  border-radius: 2px;
 }
 
 .dotConnector.filled {
-  background: var(--color-accent);
+  background: var(--color-accent-alt);
+  box-shadow: 0 0 4px rgba(15, 244, 198, 0.3);
 }
 
 .dotConnector.current {
-  background: linear-gradient(
-    90deg,
-    var(--color-accent) 0%,
-    rgba(107, 122, 153, 0.2) 100%
-  );
+  background: var(--color-accent);
+  box-shadow: 0 0 4px rgba(0, 194, 255, 0.3);
 }
 
 .dot {

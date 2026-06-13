@@ -41,7 +41,8 @@
 
 .searchWrapper {
   position: relative;
-  min-width: 240px;
+  width: 320px;
+  flex-shrink: 0;
 }
 
 .searchIcon {
@@ -327,7 +328,8 @@
 }
 
 .colStatus {
-  width: 100px;
+  width: 120px;
+  white-space: nowrap;
 }
 
 .colProgress {

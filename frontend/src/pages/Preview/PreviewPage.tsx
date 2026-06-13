@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { RefreshCw, ClipboardList, AlertCircle } from 'lucide-react';
+import { RefreshCw, ClipboardList, AlertCircle, Search, LayoutGrid, Table2 } from 'lucide-react';
 import { useRequests } from '@/hooks/useRequests';
 import { useDepartments } from '@/hooks/useDepartments';
 import type { RequestFilters } from '@/hooks/useRequests';
@@ -100,7 +100,8 @@ export default function PreviewPage() {
     departmentId: '',
     dateRange: '',
   });
-
+  const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [completedExpanded, setCompletedExpanded] = useState(false);
 
   // Build request filters from UI state
@@ -111,10 +112,11 @@ export default function PreviewPage() {
       departmentId: filters.departmentId
         ? Number(filters.departmentId)
         : undefined,
+      search: search || undefined,
       ...dateFilter,
       limit: MAX_LIMIT,
     };
-  }, [filters.status, filters.departmentId, filters.dateRange]);
+  }, [filters.status, filters.departmentId, filters.dateRange, search]);
 
   const {
     data: requestsData,
@@ -162,17 +164,38 @@ export default function PreviewPage() {
 
   return (
     <div className={styles.page}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+      <div className={styles.headerRow}>
         <h1 className={styles.pageTitle}>Preview Board</h1>
-        <div className={styles.refreshIndicator}>
-          <RefreshCw size={12} />
-          <span>Auto-refreshes every 60s</span>
+        <div className={styles.headerActions}>
+          <div className={styles.searchWrapper}>
+            <Search size={14} className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              placeholder="Search requests..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className={styles.viewToggle}>
+            <button
+              className={`${styles.viewBtn} ${viewMode === 'cards' ? styles.viewBtnActive : ''}`}
+              onClick={() => setViewMode('cards')}
+              title="Card view"
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button
+              className={`${styles.viewBtn} ${viewMode === 'table' ? styles.viewBtnActive : ''}`}
+              onClick={() => setViewMode('table')}
+              title="Table view"
+            >
+              <Table2 size={16} />
+            </button>
+          </div>
+          <div className={styles.refreshIndicator}>
+            <RefreshCw size={12} />
+            <span>Auto-refreshes every 60s</span>
+          </div>
         </div>
       </div>
 
@@ -214,6 +237,58 @@ export default function PreviewPage() {
         </div>
       )}
 
+      {/* Table View */}
+      {viewMode === 'table' && !isLoading && hasRequests && (
+        <div className={styles.tableWrapper}>
+          <table className={styles.dataTable}>
+            <thead>
+              <tr>
+                <th>Request #</th>
+                <th>Car #</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              {requests.map((req) => (
+                <tr key={req.id} className={styles.tableRow}>
+                  <td className={styles.monoCell}>{req.requestNumber}</td>
+                  <td>{req.carNumber}</td>
+                  <td>{req.clientName}</td>
+                  <td>
+                    <span className={`${styles.tableStatus} ${styles[`tableStatus_${req.status}`]}`}>
+                      {req.status.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td>
+                    <div className={styles.tableProgress}>
+                      {[...departments]
+                        .sort((a, b) => a.pipelineOrder - b.pipelineOrder)
+                        .map((dept, i) => {
+                          const t = req.transitions ?? [];
+                          const done = t.some((x) => x.departmentId === dept.id && x.action === 'completed');
+                          const started = t.some((x) => x.departmentId === dept.id && x.action === 'started');
+                          return (
+                            <div
+                              key={dept.id}
+                              className={`${styles.tableDot} ${done ? styles.tableDotDone : started ? styles.tableDotActive : styles.tableDotEmpty}`}
+                              title={`${dept.name}: ${done ? 'Done' : started ? 'In Progress' : 'Pending'}`}
+                            />
+                          );
+                        })}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Card View */}
+      {viewMode === 'cards' && !isLoading && hasRequests && (
+        <>
       {/* Empty State */}
       {!isLoading && !hasRequests && !queryError && (
         <div className={styles.cardGrid}>
@@ -318,6 +393,8 @@ export default function PreviewPage() {
             </div>
           );
         })}
+        </>
+      )}
     </div>
   );
 }

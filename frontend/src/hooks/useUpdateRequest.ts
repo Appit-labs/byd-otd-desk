@@ -3,14 +3,14 @@ import api from '@/services/api';
 import type { CarRequest } from '@/types/request';
 
 export interface UpdateRequestPayload {
-  requestType?: string;
+  requestTypeId?: number;
   carNumber?: string;
   bodyNumber?: string;
-  carColor?: string;
-  carSpec?: string;
+  carColorId?: number;
+  carSpecId?: number;
   clientName?: string;
   clientTel?: string;
-  paymentMethod?: string;
+  paymentMethodId?: number;
   sellerId?: number;
   remarks?: string;
 }

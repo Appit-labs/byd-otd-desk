@@ -1,14 +1,9 @@
 import type { CarRequest, Department } from '@/types/request';
-import { StageActionButton } from './StageActionButton';
 import styles from './tracker.module.css';
 
 interface StageCellProps {
   department: Department;
   request: CarRequest;
-  userDepartmentId: number | undefined;
-  userRole: string;
-  onTransition: (requestId: number, departmentId: number, action: 'started' | 'completed') => void;
-  loadingRequestId: number | null;
 }
 
 function formatTimestamp(iso: string): string {
@@ -25,86 +20,33 @@ function formatTimestamp(iso: string): string {
   return `${time} ${day}`;
 }
 
-export function StageCell({
-  department,
-  request,
-  userDepartmentId,
-  userRole,
-  onTransition,
-  loadingRequestId,
-}: StageCellProps) {
-  const sortedTransitions = [...request.transitions].sort(
-    (a, b) => new Date(a.actionedAt).getTime() - new Date(b.actionedAt).getTime()
-  );
-
-  const departmentTransitions = sortedTransitions.filter(
+export function StageCell({ department, request }: StageCellProps) {
+  const deptTransitions = request.transitions.filter(
     (t) => t.departmentId === department.id
   );
 
-  const startTransition = departmentTransitions.find((t) => t.action === 'started');
-  const completeTransition = departmentTransitions.find((t) => t.action === 'completed');
+  const startTransition = deptTransitions.find((t) => t.action === 'started');
+  const completeTransition = deptTransitions.find((t) => t.action === 'completed');
 
-  const isStarted = !!startTransition;
-  const isCompleted = !!completeTransition;
-
-  // Role-aware action button visibility:
-  // - super_admin: sees buttons in ALL columns
-  // - department_user: sees buttons ONLY in their own department column
-  // - admin: sees NO action buttons (view-only, excluded here intentionally)
-  // - viewer: handled by parent (TrackerPage redirects before this renders)
-  const canUserActOnStage =
-    userRole === 'super_admin' ||
-    (userRole === 'department_user' && userDepartmentId === department.id);
-
-  const previousDepartmentTransitions = sortedTransitions.filter(
-    (t) => t.department.pipelineOrder < department.pipelineOrder
-  );
-  const previousCompleted = previousDepartmentTransitions.some((t) => t.action === 'completed');
-  const isFirst = previousDepartmentTransitions.length === 0;
-  const canAct = (isFirst || previousCompleted) && request.status !== 'on_hold' && !isCompleted;
-
-  if (!isStarted && !isCompleted) {
+  if (!startTransition && !completeTransition) {
     return (
       <td className={styles.stageCell}>
         <span className={styles.stageEmpty}>--</span>
-        {canUserActOnStage && (
-          <div className={styles.stageAction}>
-            <StageActionButton
-              departmentName={department.name}
-              action="started"
-              disabled={!canAct || loadingRequestId === request.id}
-              loading={loadingRequestId === request.id}
-              onClick={() => onTransition(request.id, department.id, 'started')}
-            />
-          </div>
-        )}
       </td>
     );
   }
 
-  if (isStarted && !isCompleted) {
+  if (startTransition && !completeTransition) {
     return (
       <td className={styles.stageCell}>
         <div className={`${styles.stageTimestamp} ${styles.stageStarted}`}>
           <span className={styles.label}>Started</span>
-          <span className={styles.time}> at {formatTimestamp(startTransition!.actionedAt)}</span>
+          <span className={styles.time}> at {formatTimestamp(startTransition.actionedAt)}</span>
         </div>
-        {canUserActOnStage && (
-          <div className={styles.stageAction}>
-            <StageActionButton
-              departmentName={department.name}
-              action="completed"
-              disabled={!canAct || loadingRequestId === request.id}
-              loading={loadingRequestId === request.id}
-              onClick={() => onTransition(request.id, department.id, 'completed')}
-            />
-          </div>
-        )}
       </td>
     );
   }
 
-  // Completed
   return (
     <td className={styles.stageCell}>
       <div className={`${styles.stageTimestamp} ${styles.stageCompleted}`}>

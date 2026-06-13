@@ -8,6 +8,7 @@ import type { RequestFilters } from '@/hooks/useRequests';
 import { TrackerToolbar } from '@/components/tracker/TrackerToolbar';
 import { TrackerTable } from '@/components/tracker/TrackerTable';
 import { BulkActionBar } from '@/components/tracker/BulkActionBar';
+import { SelectedRequestActions } from '@/components/tracker/SelectedRequestActions';
 import { RequestFormDrawer } from '@/components/forms/RequestFormDrawer';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -299,6 +300,22 @@ function TrackerPageInner({
         onError={showError}
       />
 
+      {/* Selected request action toolbar */}
+      {selectedIds.size === 1 && (() => {
+        const selectedRequest = requests.find((r) => r.id === [...selectedIds][0]);
+        if (!selectedRequest) return null;
+        return (
+          <SelectedRequestActions
+            request={selectedRequest}
+            departments={departments}
+            userRole={userRole}
+            userDepartmentId={userDepartmentId}
+            onTransition={handleTransition}
+            isLoading={loadingRequestId === selectedRequest.id}
+          />
+        );
+      })()}
+
       <TrackerTable
         requests={requests}
         departments={departments}
@@ -308,9 +325,6 @@ function TrackerPageInner({
         limit={limit}
         filters={filters}
         onFiltersChange={handleFiltersChange}
-        onTransition={handleTransition}
-        loadingRequestId={loadingRequestId}
-        userDepartmentId={userDepartmentId}
         userRole={userRole}
         columnVisibility={columnVisibility}
         selectedIds={selectedIds}

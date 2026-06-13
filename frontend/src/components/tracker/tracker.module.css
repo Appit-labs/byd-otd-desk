@@ -672,6 +672,61 @@
   accent-color: var(--color-accent);
 }
 
+/* ── Action Toolbar (above table for selected request) ── */
+
+.actionToolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  margin-bottom: var(--spacing-3);
+  background: rgba(0, 194, 255, 0.06);
+  border: 1px solid rgba(0, 194, 255, 0.15);
+  border-radius: var(--radius-lg);
+}
+
+.actionToolbarTitle {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.actionToolbarProgress {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.progressDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.progressDotDone {
+  background: var(--color-accent-alt);
+  box-shadow: 0 0 6px rgba(15, 244, 198, 0.4);
+}
+
+.progressDotActive {
+  background: var(--color-accent);
+  box-shadow: 0 0 8px rgba(0, 194, 255, 0.5);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.progressDotEmpty {
+  background: var(--color-border);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 /* Error Banner */
 .errorBanner {
   display: flex;

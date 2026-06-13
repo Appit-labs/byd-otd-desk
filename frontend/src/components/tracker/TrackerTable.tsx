@@ -17,9 +17,6 @@ interface TrackerTableProps {
   limit: number;
   filters: RequestFilters;
   onFiltersChange: (filters: RequestFilters) => void;
-  onTransition: (requestId: number, departmentId: number, action: 'started' | 'completed') => void;
-  loadingRequestId: number | null;
-  userDepartmentId: number | undefined;
   userRole: string;
   columnVisibility: Record<string, boolean>;
   selectedIds: Set<number>;
@@ -47,9 +44,6 @@ export function TrackerTable({
   limit,
   filters,
   onFiltersChange,
-  onTransition,
-  loadingRequestId,
-  userDepartmentId,
   userRole,
   columnVisibility,
   selectedIds,
@@ -273,10 +267,6 @@ export function TrackerTable({
                       key={dept.id}
                       department={dept}
                       request={req}
-                      userDepartmentId={userDepartmentId}
-                      userRole={userRole}
-                      onTransition={onTransition}
-                      loadingRequestId={loadingRequestId}
                     />
                   ))}
                 </tr>

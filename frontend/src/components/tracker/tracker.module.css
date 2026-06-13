@@ -727,6 +727,35 @@
   50% { opacity: 0.5; }
 }
 
+/* ── Ready for columns ─────────────────────────────── */
+
+.colReady {
+  min-width: 150px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  background: rgba(107, 122, 153, 0.04);
+}
+
+.readyCell {
+  padding: var(--spacing-2) var(--spacing-3);
+  vertical-align: middle;
+  background: rgba(107, 122, 153, 0.02);
+  border-left: 1px dashed rgba(30, 34, 48, 0.5);
+  min-width: 150px;
+}
+
+.readyEmpty {
+  color: var(--color-text-muted);
+  opacity: 0.3;
+  font-size: var(--text-xs);
+}
+
+.readyActive {
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+
 /* Error Banner */
 .errorBanner {
   display: flex;

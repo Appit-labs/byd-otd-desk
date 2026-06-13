@@ -5,6 +5,7 @@ import type { RequestFilters } from '@/hooks/useRequests';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { StageCell } from './StageCell';
+import { ReadyCell } from './ReadyCell';
 import { RequestDetailCard } from './RequestDetailCard';
 import styles from './tracker.module.css';
 
@@ -99,6 +100,28 @@ export function TrackerTable({
     [stageColumns, columnVisibility]
   );
 
+  // Interleave departments with "Ready for" columns
+  type PipelineColumn =
+    | { type: 'dept'; dept: Department }
+    | { type: 'ready'; prevDept: Department; nextDept: Department; key: string };
+
+  const pipelineColumns = useMemo((): PipelineColumn[] => {
+    const cols: PipelineColumn[] = [];
+    const visibleDepts = visibleStageCols;
+    for (let i = 0; i < visibleDepts.length; i++) {
+      cols.push({ type: 'dept', dept: visibleDepts[i] });
+      if (i < visibleDepts.length - 1) {
+        cols.push({
+          type: 'ready',
+          prevDept: visibleDepts[i],
+          nextDept: visibleDepts[i + 1],
+          key: `ready-${visibleDepts[i].id}-${visibleDepts[i + 1].id}`,
+        });
+      }
+    }
+    return cols;
+  }, [visibleStageCols]);
+
   const expandedRequest = expandedId !== null
     ? requests.find((r) => r.id === expandedId)
     : null;
@@ -111,7 +134,7 @@ export function TrackerTable({
     (columnVisibility.clientName !== false ? 1 : 0) +
     (columnVisibility.status !== false ? 1 : 0) +
     (columnVisibility.progress !== false ? 1 : 0) +
-    visibleStageCols.length;
+    pipelineColumns.length;
 
   if (isLoading && requests.length === 0) {
     return (
@@ -160,9 +183,9 @@ export function TrackerTable({
               {columnVisibility.progress !== false && (
                 <th className={styles.colProgress}>Progress</th>
               )}
-              {visibleStageCols.map((dept) => (
-                <th key={dept.id} className={styles.colStage}>
-                  {dept.name}
+              {pipelineColumns.map((col) => (
+                <th key={col.type === 'dept' ? `dept-${col.dept.id}` : col.key} className={col.type === 'dept' ? styles.colStage : styles.colReady}>
+                  {col.type === 'dept' ? col.dept.name : `Ready for ${col.nextDept.name}`}
                 </th>
               ))}
             </tr>
@@ -262,13 +285,22 @@ export function TrackerTable({
                       </div>
                     </td>
                   )}
-                  {visibleStageCols.map((dept) => (
-                    <StageCell
-                      key={dept.id}
-                      department={dept}
-                      request={req}
-                    />
-                  ))}
+                  {pipelineColumns.map((col) =>
+                    col.type === 'dept' ? (
+                      <StageCell
+                        key={`dept-${col.dept.id}`}
+                        department={col.dept}
+                        request={req}
+                      />
+                    ) : (
+                      <ReadyCell
+                        key={col.key}
+                        request={req}
+                        previousDept={col.prevDept}
+                        nextDept={col.nextDept}
+                      />
+                    )
+                  )}
                 </tr>
               ))
             )}

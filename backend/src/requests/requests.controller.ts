@@ -43,7 +43,7 @@ export class RequestsController {
   ) {}
 
   @Get()
-  @Roles('super_admin', 'admin', 'department_user')
+  @Roles('super_admin', 'admin', 'department_user', 'viewer')
   @ApiOperation({ summary: 'List all car requests (paginated, filterable)' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -62,7 +62,7 @@ export class RequestsController {
   }
 
   @Get(':id')
-  @Roles('super_admin', 'admin', 'department_user')
+  @Roles('super_admin', 'admin', 'department_user', 'viewer')
   @ApiOperation({ summary: 'Get car request by ID with transitions' })
   @ApiResponse({ status: 200, description: 'Car request found' })
   @ApiResponse({ status: 404, description: 'Request not found' })

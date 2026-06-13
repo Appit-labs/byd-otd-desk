@@ -21,38 +21,38 @@ export function RequestForm() {
 
   const requestTypeOptions = useMemo(
     () =>
-      (settings?.requestTypes ?? []).map((opt) => ({
+      (settings?.request_type ?? []).map((opt) => ({
         value: String(opt.id),
         label: opt.label,
       })),
-    [settings?.requestTypes]
+    [settings?.request_type]
   );
 
   const carColorOptions = useMemo(
     () =>
-      (settings?.carColors ?? []).map((opt) => ({
+      (settings?.car_color ?? []).map((opt) => ({
         value: String(opt.id),
         label: opt.label,
       })),
-    [settings?.carColors]
+    [settings?.car_color]
   );
 
   const carSpecOptions = useMemo(
     () =>
-      (settings?.carSpecs ?? []).map((opt) => ({
+      (settings?.car_spec ?? []).map((opt) => ({
         value: String(opt.id),
         label: opt.label,
       })),
-    [settings?.carSpecs]
+    [settings?.car_spec]
   );
 
   const paymentMethodOptions = useMemo(
     () =>
-      (settings?.paymentMethods ?? []).map((opt) => ({
+      (settings?.payment_method ?? []).map((opt) => ({
         value: String(opt.id),
         label: opt.label,
       })),
-    [settings?.paymentMethods]
+    [settings?.payment_method]
   );
 
   const sellerOptions = useMemo(

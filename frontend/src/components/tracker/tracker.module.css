@@ -335,8 +335,8 @@
 }
 
 .colStage {
-  min-width: 170px;
-  width: 170px;
+  min-width: 200px;
+  width: 200px;
 }
 
 /* Checkbox */
@@ -402,7 +402,9 @@
 .stageCell {
   padding: var(--spacing-2) var(--spacing-3);
   vertical-align: middle;
-  min-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stageEmpty {
@@ -740,7 +742,9 @@
   vertical-align: middle;
   background: rgba(107, 122, 153, 0.02);
   border-left: 1px dashed rgba(30, 34, 48, 0.5);
-  min-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .readyCell .stageTimestamp {

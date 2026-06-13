@@ -265,7 +265,7 @@ export default function PreviewPage() {
                     <div className={styles.tableProgress}>
                       {[...departments]
                         .sort((a, b) => a.pipelineOrder - b.pipelineOrder)
-                        .map((dept, i) => {
+                        .map((dept, _i) => {
                           const t = req.transitions ?? [];
                           const done = t.some((x) => x.departmentId === dept.id && x.action === 'completed');
                           const started = t.some((x) => x.departmentId === dept.id && x.action === 'started');

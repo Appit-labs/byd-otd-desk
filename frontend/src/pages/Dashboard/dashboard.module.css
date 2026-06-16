@@ -68,7 +68,7 @@
   grid-template-areas:
     "welcome    daily-requests    completed"
     "chart      chart             chart"
-    "pipeline   recent            .";
+    "pipeline   pipeline          recent";
 }
 
 /* Grid area assignments — assigned via inline styles on each child,

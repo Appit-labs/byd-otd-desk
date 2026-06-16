@@ -1,5 +1,3 @@
-import { spawnSync } from 'child_process';
-import * as path from 'path';
 import {
   Injectable,
   NotFoundException,
@@ -1125,51 +1123,105 @@ export class RequestsService {
     const fmtDate = (d: Date | null | undefined) =>
       d ? d.toISOString().split('T')[0] + ' ' + d.toTimeString().slice(0, 5) : '';
 
-    const data = items.map((r) => ({
-      requestNumber: r.requestNumber,
-      chassisNumber: r.chassisNumber,
-      requestType: r.requestType?.label ?? '',
-      brand: r.brand?.label ?? '',
-      model: r.model?.label ?? '',
-      variant: r.variant?.label ?? '',
-      exteriorColor: r.exteriorColor?.label ?? '',
-      interiorColor: r.interiorColor?.label ?? '',
-      vehicleLocation: r.vehicleLocation ?? '',
-      showroom: r.showroom?.label ?? '',
-      customerName: r.customerName,
-      customerPhone: r.customerPhone,
-      salesConsultant: r.salesConsultant?.label ?? '',
-      salesType: r.salesType?.label ?? '',
-      hasAccessories: r.hasAccessories ? 'Yes' : 'No',
-      hasGps: r.hasGps ? 'Yes' : 'No',
-      promiseDate: fmtDate(r.promiseDate),
-      status: r.status,
-      storageAt: fmtDate(r.storageAt),
-      vehicleReceivedAt: fmtDate(r.vehicleReceivedAt),
-      mechanicalCheckAt: fmtDate(r.mechanicalCheckCompletedAt),
-      pdiAt: fmtDate(r.pdiCompletedAt),
-      sentToAccessoriesAt: fmtDate(r.sentToAccessoriesAt),
-      accessoriesAt: fmtDate(r.accessoriesCompletedAt),
-      finalInspectionAt: fmtDate(r.finalInspectionAt),
-      finalInspectionOutcome: r.finalInspectionOutcome ?? '',
-      gpsConfirmedAt: fmtDate(r.gpsConfirmedAt),
-      registeredAt: fmtDate(r.registeredAt),
-      deliveredAt: fmtDate(r.deliveredAt),
-      createdAt: fmtDate(r.createdAt),
-      remarks: r.remarks ?? '',
-    }));
+    // ── Build XLSX with exceljs ──
+    const ExcelJS = await import('exceljs');
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('OTD Requests');
 
-    const scriptPath = path.join(__dirname, '..', '..', 'scripts', 'export-xlsx.py');
-    const logoPath = path.join(__dirname, '..', '..', '..', 'frontend', 'src', 'assets', 'logos', 'BYD-OTP-DESK_full-logo.png');
+    const DARK = 'FF1A1A2E';
+    const ACCENT = 'FF00C2FF';
+    const WHITE = 'FFFFFFFF';
+    const LIGHT_GRAY = 'FFF5F6FA';
+    const BORDER_GRAY = 'FFD1D5DB';
+    const TEXT_DARK = 'FF1F2937';
 
-    const input = JSON.stringify({ period, data, logoPath });
-    const proc = spawnSync('python3', [scriptPath], { input, maxBuffer: 50 * 1024 * 1024 });
+    const headers = [
+      'Request #', 'Chassis (VIN)', 'Type', 'Brand', 'Model', 'Variant',
+      'Ext. Color', 'Int. Color', 'Location', 'Showroom',
+      'Customer', 'Phone', 'Consultant', 'Sales Type',
+      'Acc.', 'GPS', 'Promise Date', 'Status',
+      'Storage', 'Received', 'Mech. Check', 'PDI',
+      'To Acc.', 'Accessories', 'Final Insp.', 'FI Outcome',
+      'GPS Done', 'Registered', 'Delivered', 'Created', 'Remarks',
+    ];
 
-    if (proc.error || proc.status !== 0) {
-      this.logger.error(`XLSX export failed: ${proc.stderr?.toString()}`);
-      throw new Error('Failed to generate XLSX file');
-    }
+    // Title row
+    ws.mergeCells('A2:AE2');
+    ws.getCell('A2').value = 'BYD OTD Desk — Order to Delivery Tracker';
+    ws.getCell('A2').font = { name: 'Calibri', size: 16, bold: true, color: { argb: DARK } };
+    ws.getRow(2).height = 28;
 
-    return proc.stdout;
+    const periodLabel: Record<string, string> = { week: 'This Week', month: 'This Month', year: 'This Year', all: 'All Time' };
+    ws.mergeCells('A3:AE3');
+    ws.getCell('A3').value = `Exported: ${periodLabel[period] ?? period} | Date: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} | Total: ${items.length} requests`;
+    ws.getCell('A3').font = { name: 'Calibri', size: 10, color: { argb: 'FF6B7280' } };
+    ws.getRow(3).height = 22;
+
+    // Header row
+    const HEADER_ROW = 5;
+    ws.getRow(HEADER_ROW).height = 36;
+    headers.forEach((h, i) => {
+      const cell = ws.getCell(HEADER_ROW, i + 1);
+      cell.value = h;
+      cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: WHITE } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.border = { bottom: { style: 'medium', color: { argb: ACCENT } } };
+    });
+
+    // Data rows
+    items.forEach((r, idx) => {
+      const row = HEADER_ROW + 1 + idx;
+      const vals = [
+        r.requestNumber, r.chassisNumber, r.requestType?.label ?? '', r.brand?.label ?? '',
+        r.model?.label ?? '', r.variant?.label ?? '', r.exteriorColor?.label ?? '',
+        r.interiorColor?.label ?? '', r.vehicleLocation ?? '', r.showroom?.label ?? '',
+        r.customerName, r.customerPhone, r.salesConsultant?.label ?? '', r.salesType?.label ?? '',
+        r.hasAccessories ? 'Yes' : 'No', r.hasGps ? 'Yes' : 'No',
+        fmtDate(r.promiseDate), r.status,
+        fmtDate(r.storageAt), fmtDate(r.vehicleReceivedAt), fmtDate(r.mechanicalCheckCompletedAt),
+        fmtDate(r.pdiCompletedAt), fmtDate(r.sentToAccessoriesAt), fmtDate(r.accessoriesCompletedAt),
+        fmtDate(r.finalInspectionAt), r.finalInspectionOutcome ?? '', fmtDate(r.gpsConfirmedAt),
+        fmtDate(r.registeredAt), fmtDate(r.deliveredAt), fmtDate(r.createdAt), r.remarks ?? '',
+      ];
+      vals.forEach((v, col) => {
+        const cell = ws.getCell(row, col + 1);
+        cell.value = v ?? '';
+        cell.font = { name: 'Calibri', size: 10, color: { argb: TEXT_DARK } };
+        cell.alignment = { vertical: 'middle' };
+        cell.border = {
+          top: { style: 'thin', color: { argb: BORDER_GRAY } },
+          bottom: { style: 'thin', color: { argb: BORDER_GRAY } },
+          left: { style: 'thin', color: { argb: BORDER_GRAY } },
+          right: { style: 'thin', color: { argb: BORDER_GRAY } },
+        };
+        if (idx % 2 === 1) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: LIGHT_GRAY } };
+        // Status color
+        if (col === 17) {
+          const s = String(v).toLowerCase();
+          if (s === 'active') cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF059669' } };
+          else if (s.includes('cancel')) cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFDC2626' } };
+          else if (s.includes('archived')) cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF6B7280' } };
+        }
+      });
+    });
+
+    // Column widths
+    [16,20,10,10,12,10,12,12,16,18,18,14,16,12,7,7,14,12,14,14,14,14,14,14,14,16,14,14,14,14,24].forEach((w, i) => {
+      ws.getColumn(i + 1).width = w;
+    });
+
+    // Freeze + filter
+    ws.views = [{ state: 'frozen', ySplit: HEADER_ROW }];
+    ws.autoFilter = { from: { row: HEADER_ROW, column: 1 }, to: { row: HEADER_ROW + items.length, column: headers.length } };
+
+    // Footer
+    const footerRow = HEADER_ROW + items.length + 2;
+    ws.mergeCells(1, footerRow, headers.length, footerRow);
+    ws.getCell(footerRow, 1).value = `BYD OTD Desk — Confidential | ${new Date().toLocaleDateString('en-GB')} | ${items.length} requests`;
+    ws.getCell(footerRow, 1).font = { name: 'Calibri', size: 8, color: { argb: 'FF9CA3AF' } };
+    ws.getCell(footerRow, 1).alignment = { horizontal: 'center' };
+
+    return Buffer.from(await wb.xlsx.writeBuffer());
   }
 }

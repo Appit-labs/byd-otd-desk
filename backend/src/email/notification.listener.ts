@@ -109,7 +109,8 @@ export class NotificationListener {
 
       // Dynamic role filtering based on request properties
       if (event === NOTIFICATION_EVENTS.MECHANICAL_CHECK_COMPLETE) {
-        targetRoles = payload.request.requestType === 'PDI' ? ['pdi'] : ['qc_nvs'];
+        const rtVal = payload.request.requestType?.toLowerCase();
+        targetRoles = (rtVal === 'pdi' || rtVal === 're_pdi') ? ['pdi'] : ['qc_nvs'];
       }
       if (event === NOTIFICATION_EVENTS.FINAL_INSPECTION_DONE) {
         targetRoles = payload.request.hasGps ? ['mechanical_check'] : ['registration'];

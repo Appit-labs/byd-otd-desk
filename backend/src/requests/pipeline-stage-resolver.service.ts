@@ -119,11 +119,11 @@ export function isFiArchiveOutcome(outcome: string): boolean {
 
 /**
  * Request type value to whether PDI applies.
- * - pdi → PDI stage applies; accessories stages apply only if accessories selected
- * - re_pdi / no_pdi → PDI and accessories stages skipped entirely
+ * - pdi / re_pdi → PDI stage applies; accessories stages apply if accessories selected
+ * - no_pdi → PDI stage skipped entirely
  */
 export function requestTypeHasPdi(requestTypeValue: string | undefined): boolean {
-  return requestTypeValue === 'pdi';
+  return requestTypeValue === 'pdi' || requestTypeValue === 're_pdi';
 }
 
 /**

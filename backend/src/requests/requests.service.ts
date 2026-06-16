@@ -261,7 +261,7 @@ export class RequestsService {
     // Read working_days from metadata, fall back to hardcoded defaults
     const baseDays =
       requestTypeOption.metadata?.working_days ??
-      (requestTypeOption.value === 'pdi' ? 7 : 2);
+      (requestTypeOption.value === 'pdi' || requestTypeOption.value === 're_pdi' ? 7 : 2);
 
     const hasAccessories = accessoryIds && accessoryIds.length > 0;
     const totalDays = hasAccessories ? baseDays + ACCESSORIES_EXTRA_DAYS : baseDays;
@@ -553,7 +553,7 @@ export class RequestsService {
 
     // Fire-and-forget notification: PDI if PDI request, else QC NVS
     const updated = await this.findById(id);
-    const isPdiRequest = (updated as any).requestType?.value === 'pdi';
+    const isPdiRequest = (updated as any).requestType?.value === 'pdi' || (updated as any).requestType?.value === 're_pdi';
     const notifyRole = isPdiRequest ? 'pdi' : 'qc_nvs';
     Promise.resolve()
       .then(() => this.emailService.notifyRole(notifyRole, 'mechanicalCheckComplete', updated))

@@ -85,31 +85,28 @@ export function TrackerToolbar({
   }, []);
 
   const handleExport = useCallback(
-    (period: string) => {
+    (period: string, format: 'csv' | 'xlsx' = 'csv') => {
       setExportMenuOpen(false);
-      exportRequests(period, {
-        onSuccess: (blob: Blob) => {
+      exportRequests({ period, format }, {
+        onSuccess: ({ blob, format: fmt }: { blob: Blob; format: string }) => {
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `byd-otd-requests-${period}-${new Date().toISOString().split('T')[0]}.csv`;
+          const ext = fmt === 'xlsx' ? 'xlsx' : 'csv';
+          a.download = `BYD-OTD-Requests-${period}-${new Date().toISOString().split('T')[0]}.${ext}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           window.URL.revokeObjectURL(url);
 
-          // Show success feedback
-          setExportFeedback('Exported!');
+          setExportFeedback(`${fmt.toUpperCase()} exported!`);
           if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
           feedbackTimerRef.current = setTimeout(() => setExportFeedback(null), 2500);
         },
         onError: (err: unknown) => {
           const message =
             err instanceof Error ? err.message : 'Export failed';
-          if (onError) {
-            onError(message);
-          }
-          // Reset feedback
+          if (onError) onError(message);
           setExportFeedback(null);
         },
       });
@@ -217,31 +214,18 @@ export function TrackerToolbar({
               )}
             </button>
             {exportMenuOpen && (
-              <div className={styles.exportDropdown}>
-                <button
-                  className={styles.exportOption}
-                  onClick={() => handleExport('week')}
-                >
-                  Last Week
-                </button>
-                <button
-                  className={styles.exportOption}
-                  onClick={() => handleExport('month')}
-                >
-                  Last Month
-                </button>
-                <button
-                  className={styles.exportOption}
-                  onClick={() => handleExport('year')}
-                >
-                  Last Year
-                </button>
-                <button
-                  className={styles.exportOption}
-                  onClick={() => handleExport('all')}
-                >
-                  All Time
-                </button>
+              <div className={styles.exportDropdown} style={{ minWidth: 220 }}>
+                <div style={{ padding: 'var(--spacing-1) var(--spacing-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Excel (XLSX)</div>
+                <button className={styles.exportOption} onClick={() => handleExport('week', 'xlsx')}>Last Week — XLSX</button>
+                <button className={styles.exportOption} onClick={() => handleExport('month', 'xlsx')}>Last Month — XLSX</button>
+                <button className={styles.exportOption} onClick={() => handleExport('year', 'xlsx')}>Last Year — XLSX</button>
+                <button className={styles.exportOption} onClick={() => handleExport('all', 'xlsx')}>All Time — XLSX</button>
+                <div style={{ borderTop: '1px solid var(--color-border)', margin: 'var(--spacing-1) 0' }} />
+                <div style={{ padding: 'var(--spacing-1) var(--spacing-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>CSV</div>
+                <button className={styles.exportOption} onClick={() => handleExport('week', 'csv')}>Last Week — CSV</button>
+                <button className={styles.exportOption} onClick={() => handleExport('month', 'csv')}>Last Month — CSV</button>
+                <button className={styles.exportOption} onClick={() => handleExport('year', 'csv')}>Last Year — CSV</button>
+                <button className={styles.exportOption} onClick={() => handleExport('all', 'csv')}>All Time — CSV</button>
               </div>
             )}
           </div>

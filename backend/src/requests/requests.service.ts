@@ -1,3 +1,5 @@
+import { spawnSync } from 'child_process';
+import * as path from 'path';
 import {
   Injectable,
   NotFoundException,
@@ -1092,5 +1094,82 @@ export class RequestsService {
     ].join('\n');
 
     return bom + csvContent;
+  }
+
+  async exportXlsx(period: ExportPeriod): Promise<Buffer> {
+    const now = new Date();
+    let dateFrom: Date | undefined;
+    switch (period) {
+      case 'week': dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); break;
+      case 'month': dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); break;
+      case 'year': dateFrom = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000); break;
+      default: dateFrom = undefined;
+    }
+
+    const qb = this.requestsRepository
+      .createQueryBuilder('r')
+      .leftJoinAndSelect('r.requestType', 'requestType')
+      .leftJoinAndSelect('r.brand', 'brand')
+      .leftJoinAndSelect('r.model', 'model')
+      .leftJoinAndSelect('r.variant', 'variant')
+      .leftJoinAndSelect('r.exteriorColor', 'exteriorColor')
+      .leftJoinAndSelect('r.interiorColor', 'interiorColor')
+      .leftJoinAndSelect('r.showroom', 'showroom')
+      .leftJoinAndSelect('r.salesConsultant', 'salesConsultant')
+      .leftJoinAndSelect('r.salesType', 'salesType')
+      .orderBy('r.createdAt', 'DESC');
+
+    if (dateFrom) qb.andWhere('r.createdAt >= :dateFrom', { dateFrom });
+    const items = await qb.getMany();
+
+    const fmtDate = (d: Date | null | undefined) =>
+      d ? d.toISOString().split('T')[0] + ' ' + d.toTimeString().slice(0, 5) : '';
+
+    const data = items.map((r) => ({
+      requestNumber: r.requestNumber,
+      chassisNumber: r.chassisNumber,
+      requestType: r.requestType?.label ?? '',
+      brand: r.brand?.label ?? '',
+      model: r.model?.label ?? '',
+      variant: r.variant?.label ?? '',
+      exteriorColor: r.exteriorColor?.label ?? '',
+      interiorColor: r.interiorColor?.label ?? '',
+      vehicleLocation: r.vehicleLocation ?? '',
+      showroom: r.showroom?.label ?? '',
+      customerName: r.customerName,
+      customerPhone: r.customerPhone,
+      salesConsultant: r.salesConsultant?.label ?? '',
+      salesType: r.salesType?.label ?? '',
+      hasAccessories: r.hasAccessories ? 'Yes' : 'No',
+      hasGps: r.hasGps ? 'Yes' : 'No',
+      promiseDate: fmtDate(r.promiseDate),
+      status: r.status,
+      storageAt: fmtDate(r.storageAt),
+      vehicleReceivedAt: fmtDate(r.vehicleReceivedAt),
+      mechanicalCheckAt: fmtDate(r.mechanicalCheckCompletedAt),
+      pdiAt: fmtDate(r.pdiCompletedAt),
+      sentToAccessoriesAt: fmtDate(r.sentToAccessoriesAt),
+      accessoriesAt: fmtDate(r.accessoriesCompletedAt),
+      finalInspectionAt: fmtDate(r.finalInspectionAt),
+      finalInspectionOutcome: r.finalInspectionOutcome ?? '',
+      gpsConfirmedAt: fmtDate(r.gpsConfirmedAt),
+      registeredAt: fmtDate(r.registeredAt),
+      deliveredAt: fmtDate(r.deliveredAt),
+      createdAt: fmtDate(r.createdAt),
+      remarks: r.remarks ?? '',
+    }));
+
+    const scriptPath = path.join(__dirname, '..', '..', 'scripts', 'export-xlsx.py');
+    const logoPath = path.join(__dirname, '..', '..', '..', 'frontend', 'src', 'assets', 'logos', 'BYD-OTP-DESK_full-logo.png');
+
+    const input = JSON.stringify({ period, data, logoPath });
+    const proc = spawnSync('python3', [scriptPath], { input, maxBuffer: 50 * 1024 * 1024 });
+
+    if (proc.error || proc.status !== 0) {
+      this.logger.error(`XLSX export failed: ${proc.stderr?.toString()}`);
+      throw new Error('Failed to generate XLSX file');
+    }
+
+    return proc.stdout;
   }
 }

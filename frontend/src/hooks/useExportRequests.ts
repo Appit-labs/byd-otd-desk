@@ -3,12 +3,13 @@ import api from '@/services/api';
 
 export function useExportRequests() {
   return useMutation({
-    mutationFn: async (period: string) => {
-      const response = await api.get('/v1/requests/export', {
+    mutationFn: async ({ period, format = 'csv' }: { period: string; format?: 'csv' | 'xlsx' }) => {
+      const endpoint = format === 'xlsx' ? '/v1/requests/export-xlsx' : '/v1/requests/export';
+      const response = await api.get(endpoint, {
         params: { period },
         responseType: 'blob',
       });
-      return response.data as Blob;
+      return { blob: response.data as Blob, format };
     },
   });
 }

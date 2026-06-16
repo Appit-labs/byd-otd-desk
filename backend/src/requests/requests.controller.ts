@@ -407,4 +407,21 @@ export class RequestsController {
     );
     res.send(csv);
   }
+
+  @Get('export-xlsx')
+  @Roles('super_admin', 'admin')
+  @ApiOperation({ summary: 'Export requests as XLSX (admin only)' })
+  @ApiQuery({ name: 'period', required: true, enum: ['week', 'month', 'year', 'all'] })
+  @ApiResponse({ status: 200, description: 'XLSX file download' })
+  async exportXlsx(
+    @Query('period') period: 'week' | 'month' | 'year' | 'all',
+    @Res() res: FastifyReply,
+  ) {
+    const xlsx = await this.requestsService.exportXlsx(period);
+    const filename = `BYD-OTD-Requests-${period}-${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.header('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(xlsx);
+  }
 }

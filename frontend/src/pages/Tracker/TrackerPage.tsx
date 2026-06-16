@@ -401,6 +401,7 @@ function TrackerPageInner({
             onCancelRequest={handleCancelRequest}
             onArchiveRequest={handleArchiveRequest}
             onReactivateRequest={handleReactivateRequest}
+            onDeselect={() => setSelectedIds(new Set())}
           />
         );
       })()}

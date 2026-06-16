@@ -235,12 +235,7 @@ function TrackerPageInner({
 
       if (skipConfirm) {
         // Called from SelectedRequestActions (has its own confirmation)
-        try {
-          await executeAction({ requestId, stage: stageEnum, action: normalizeAction(action) });
-          showToast('Action completed successfully');
-        } catch (err) {
-          showError(`Action failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-        }
+        await doExecuteAction(requestId, stageEnum, normalizeAction(action));
         return;
       }
 
@@ -252,6 +247,27 @@ function TrackerPageInner({
     [executeAction, showError, showToast],
   );
 
+  const doExecuteAction = useCallback(async (
+    requestId: number,
+    stageEnum: PipelineStage,
+    action: 'start' | 'complete' | 'confirm',
+  ) => {
+    try {
+      await executeAction({ requestId, stage: stageEnum, action });
+      showToast('Action completed successfully');
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      // Auto-refresh on stage mismatch — frontend data is stale
+      if (msg.includes('not at the correct stage') || msg.includes('current stage')) {
+        queryClient.invalidateQueries({ queryKey: ['requests'] });
+        showError('Request state changed. Data refreshed — please try again.');
+      } else {
+        showError(`Action failed: ${msg}`);
+      }
+    }
+  }, [executeAction, showError, showToast, queryClient]);
+
   const executeConfirmedAction = useCallback(async () => {
     if (!confirmAction) return;
     const { requestId, stage, action } = confirmAction;
@@ -259,13 +275,8 @@ function TrackerPageInner({
     if (stageEnum === undefined) return;
     setConfirmOpen(false);
     setConfirmAction(null);
-    try {
-      await executeAction({ requestId, stage: stageEnum, action: normalizeAction(action) });
-      showToast('Action completed successfully');
-    } catch (err) {
-      showError(`Action failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-  }, [confirmAction, executeAction, showError, showToast]);
+    await doExecuteAction(requestId, stageEnum, normalizeAction(action));
+  }, [confirmAction, doExecuteAction]);
 
   const handleFinalInspectionSubmit = useCallback(
     async (outcome: string, remarks?: string) => {

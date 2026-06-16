@@ -19,7 +19,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor — handle 401 Unauthorized
+// Response interceptor — handle 401 Unauthorized + extract API error messages
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -30,6 +30,11 @@ api.interceptors.response.use(
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
+    }
+    // Surface the API's error message instead of generic Axios message
+    const apiError = error.response?.data?.error || error.response?.data?.message;
+    if (apiError) {
+      return Promise.reject(new Error(apiError));
     }
     return Promise.reject(error);
   }

@@ -151,9 +151,13 @@ export function RequestForm() {
         setAccessoryDropdownOpen(false);
       }
     };
-    const handleScroll = () => setAccessoryDropdownOpen(false);
+    const handleScroll = (e: Event) => {
+      const target = e.target as Node;
+      const scrolledInside = accessoryPortalRef.current?.contains(target);
+      if (!scrolledInside) setAccessoryDropdownOpen(false);
+    };
     document.addEventListener('mousedown', handleClick);
-    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
     return () => {
       document.removeEventListener('mousedown', handleClick);
       window.removeEventListener('scroll', handleScroll, true);

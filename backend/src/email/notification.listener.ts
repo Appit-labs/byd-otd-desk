@@ -131,6 +131,7 @@ export class NotificationListener {
         .where('user.role IN (:...roles)', { roles: targetRoles })
         .andWhere('user.email IS NOT NULL')
         .andWhere('user.isActive = true')
+        .andWhere('user.notificationsEnabled = true')
         .select(['user.email'])
         .getMany();
 

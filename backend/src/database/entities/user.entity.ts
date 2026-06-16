@@ -52,6 +52,9 @@ export class User {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
+  @Column({ name: 'notifications_enabled', default: false })
+  notificationsEnabled: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

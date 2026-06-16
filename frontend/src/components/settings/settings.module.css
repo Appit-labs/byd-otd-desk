@@ -664,6 +664,39 @@
   to { transform: rotate(360deg); }
 }
 
+/* ── Toggle Switch ──────────────────────────────── */
+.toggleSwitch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  padding: 0;
+  background-color: var(--color-border);
+}
+
+.toggleSwitchOn {
+  background-color: #22c55e;
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #fff;
+  transition: transform var(--transition-fast);
+  display: block;
+}
+
+.toggleSwitchOn .toggleKnob {
+  transform: translateX(20px);
+}
+
 /* ── Responsive ─────────────────────────────────────── */
 
 @media (max-width: 768px) {

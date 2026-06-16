@@ -7,3 +7,4 @@ import './1718500000000-AddPipelineFields.js';
 import './1718600000000-AddMetadataToSettingOptions.js';
 import './1718700000000-Plan08Changes.js';
 import './1718800000000-AddEmailTables.js';
+import './1718900000000-AddNotificationsEnabled.js';

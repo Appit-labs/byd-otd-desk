@@ -32,6 +32,7 @@ export interface UpdateUserPayload {
   password?: string;
   role?: string;
   departmentId?: number;
+  notificationsEnabled?: boolean;
 }
 
 export function useCreateUser() {

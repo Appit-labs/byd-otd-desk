@@ -171,6 +171,14 @@ export function UserManagementPanel() {
     toggleStatus.mutate({ id: user.id, isActive: !isActive });
   };
 
+  const handleToggleNotifications = (user: User) => {
+    const enabled = !user.notificationsEnabled;
+    updateUser.mutate({
+      id: user.id,
+      notificationsEnabled: enabled,
+    });
+  };
+
   if (usersLoading) {
     return (
       <div className={styles.sectionCard}>
@@ -220,13 +228,14 @@ export function UserManagementPanel() {
             <th>Role</th>
             <th>Department</th>
             <th>Status</th>
+            <th>Notifications</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {filteredUsers.length === 0 && (
             <tr>
-              <td colSpan={6}>
+              <td colSpan={7}>
                 <div className={styles.emptyState}>
                   {search.trim()
                     ? 'No users match your search.'
@@ -258,6 +267,17 @@ export function UserManagementPanel() {
                     />
                     {isActive ? 'Active' : 'Inactive'}
                   </span>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={user.notificationsEnabled ?? false}
+                    className={`${styles.toggleSwitch} ${user.notificationsEnabled ? styles.toggleSwitchOn : ''}`}
+                    onClick={() => handleToggleNotifications(user)}
+                  >
+                    <span className={styles.toggleKnob} />
+                  </button>
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>

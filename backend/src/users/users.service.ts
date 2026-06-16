@@ -6,9 +6,16 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from '../database/entities/user.entity.js';
+import { User, UserRole } from '../database/entities/user.entity.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+
+const NOTIFIED_ROLES = new Set<string>([
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.PDI,
+  UserRole.ACCESSORIES,
+]);
 
 @Injectable()
 export class UsersService {
@@ -43,6 +50,7 @@ export class UsersService {
     const user = this.usersRepository.create({
       ...createUserDto,
       password: hashedPassword,
+      notificationsEnabled: createUserDto.notificationsEnabled ?? NOTIFIED_ROLES.has(createUserDto.role),
     });
     return this.usersRepository.save(user);
   }

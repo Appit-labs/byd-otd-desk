@@ -30,6 +30,7 @@ export interface User {
   department_id?: number;
   role: UserRole;
   isActive?: boolean;
+  notificationsEnabled?: boolean;
 }
 
 // Department moved to request.ts — export from there

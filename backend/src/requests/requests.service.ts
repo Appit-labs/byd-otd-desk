@@ -1,3 +1,4 @@
+import * as ExcelJS from 'exceljs';
 import {
   Injectable,
   NotFoundException,
@@ -1124,7 +1125,6 @@ export class RequestsService {
       d ? d.toISOString().split('T')[0] + ' ' + d.toTimeString().slice(0, 5) : '';
 
     // ── Build XLSX with exceljs ──
-    const ExcelJS = await import('exceljs');
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('OTD Requests');
 

@@ -1147,13 +1147,13 @@ export class RequestsService {
     ];
 
     // Title row
-    ws.mergeCells('A2:AE2');
+    ws.mergeCells(2, 1, 2, 31);
     ws.getCell('A2').value = 'BYD OTD Desk — Order to Delivery Tracker';
     ws.getCell('A2').font = { name: 'Calibri', size: 16, bold: true, color: { argb: DARK } };
     ws.getRow(2).height = 28;
 
     const periodLabel: Record<string, string> = { week: 'This Week', month: 'This Month', year: 'This Year', all: 'All Time' };
-    ws.mergeCells('A3:AE3');
+    ws.mergeCells(3, 1, 3, 31);
     ws.getCell('A3').value = `Exported: ${periodLabel[period] ?? period} | Date: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} | Total: ${items.length} requests`;
     ws.getCell('A3').font = { name: 'Calibri', size: 10, color: { argb: 'FF6B7280' } };
     ws.getRow(3).height = 22;

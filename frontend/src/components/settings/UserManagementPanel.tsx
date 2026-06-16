@@ -128,8 +128,6 @@ export function UserManagementPanel() {
     if (!form.role) {
       errors.role = 'Role is required';
     }
-    // Department is optional for all roles (role permissions are defined server-side)
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };

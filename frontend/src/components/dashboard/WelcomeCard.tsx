@@ -31,7 +31,6 @@ export function WelcomeCard({ activeRequestCount }: WelcomeCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
       style={{
-        gridArea: 'welcome',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',

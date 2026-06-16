@@ -24,14 +24,16 @@ interface TrackerTableProps {
 
 // ── Helpers ────────────────────────────────────────────────────
 
-/** Format an ISO string as "DD MMM YYYY" (e.g. "15 Jun 2026"). */
+/** Format an ISO string as "DD MMM YYYY HH:MM" (e.g. "15 Jun 2026 14:30"). */
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return '';
   const d = new Date(iso);
   const day = d.getDate();
   const month = d.toLocaleString('en-US', { month: 'short' });
   const year = d.getFullYear();
-  return `${day} ${month} ${year}`;
+  const hours = d.getHours().toString().padStart(2, '0');
+  const mins = d.getMinutes().toString().padStart(2, '0');
+  return `${day} ${month} ${year} ${hours}:${mins}`;
 }
 
 /** Format duration in minutes to a human-readable string. */
@@ -66,7 +68,7 @@ function isStageSkipped(req: CarRequest, stage: StageSlug): boolean {
       return req.requestType?.value === 'no_pdi';
     case 'sent_to_accessories':
     case 'accessories':
-      return !req.hasAccessories;
+      return !req.hasAccessories && (!req.accessories || req.accessories.length === 0);
     case 'gps':
       return !req.hasGps;
     default:

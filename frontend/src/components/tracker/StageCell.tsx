@@ -37,8 +37,14 @@ export function StageCell({ department, request }: StageCellProps) {
   return (
     <td className={styles.stageCell}>
       <div className={`${styles.stageTimestamp} ${styles.stageCompleted}`}>
-        <span className={styles.label}>Done</span>
-        <span className={styles.time}> at {formatTimestamp(completeTransition!.actionedAt)}</span>
+        <div>
+          <span className={styles.label}>Started</span>
+          <span className={styles.time}> at {formatTimestamp(startTransition.actionedAt)}</span>
+        </div>
+        <div>
+          <span className={styles.label}>Done</span>
+          <span className={styles.time}> at {formatTimestamp(completeTransition!.actionedAt)}</span>
+        </div>
       </div>
     </td>
   );

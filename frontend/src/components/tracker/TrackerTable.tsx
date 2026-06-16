@@ -160,6 +160,12 @@ function renderStartCompleteStage(
   if (completedAt) {
     return (
       <div className={styles.stageTimestamp}>
+        {startedAt && (
+          <div className={styles.stageStarted}>
+            <span className="label">Start:</span>{' '}
+            <span className="time">{formatDate(startedAt)}</span>
+          </div>
+        )}
         <div className={styles.stageCompleted}>
           <span className="label">Complete:</span>{' '}
           <span className="time">{formatDate(completedAt)}</span>

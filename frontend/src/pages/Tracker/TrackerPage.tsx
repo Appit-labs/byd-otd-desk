@@ -1,5 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, X } from 'lucide-react';
+import api from '@/services/api';
 import { useAuthStore } from '@/stores/auth.store';
 import { useRequests } from '@/hooks/useRequests';
 import { useDepartments } from '@/hooks/useDepartments';
@@ -106,6 +108,7 @@ function TrackerPageInner({
 
   const { executeAction } = useStageActions();
   const { data: settings } = useSettings();
+  const queryClient = useQueryClient();
 
   const fiOutcomes = useMemo(() => {
     const rawOptions = (settings as Record<string, SettingsOption[]> | undefined)?.['final_inspection'] ?? [];
@@ -210,23 +213,14 @@ function TrackerPageInner({
       setFiModalRequestId(null);
 
       try {
-        const token = localStorage.getItem('auth_token');
-        await fetch(`/api/v1/requests/${requestId}/final-inspection`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ outcome, remarks }),
-        });
+        await api.post(`/v1/requests/${requestId}/final-inspection`, { outcome, remarks });
+        queryClient.invalidateQueries({ queryKey: ['requests'] });
         showToast('Final inspection submitted');
-        // Trigger refetch of requests data
-        window.dispatchEvent(new Event('request-updated'));
       } catch (err) {
         showError(`Final inspection failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
     },
-    [fiModalRequestId, showError, showToast],
+    [fiModalRequestId, showError, showToast, queryClient],
   );
 
   return (

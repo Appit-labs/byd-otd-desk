@@ -62,7 +62,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr;
   grid-template-rows: auto auto auto;
   gap: var(--spacing-5);
   grid-template-areas:
@@ -71,24 +71,21 @@
     "pipeline   pipeline          recent";
 }
 
-/* Grid area assignments — assigned via inline styles on each child,
-   but we keep them here as a fallback / documentation */
-
 /* ── Responsive breakpoints ────────────────────────────────────────── */
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .grid {
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
       "welcome    welcome"
       "daily-requests completed"
       "chart      chart"
-      "pipeline   pipeline"
-      "recent     recent";
+      "pipeline   recent"
+      "pipeline   recent";
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .page {
     padding: var(--spacing-4);
   }

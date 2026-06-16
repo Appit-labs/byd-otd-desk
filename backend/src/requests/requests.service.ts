@@ -1218,7 +1218,7 @@ export class RequestsService {
 
     // Footer
     const footerRow = HEADER_ROW + items.length + 2;
-    ws.mergeCells(1, footerRow, headers.length, footerRow);
+    ws.mergeCells(footerRow, 1, footerRow, headers.length);
     ws.getCell(footerRow, 1).value = `BYD OTD Desk — Confidential | ${new Date().toLocaleDateString('en-GB')} | ${items.length} requests`;
     ws.getCell(footerRow, 1).font = { name: 'Calibri', size: 8, color: { argb: 'FF9CA3AF' } };
     ws.getCell(footerRow, 1).alignment = { horizontal: 'center' };

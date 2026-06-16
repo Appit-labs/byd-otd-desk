@@ -12,7 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { TrackerToolbar } from '@/components/tracker/TrackerToolbar';
 import { TrackerTable } from '@/components/tracker/TrackerTable';
-import { BulkActionBar } from '@/components/tracker/BulkActionBar';
+import { SelectedRequestActions } from '@/components/tracker/SelectedRequestActions';
 import { RequestFormDrawer } from '@/components/forms/RequestFormDrawer';
 import type { CarRequest } from '@/types/request';
 import { PipelineStage } from '@/types/request';
@@ -221,28 +221,8 @@ function TrackerPageInner({
     });
   }, [requests]);
 
-  const handleBulkAction = useCallback(
-    async (stage: string, action: 'start' | 'complete' | 'confirm') => {
-      const ids = Array.from(selectedIds);
-      setSelectedIds(new Set());
-      let failed = 0;
-      for (const id of ids) {
-        try {
-          const stageEnum = SLUG_TO_STAGE[stage];
-          if (stageEnum === undefined) continue;
-          await executeAction({ requestId: id, stage: stageEnum, action });
-        } catch {
-          failed++;
-        }
-      }
-      if (failed > 0) showError(`${failed}/${ids.length} requests failed`);
-      else showToast(`${ids.length} requests updated`);
-    },
-    [selectedIds, executeAction, showError, showToast],
-  );
-
   const handleStageAction = useCallback(
-    async (requestId: number, stage: string, action: string) => {
+    async (requestId: number, stage: string, action: string, skipConfirm?: boolean) => {
       const stageEnum = SLUG_TO_STAGE[stage];
       if (stageEnum === undefined) return;
 
@@ -253,12 +233,23 @@ function TrackerPageInner({
         return;
       }
 
-      // All other stages — show confirmation modal first
+      if (skipConfirm) {
+        // Called from SelectedRequestActions (has its own confirmation)
+        try {
+          await executeAction({ requestId, stage: stageEnum, action: normalizeAction(action) });
+          showToast('Action completed successfully');
+        } catch (err) {
+          showError(`Action failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+        return;
+      }
+
+      // Show confirmation modal first
       const stageLabel = STAGE_LABELS[stage] ?? stage;
       setConfirmAction({ requestId, stage, action, label: `${action} — ${stageLabel}` });
       setConfirmOpen(true);
     },
-    [],
+    [executeAction, showError, showToast],
   );
 
   const executeConfirmedAction = useCallback(async () => {
@@ -340,14 +331,16 @@ function TrackerPageInner({
         onError={showError}
       />
 
-      {selectedIds.size > 0 && (
-        <BulkActionBar
-          selectedRequests={requests.filter((r) => selectedIds.has(r.id))}
-          userRole={userRole}
-          onCancel={() => setSelectedIds(new Set())}
-          onBulkAction={handleBulkAction}
-        />
-      )}
+      {selectedIds.size === 1 && (() => {
+        const selectedRequest = requests.find((r) => r.id === [...selectedIds][0]);
+        if (!selectedRequest) return null;
+        return (
+          <SelectedRequestActions
+            request={selectedRequest}
+            onStageAction={(id, stage, action) => handleStageAction(id, stage, action, true)}
+          />
+        );
+      })()}
 
       <TrackerTable
         requests={requests}

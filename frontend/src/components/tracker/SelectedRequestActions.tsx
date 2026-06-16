@@ -8,7 +8,7 @@ import styles from './tracker.module.css';
 interface SelectedRequestActionsProps {
   request: CarRequest;
   userRole: string;
-  onStageAction: (requestId: number, stage: string, action: string) => void;
+  onStageAction: (requestId: number, stage: string, action: string, payload?: Record<string, unknown>) => void;
   onCancelRequest: (requestId: number) => void;
   onArchiveRequest: (requestId: number) => void;
   onReactivateRequest: (requestId: number) => void;
@@ -205,9 +205,15 @@ export function SelectedRequestActions({
   const actionVerb = nextAction.action === 'start' ? 'Start' : nextAction.action === 'complete' ? 'Complete' : nextAction.action === 'open_modal' ? 'Open' : 'Confirm';
   const actionLabel = `${actionVerb} — ${stageLabel}`;
 
+  const [remarks, setRemarks] = useState('');
+
   const handleConfirm = () => {
-    onStageAction(request.id, nextAction.stage, nextAction.action);
+    const payload = nextAction.action !== 'start' && remarks.trim()
+      ? { remarks: remarks.trim() }
+      : undefined;
+    onStageAction(request.id, nextAction.stage, nextAction.action, payload);
     setConfirmOpen(false);
+    setRemarks('');
   };
 
   return (
@@ -272,16 +278,40 @@ export function SelectedRequestActions({
         onClose={() => setConfirmOpen(false)}
         title="Confirm Action"
       >
-        <p style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)' }}>
-          {actionLabel} for {request.requestNumber} ({request.customerName})?
-        </p>
-        <div style={{ display: 'flex', gap: 'var(--spacing-2)', justifyContent: 'flex-end' }}>
-          <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleConfirm}>
-            Confirm
-          </Button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+          <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)', margin: 0 }}>
+            {actionLabel} for {request.requestNumber} ({request.customerName})?
+          </p>
+          {nextAction.action !== 'start' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-1)' }}>
+              <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--color-text-primary)' }}>
+                Remarks (optional)
+              </label>
+              <textarea
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                placeholder="Add remarks about this action..."
+                rows={3}
+                style={{
+                  padding: 'var(--spacing-2)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 'var(--text-sm)',
+                  resize: 'vertical',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text-primary)',
+                }}
+              />
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 'var(--spacing-2)', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleConfirm}>
+              Confirm
+            </Button>
+          </div>
         </div>
       </Modal>
     </>

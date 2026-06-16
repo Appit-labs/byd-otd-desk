@@ -265,7 +265,7 @@ function TrackerPageInner({
   }, [requests]);
 
   const handleStageAction = useCallback(
-    async (requestId: number, stage: string, action: string, skipConfirm?: boolean) => {
+    async (requestId: number, stage: string, action: string, skipConfirm?: boolean, payload?: Record<string, unknown>) => {
       const stageEnum = SLUG_TO_STAGE[stage];
       if (stageEnum === undefined) return;
 
@@ -278,7 +278,7 @@ function TrackerPageInner({
 
       if (skipConfirm) {
         // Called from SelectedRequestActions (has its own confirmation)
-        await doExecuteAction(requestId, stageEnum, normalizeAction(action));
+        await doExecuteAction(requestId, stageEnum, normalizeAction(action), payload);
         return;
       }
 
@@ -397,7 +397,7 @@ function TrackerPageInner({
           <SelectedRequestActions
             request={selectedRequest}
             userRole={userRole}
-            onStageAction={(id, stage, action) => handleStageAction(id, stage, action, true)}
+            onStageAction={(id, stage, action, payload) => handleStageAction(id, stage, action, true, payload)}
             onCancelRequest={handleCancelRequest}
             onArchiveRequest={handleArchiveRequest}
             onReactivateRequest={handleReactivateRequest}

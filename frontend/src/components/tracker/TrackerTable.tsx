@@ -375,7 +375,7 @@ export function TrackerTable({
               <th style={{ width: 160 }}>Vehicle Received</th>
               <th style={{ width: 180 }}>Mechanical Check</th>
               <th style={{ width: 180 }}>PDI</th>
-              <th style={{ width: 160 }}>Sent to Accessories</th>
+              <th style={{ width: 200 }}>Sent to Accessories</th>
               <th style={{ width: 180 }}>Accessories</th>
               <th style={{ width: 180 }}>Final Inspection</th>
               <th style={{ width: 140 }}>GPS</th>

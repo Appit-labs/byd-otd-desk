@@ -74,6 +74,18 @@ function normalizeAction(action: string): 'start' | 'complete' | 'confirm' {
   }
 }
 
+const STAGE_LABELS: Record<string, string> = {
+  storage: 'Storage',
+  vehicle_received: 'Vehicle Received',
+  mechanical_check: 'Mechanical Check',
+  pdi: 'PDI',
+  sent_to_accessories: 'Sent to Accessories',
+  accessories: 'Accessories',
+  gps: 'GPS',
+  registration: 'Registration',
+  delivery: 'Delivery',
+};
+
 function TrackerPageInner({
   userRole,
 }: {
@@ -124,6 +136,15 @@ function TrackerPageInner({
 
   const [fiModalOpen, setFiModalOpen] = useState(false);
   const [fiModalRequestId, setFiModalRequestId] = useState<number | null>(null);
+
+  // Confirmation modal for stage actions
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    requestId: number;
+    stage: string;
+    action: string;
+    label: string;
+  } | null>(null);
 
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(DEFAULT_COLUMN_VISIBILITY);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -232,16 +253,28 @@ function TrackerPageInner({
         return;
       }
 
-      // All other stages — direct API call
-      try {
-        await executeAction({ requestId, stage: stageEnum, action: normalizeAction(action) });
-        showToast('Action completed successfully');
-      } catch (err) {
-        showError(`Action failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      }
+      // All other stages — show confirmation modal first
+      const stageLabel = STAGE_LABELS[stage] ?? stage;
+      setConfirmAction({ requestId, stage, action, label: `${action} — ${stageLabel}` });
+      setConfirmOpen(true);
     },
-    [executeAction, showError, showToast],
+    [],
   );
+
+  const executeConfirmedAction = useCallback(async () => {
+    if (!confirmAction) return;
+    const { requestId, stage, action } = confirmAction;
+    const stageEnum = SLUG_TO_STAGE[stage];
+    if (stageEnum === undefined) return;
+    setConfirmOpen(false);
+    setConfirmAction(null);
+    try {
+      await executeAction({ requestId, stage: stageEnum, action: normalizeAction(action) });
+      showToast('Action completed successfully');
+    } catch (err) {
+      showError(`Action failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  }, [confirmAction, executeAction, showError, showToast]);
 
   const handleFinalInspectionSubmit = useCallback(
     async (outcome: string, remarks?: string) => {
@@ -342,6 +375,29 @@ function TrackerPageInner({
           onSubmit={handleFinalInspectionSubmit}
           onCancel={() => { setFiModalOpen(false); setFiModalRequestId(null); }}
         />
+      </Modal>
+
+      <Modal
+        open={confirmOpen}
+        onClose={() => { setConfirmOpen(false); setConfirmAction(null); }}
+        title="Confirm Action"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+          <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)' }}>
+            Are you sure you want to <strong>{confirmAction?.label}</strong>?
+          </p>
+          <div style={{ display: 'flex', gap: 'var(--spacing-2)', justifyContent: 'flex-end' }}>
+            <Button
+              variant="ghost"
+              onClick={() => { setConfirmOpen(false); setConfirmAction(null); }}
+            >
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={executeConfirmedAction}>
+              Confirm
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       <RequestFormDrawer

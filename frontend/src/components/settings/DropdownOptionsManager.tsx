@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Pencil, X, Check, ArrowUp, ArrowDown, Ban } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -16,11 +16,28 @@ import styles from './settings.module.css';
 interface DropdownOptionsManagerProps {
   settingKey: string;
   settingLabel: string;
+  /** Whether this setting has hierarchical parents (Brand -> Model -> Variant) */
+  hierarchical?: boolean;
+  /** The parent setting key (e.g. 'brand' for 'model', 'model' for 'variant') */
+  parentKey?: string;
+  /** Whether to display metadata as JSON */
+  showMetadata?: boolean;
+  /** Optional extra content to render in the add/edit forms */
+  extraFormFields?: (props: ExtraFormFieldsProps) => React.ReactNode;
+}
+
+export interface ExtraFormFieldsProps {
+  isEditing: boolean;
+  editOption?: SettingsOption;
+  onMetadataChange?: (metadata: Record<string, any>) => void;
 }
 
 export function DropdownOptionsManager({
   settingKey,
   settingLabel,
+  hierarchical,
+  parentKey,
+  showMetadata,
 }: DropdownOptionsManagerProps) {
   const { data: settings, isLoading } = useSettings();
   const addOption = useAddOption();
@@ -32,13 +49,38 @@ export function DropdownOptionsManager({
   const [showAddForm, setShowAddForm] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [newValue, setNewValue] = useState('');
+  const [newParentId, setNewParentId] = useState<number | undefined>(undefined);
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editLabel, setEditLabel] = useState('');
   const [editValue, setEditValue] = useState('');
+  const [editParentId, setEditParentId] = useState<number | undefined>(undefined);
+
+  // Auto-generate slug from label
+  const labelToSlug = (label: string): string =>
+    label.trim().toLowerCase().replace(/[^a-z0-9\s_-]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+
+  const handleNewLabelChange = (label: string) => {
+    setNewLabel(label);
+    setNewValue(labelToSlug(label));
+  };
+
+  const handleEditLabelChange = (label: string) => {
+    setEditLabel(label);
+    setEditValue(labelToSlug(label));
+  };
 
   const options =
     (settings as Record<string, SettingsOption[]> | undefined)?.[settingKey] ?? [];
+  const parentOptions =
+    (hierarchical && parentKey
+      ? (settings as Record<string, SettingsOption[]> | undefined)?.[parentKey] ?? []
+      : []) as SettingsOption[];
+
+  const activeParentOptions = useMemo(
+    () => parentOptions.filter((o) => o.isActive),
+    [parentOptions],
+  );
 
   const activeOptions = options.filter((opt) => opt.isActive);
   const deprecatedOptions = options.filter((opt) => !opt.isActive);
@@ -51,13 +93,19 @@ export function DropdownOptionsManager({
   );
 
   const handleAdd = () => {
-    if (!newLabel.trim() || !newValue.trim()) return;
+    if (!newLabel.trim()) return;
     addOption.mutate(
-      { settingKey, label: newLabel.trim(), value: newValue.trim() },
+      {
+        settingKey,
+        label: newLabel.trim(),
+        value: newValue.trim(),
+        parentId: hierarchical ? newParentId : undefined,
+      },
       {
         onSuccess: () => {
           setNewLabel('');
           setNewValue('');
+          setNewParentId(undefined);
           setShowAddForm(false);
         },
       }
@@ -68,22 +116,25 @@ export function DropdownOptionsManager({
     setEditingId(opt.id);
     setEditLabel(opt.label);
     setEditValue(opt.value);
+    setEditParentId(opt.parentId ?? undefined);
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditLabel('');
     setEditValue('');
+    setEditParentId(undefined);
   };
 
   const handleSaveEdit = () => {
-    if (!editLabel.trim() || !editValue.trim() || editingId === null) return;
+    if (!editLabel.trim() || editingId === null) return;
     editOption.mutate(
       {
         settingKey,
         id: editingId,
         label: editLabel.trim(),
-        value: editValue.trim(),
+        value: editValue.trim(),  // may be empty — backend regenerates from label
+        parentId: hierarchical ? editParentId : undefined,
       },
       {
         onSuccess: () => {
@@ -121,6 +172,12 @@ export function DropdownOptionsManager({
     reorderOptions.mutate({ settingKey, optionIds: newIds });
   };
 
+  const getParentLabel = (parentId?: number | null) => {
+    if (!parentId || !hierarchical) return null;
+    const parent = parentOptions.find((o) => o.id === parentId);
+    return parent?.label ?? `ID ${parentId}`;
+  };
+
   if (isLoading) {
     return (
       <div className={styles.sectionCard}>
@@ -156,21 +213,37 @@ export function DropdownOptionsManager({
               className={styles.inlineInput}
               placeholder="Label"
               value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
+              onChange={(e) => handleNewLabelChange(e.target.value)}
               autoFocus
             />
             <input
               className={styles.inlineInput}
-              placeholder="Value"
+              placeholder="Value (auto)"
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
             />
+            {hierarchical && activeParentOptions.length > 0 && (
+              <select
+                className={styles.inlineInput}
+                value={newParentId ?? ''}
+                onChange={(e) =>
+                  setNewParentId(e.target.value ? Number(e.target.value) : undefined)
+                }
+              >
+                <option value="">(no parent)</option>
+                {activeParentOptions.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            )}
             <div className={styles.inlineFormActions}>
               <Button
                 size="sm"
                 variant="primary"
                 onClick={handleAdd}
-                disabled={addOption.isPending || !newLabel.trim() || !newValue.trim()}
+                disabled={addOption.isPending || !newLabel.trim()}
               >
                 {addOption.isPending ? <Spinner size={14} /> : <Check size={14} />}
                 Save
@@ -182,6 +255,7 @@ export function DropdownOptionsManager({
                   setShowAddForm(false);
                   setNewLabel('');
                   setNewValue('');
+                  setNewParentId(undefined);
                 }}
               >
                 <X size={14} />
@@ -199,6 +273,7 @@ export function DropdownOptionsManager({
 
         {sortedActive.map((opt, index) => {
           const isEditing = editingId === opt.id;
+          const parentLabel = getParentLabel(opt.parentId);
           return (
             <div key={opt.id} className={styles.optionRow}>
               {isEditing ? (
@@ -206,7 +281,7 @@ export function DropdownOptionsManager({
                   <input
                     className={styles.inlineInput}
                     value={editLabel}
-                    onChange={(e) => setEditLabel(e.target.value)}
+                    onChange={(e) => handleEditLabelChange(e.target.value)}
                     autoFocus
                   />
                   <input
@@ -214,6 +289,22 @@ export function DropdownOptionsManager({
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                   />
+                  {hierarchical && activeParentOptions.length > 0 && (
+                    <select
+                      className={styles.inlineInput}
+                      value={editParentId ?? ''}
+                      onChange={(e) =>
+                        setEditParentId(e.target.value ? Number(e.target.value) : undefined)
+                      }
+                    >
+                      <option value="">(no parent)</option>
+                      {activeParentOptions.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   <div className={styles.inlineFormActions}>
                     <Button
                       size="sm"
@@ -221,8 +312,7 @@ export function DropdownOptionsManager({
                       onClick={handleSaveEdit}
                       disabled={
                         editOption.isPending ||
-                        !editLabel.trim() ||
-                        !editValue.trim()
+                        !editLabel.trim()
                       }
                     >
                       {editOption.isPending ? (
@@ -243,7 +333,15 @@ export function DropdownOptionsManager({
               ) : (
                 <>
                   <span className={styles.optionLabel}>{opt.label}</span>
+                  {parentLabel && (
+                    <span className={styles.optionValue}>{parentLabel}</span>
+                  )}
                   <span className={styles.optionValue}>{opt.value}</span>
+                  {showMetadata && opt.metadata && (
+                    <span className={styles.optionValue}>
+                      {JSON.stringify(opt.metadata)}
+                    </span>
+                  )}
                   <div className={styles.optionActions}>
                     <button
                       className={styles.actionButton}

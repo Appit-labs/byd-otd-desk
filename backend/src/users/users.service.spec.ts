@@ -13,7 +13,7 @@ describe('UsersService', () => {
     username: 'testuser',
     password: '$2b$12$hashedpassword',
     fullName: 'Test User',
-    role: UserRole.DEPARTMENT_USER,
+    role: UserRole.NVS,
     departmentId: 1,
     isActive: true,
     createdAt: new Date(),
@@ -86,7 +86,8 @@ describe('UsersService', () => {
         username: 'newuser',
         password: 'Password123',
         fullName: 'New User',
-        role: UserRole.DEPARTMENT_USER,
+        email: 'newuser@test.local',
+        role: UserRole.NVS,
         departmentId: 1,
       };
 
@@ -107,6 +108,7 @@ describe('UsersService', () => {
           username: 'testuser',
           password: 'Password123',
           fullName: 'Test',
+          email: 'testuser@test.local',
           role: UserRole.VIEWER,
         }),
       ).rejects.toThrow(ConflictException);

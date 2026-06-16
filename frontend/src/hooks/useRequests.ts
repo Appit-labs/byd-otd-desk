@@ -11,7 +11,9 @@ export interface RequestFilters {
   dateFrom?: string;
   dateTo?: string;
   requestTypeId?: number;
-  sellerId?: number;
+  salesConsultantId?: number;
+  brandId?: number;
+  timeliness?: 'all' | 'on_time' | 'delayed';
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
 }
@@ -36,7 +38,9 @@ export function useRequests(
     dateFrom,
     dateTo,
     requestTypeId,
-    sellerId,
+    salesConsultantId,
+    brandId,
+    timeliness,
     sortBy,
     sortOrder,
   } = filters;
@@ -53,7 +57,9 @@ export function useRequests(
       if (dateFrom) params.set('dateFrom', dateFrom);
       if (dateTo) params.set('dateTo', dateTo);
       if (requestTypeId) params.set('requestTypeId', String(requestTypeId));
-      if (sellerId) params.set('sellerId', String(sellerId));
+      if (salesConsultantId) params.set('salesConsultantId', String(salesConsultantId));
+      if (brandId) params.set('brandId', String(brandId));
+      if (timeliness && timeliness !== 'all') params.set('timeliness', timeliness);
       if (sortBy) params.set('sortBy', sortBy);
       if (sortOrder) params.set('sortOrder', sortOrder);
 

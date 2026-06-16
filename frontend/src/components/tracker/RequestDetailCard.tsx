@@ -18,10 +18,20 @@ export function RequestDetailCard({ request, onEditRequest, userRole }: RequestD
     minute: '2-digit',
   });
 
+  const promiseDate = request.promiseDate
+    ? new Date(request.promiseDate).toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    : '--';
+
+  const canEdit = userRole === 'super_admin' || userRole === 'admin';
+
   return (
     <div className={styles.card}>
-      {/* Edit button for super_admin */}
-      {onEditRequest && userRole === 'super_admin' && (
+      {onEditRequest && canEdit && (
         <div style={{ marginBottom: 'var(--spacing-3)', display: 'flex', justifyContent: 'flex-end' }}>
           <button
             onClick={() => onEditRequest(request)}
@@ -59,40 +69,62 @@ export function RequestDetailCard({ request, onEditRequest, userRole }: RequestD
           <span className={styles.value}>{request.requestNumber}</span>
         </div>
         <div className={styles.field}>
-          <span className={styles.label}>Car Number</span>
-          <span className={styles.value}>{request.carNumber}</span>
-        </div>
-        <div className={styles.field}>
-          <span className={styles.label}>Body Number</span>
-          <span className={styles.value}>{request.bodyNumber || '--'}</span>
-        </div>
-        <div className={styles.field}>
-          <span className={styles.label}>Car Color</span>
-          <span className={styles.value}>{request.carColor?.label || '--'}</span>
-        </div>
-        <div className={styles.field}>
-          <span className={styles.label}>Car Spec</span>
-          <span className={styles.value}>{request.carSpec?.label || '--'}</span>
+          <span className={styles.label}>Chassis Number (VIN)</span>
+          <span className={styles.value}>{request.chassisNumber}</span>
         </div>
         <div className={styles.field}>
           <span className={styles.label}>Request Type</span>
-          <span className={styles.value}>{request.requestType.label}</span>
+          <span className={styles.value}>{request.requestType?.label ?? '--'}</span>
         </div>
         <div className={styles.field}>
-          <span className={styles.label}>Client Name</span>
-          <span className={styles.value}>{request.clientName}</span>
+          <span className={styles.label}>Brand</span>
+          <span className={styles.value}>{request.brand?.label || '--'}</span>
         </div>
         <div className={styles.field}>
-          <span className={styles.label}>Telephone</span>
-          <span className={styles.value}>{request.clientTel}</span>
+          <span className={styles.label}>Model</span>
+          <span className={styles.value}>{request.model?.label || '--'}</span>
         </div>
         <div className={styles.field}>
-          <span className={styles.label}>Payment Method</span>
-          <span className={styles.value}>{request.paymentMethod.label}</span>
+          <span className={styles.label}>Variant</span>
+          <span className={styles.value}>{request.variant?.label || '--'}</span>
         </div>
         <div className={styles.field}>
-          <span className={styles.label}>Seller</span>
-          <span className={styles.value}>{request.seller.fullName}</span>
+          <span className={styles.label}>Exterior Color</span>
+          <span className={styles.value}>{request.exteriorColor?.label || '--'}</span>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>Interior Color</span>
+          <span className={styles.value}>{request.interiorColor?.label || '--'}</span>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>Vehicle Location</span>
+          <span className={styles.value}>{request.vehicleLocation || '--'}</span>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>Customer Name</span>
+          <span className={styles.value}>{request.customerName}</span>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>Phone</span>
+          <span className={styles.value}>{request.customerPhone}</span>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>Sales Consultant</span>
+          <span className={styles.value}>{request.salesConsultant?.label ?? '--'}</span>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>Sales Type</span>
+          <span className={styles.value}>{request.salesType?.label || '--'}</span>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>GPS</span>
+          <span className={styles.value}>{request.hasGps ? 'Yes' : 'No'}</span>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>Promise Date</span>
+          <span className={styles.value} style={{ color: 'var(--color-accent)' }}>
+            {promiseDate}
+          </span>
         </div>
         <div className={styles.field}>
           <span className={styles.label}>Created At</span>

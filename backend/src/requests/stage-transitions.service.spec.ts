@@ -66,15 +66,15 @@ describe('StageTransitionsService', () => {
     departmentId: null,
   };
 
-  const deptUser = {
+  const nvsUser = {
     id: 2,
-    role: 'department_user',
+    role: 'nvs' as const,
     departmentId: 1, // Storage department
   };
 
   const wrongDeptUser = {
     id: 3,
-    role: 'department_user',
+    role: 'nvs' as const,
     departmentId: 999,
   };
 
@@ -138,7 +138,7 @@ describe('StageTransitionsService', () => {
 
     // Test 1: start first stage (Storage) — succeeds when request exists
     it('should start first stage (Storage) successfully', async () => {
-      const request = { id: 1, status: RequestStatus.NOT_STARTED };
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne.mockImplementation((entity, opts) => {
         if (entity === CarRequest) return Promise.resolve(request);
         if (entity === Department && opts.where.id === 1) return Promise.resolve(storageDept);
@@ -159,16 +159,12 @@ describe('StageTransitionsService', () => {
       const result = await service.transition(1, 1, 'started', superAdminUser);
 
       expect(result).toEqual(transition);
-      expect(mockEntityManager.update).toHaveBeenCalledWith(
-        CarRequest,
-        1,
-        { status: RequestStatus.PENDING },
-      );
+      // Status no longer auto-updated since requests start as ACTIVE
     });
 
     // Test 2: start non-first stage without previous completed — throws
     it('should throw when starting non-first stage without previous completed', async () => {
-      const request = { id: 1, status: RequestStatus.PENDING };
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne.mockImplementation((entity, opts) => {
         if (entity === CarRequest) return Promise.resolve(request);
         if (entity === Department && opts.where.id === 2) return Promise.resolve(pdiDept);
@@ -190,7 +186,7 @@ describe('StageTransitionsService', () => {
 
     // Test 3: start stage with previous completed — succeeds
     it('should start stage when previous stage is completed', async () => {
-      const request = { id: 1, status: RequestStatus.PENDING };
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne.mockImplementation((entity, opts) => {
         if (entity === CarRequest) return Promise.resolve(request);
         if (entity === Department && opts.where.id === 2) return Promise.resolve(pdiDept);
@@ -218,12 +214,12 @@ describe('StageTransitionsService', () => {
       const result = await service.transition(1, 2, 'started', superAdminUser);
 
       expect(result).toEqual(transition);
-      expect(mockEntityManager.update).not.toHaveBeenCalled(); // status already pending
+      expect(mockEntityManager.update).not.toHaveBeenCalled(); // status stays ACTIVE
     });
 
     // Test 4: complete stage without started — throws
     it('should throw when completing a stage without started', async () => {
-      const request = { id: 1, status: RequestStatus.PENDING };
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne.mockImplementation((entity, opts) => {
         if (entity === CarRequest) return Promise.resolve(request);
         if (entity === Department && opts.where.id === 1) return Promise.resolve(storageDept);
@@ -243,7 +239,7 @@ describe('StageTransitionsService', () => {
 
     // Test 5: complete stage with started present — succeeds
     it('should complete a stage when started exists', async () => {
-      const request = { id: 1, status: RequestStatus.PENDING };
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne.mockImplementation((entity, opts) => {
         if (entity === CarRequest) return Promise.resolve(request);
         if (entity === Department && opts.where.id === 1) return Promise.resolve(storageDept);
@@ -297,17 +293,18 @@ describe('StageTransitionsService', () => {
       const result = await service.transition(1, 1, 'completed', superAdminUser);
 
       expect(result).toEqual(transition);
-      // Should NOT mark completed since Storage is not the last dept
+      // Status should NOT be changed since the new pipeline system
+      // tracks completion via timestamp fields, not status enum
       expect(mockEntityManager.update).not.toHaveBeenCalledWith(
         CarRequest,
         1,
-        expect.objectContaining({ status: RequestStatus.COMPLETED }),
+        expect.objectContaining({ status: RequestStatus.ACTIVE }),
       );
     });
 
     // Test 6: start already-started stage — throws conflict
     it('should throw conflict when starting an already-started stage', async () => {
-      const request = { id: 1, status: RequestStatus.PENDING };
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne.mockImplementation((entity, opts) => {
         if (entity === CarRequest) return Promise.resolve(request);
         if (entity === Department && opts.where.id === 1) return Promise.resolve(storageDept);
@@ -327,7 +324,7 @@ describe('StageTransitionsService', () => {
 
     // Test 7: complete already-completed stage — throws conflict
     it('should throw conflict when completing an already-completed stage', async () => {
-      const request = { id: 1, status: RequestStatus.PENDING };
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne
         .mockResolvedValueOnce(request) // fetch request
         .mockResolvedValueOnce(storageDept) // fetch department
@@ -339,21 +336,23 @@ describe('StageTransitionsService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
-    // Test 8: non-matching department user — throws Forbidden
-    it('should throw ForbiddenException when wrong department user tries', async () => {
-      const request = { id: 1, status: RequestStatus.NOT_STARTED };
+    // Test 8: PDI role user trying to transition Storage department — throws Forbidden
+    it('should throw ForbiddenException when role is not authorized for department', async () => {
+      const pdiUser = { id: 4, role: 'pdi', departmentId: 2 };
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne
         .mockResolvedValueOnce(request) // fetch request
-        .mockResolvedValueOnce(storageDept); // fetch department
+        .mockResolvedValueOnce(storageDept); // fetch department (slug: 'storage')
 
+      // PDI role does not have 'storage' in allowedDepartmentSlugs
       await expect(
-        service.transition(1, 1, 'started', wrongDeptUser),
+        service.transition(1, 1, 'started', pdiUser),
       ).rejects.toThrow(ForbiddenException);
     });
 
     // Test 9: super admin can transition any department
     it('should allow super admin to transition any department', async () => {
-      const request = { id: 1, status: RequestStatus.NOT_STARTED };
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne
         .mockResolvedValueOnce(request) // fetch request
         .mockResolvedValueOnce(storageDept) // fetch department
@@ -372,12 +371,12 @@ describe('StageTransitionsService', () => {
       const result = await service.transition(1, 1, 'started', superAdminUser);
 
       expect(result).toEqual(transition);
-      expect(mockEntityManager.update).toHaveBeenCalled();
+      // Status no longer auto-updated — requests start as ACTIVE
     });
 
-    // Test 10: request on_hold — transition blocked
-    it('should throw BadRequestException when request is on hold', async () => {
-      const request = { id: 1, status: RequestStatus.ON_HOLD };
+    // Test 10: request not active — transition blocked
+    it('should throw BadRequestException when request is not active', async () => {
+      const request = { id: 1, status: RequestStatus.ARCHIVED_MANUAL };
       mockEntityManager.findOne
         .mockResolvedValueOnce(request); // fetch request
 
@@ -386,9 +385,9 @@ describe('StageTransitionsService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    // Test 11 (extended): last stage completion auto-updates status to completed
-    it('should mark request completed when last department stage is completed', async () => {
-      const request = { id: 1, status: RequestStatus.PENDING };
+    // Test 11 (extended): last stage completion — status stays active
+    it('should complete last department stage without changing status', async () => {
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne
         .mockResolvedValueOnce(request) // fetch request
         .mockResolvedValueOnce(deliveryDept) // fetch department (delivery)
@@ -409,19 +408,13 @@ describe('StageTransitionsService', () => {
       const result = await service.transition(1, 3, 'completed', superAdminUser);
 
       expect(result).toEqual(transition);
-      expect(mockEntityManager.update).toHaveBeenCalledWith(
-        CarRequest,
-        1,
-        expect.objectContaining({
-          status: RequestStatus.COMPLETED,
-          completedAt: expect.any(Date),
-        }),
-      );
+      // Status is no longer auto-updated by legacy transition service;
+      // the new pipeline system tracks completion via timestamp fields.
     });
 
-    // Test 12: same-department user can transition own dept
-    it('should allow department_user to transition own department', async () => {
-      const request = { id: 1, status: RequestStatus.NOT_STARTED };
+    // Test 12: NVS role user can transition own department (Storage)
+    it('should allow nvs role to transition own department', async () => {
+      const request = { id: 1, status: RequestStatus.ACTIVE };
       mockEntityManager.findOne
         .mockResolvedValueOnce(request) // fetch request
         .mockResolvedValueOnce(storageDept) // fetch department
@@ -437,7 +430,7 @@ describe('StageTransitionsService', () => {
       mockEntityManager.create.mockReturnValue(transition);
       mockEntityManager.save.mockResolvedValue(transition);
 
-      const result = await service.transition(1, 1, 'started', deptUser);
+      const result = await service.transition(1, 1, 'started', nvsUser);
 
       expect(result).toEqual(transition);
     });

@@ -1,6 +1,6 @@
 import styles from './Badge.module.css';
 
-type BadgeVariant = 'not_started' | 'pending' | 'on_hold' | 'completed' | 'overdue';
+type BadgeVariant = 'active' | 'cancelled' | 'archived_manual' | 'archived_qc' | 'overdue' | 'onTime' | 'delayed';
 
 interface BadgeProps {
   variant: BadgeVariant;
@@ -9,11 +9,13 @@ interface BadgeProps {
 }
 
 const variantLabels: Record<BadgeVariant, string> = {
-  not_started: 'Not Started',
-  pending: 'Pending',
-  on_hold: 'On Hold',
-  completed: 'Completed',
+  active: 'Active',
+  cancelled: 'Cancelled',
+  archived_manual: 'Archived',
+  archived_qc: 'Archived (QC)',
   overdue: 'Overdue',
+  onTime: 'On Time',
+  delayed: 'Delayed',
 };
 
 export function Badge({ variant, label, className }: BadgeProps) {

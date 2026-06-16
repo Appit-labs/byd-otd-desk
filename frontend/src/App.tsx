@@ -9,6 +9,7 @@ import DashboardPage from '@/pages/Dashboard/DashboardPage';
 import TrackerPage from '@/pages/Tracker/TrackerPage';
 import PreviewPage from '@/pages/Preview/PreviewPage';
 import SettingsPage from '@/pages/Settings/SettingsPage';
+import ReportsPage from '@/pages/Reports/ReportsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +47,7 @@ export default function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/tracker" element={<TrackerPage />} />
                 <Route path="/preview" element={<PreviewPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
             </Route>

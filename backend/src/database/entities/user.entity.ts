@@ -7,12 +7,18 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Department } from './department.entity.js';
+import type { Department } from './department.entity.js';
 
 export enum UserRole {
   SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
-  DEPARTMENT_USER = 'department_user',
+  NVS = 'nvs',
+  QC_NVS = 'qc_nvs',
+  MECHANICAL_CHECK = 'mechanical_check',
+  PDI = 'pdi',
+  ACCESSORIES = 'accessories',
+  REGISTRATION = 'registration',
+  DELIVERY = 'delivery',
   VIEWER = 'viewer',
 }
 
@@ -30,13 +36,16 @@ export class User {
   @Column({ name: 'full_name', length: 200 })
   fullName: string;
 
+  @Column({ length: 255, unique: true })
+  email: string;
+
   @Column({ type: 'enum', enum: UserRole })
   role: UserRole;
 
   @Column({ name: 'department_id', nullable: true })
   departmentId: number;
 
-  @ManyToOne(() => Department, (department) => department.users)
+  @ManyToOne('Department', (department: any) => department.users)
   @JoinColumn({ name: 'department_id' })
   department: Department;
 

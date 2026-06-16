@@ -1,4 +1,14 @@
-export type UserRole = 'super_admin' | 'admin' | 'department_user' | 'viewer';
+export type UserRole =
+  | 'super_admin'
+  | 'admin'
+  | 'nvs'
+  | 'qc_nvs'
+  | 'mechanical_check'
+  | 'pdi'
+  | 'accessories'
+  | 'registration'
+  | 'delivery'
+  | 'viewer';
 
 export interface LoginRequest {
   department: string;
@@ -15,6 +25,7 @@ export interface User {
   id: number;
   username: string;
   fullName?: string;
+  email?: string;
   department?: string;
   department_id?: number;
   role: UserRole;

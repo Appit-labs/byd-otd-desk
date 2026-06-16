@@ -18,7 +18,7 @@ async function bootstrap() {
 
   // CORS
   await app.register(fastifyCors, {
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3030'],
     credentials: true,
   });
 

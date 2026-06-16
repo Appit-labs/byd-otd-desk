@@ -1,0 +1,104 @@
+/* ============================================
+   TableView — preview table styles
+   ============================================ */
+
+.wrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  background: var(--color-surface);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table td {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid rgba(30, 34, 48, 0.5);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.row:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Mono font for identifiers */
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+/* Client cell with name + phone */
+.clientCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.clientName {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+
+.clientTel {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* Stage label */
+.stageLabel {
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+/* Date cell */
+.dateCell {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* On Time / Delayed badges */
+.onTimeBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  background: rgba(15, 244, 198, 0.12);
+  color: var(--color-accent-alt);
+}
+
+.delayedBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-danger);
+}
+
+/* Progress cell — ensure compact variant fits */
+.table td .compactDot:last-child {
+  /* The progress-bar module handles its own styles */
+}

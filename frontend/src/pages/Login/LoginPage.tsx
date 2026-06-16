@@ -9,13 +9,9 @@ import fullLogo from '@/assets/logos/BYD-OTP-DESK_full-logo.png';
 import { useAuthStore, getRoleBasedDefaultPath } from '@/stores/auth.store';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import api from '@/services/api';
-import type { Department } from '@/types';
 import styles from './LoginPage.module.css';
 
 const loginSchema = z.object({
-  department: z.string().min(1, 'Department is required'),
   username: z.string().min(1, 'Username is required').trim(),
   password: z.string().min(1, 'Password is required'),
 });
@@ -28,61 +24,19 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
-  const [departments, setDepartments] = useState<{ value: string; label: string }[]>([]);
 
   const {
     control,
     handleSubmit,
-    setValue,
     formState: { errors, isValid },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: 'onChange',
     defaultValues: {
-      department: '',
       username: '',
       password: '',
     },
   });
-
-  // Fetch departments on mount
-  useEffect(() => {
-    api
-      .get<Department[]>('/v1/departments')
-      .then((res) => {
-        const deptOptions = res.data.map((d) => ({
-          value: d.name,
-          label: d.name,
-        }));
-        // Add admin/super_admin as non-department options
-        deptOptions.push(
-          { value: 'Admin', label: 'Admin' },
-          { value: 'Super Admin', label: 'Super Admin' },
-          { value: 'Viewer', label: 'Viewer' }
-        );
-        setDepartments(deptOptions);
-      })
-      .catch(() => {
-        // Fallback if API not available
-        setDepartments([
-          { value: 'Admin', label: 'Admin' },
-          { value: 'Super Admin', label: 'Super Admin' },
-          { value: 'Viewer', label: 'Viewer' },
-          { value: 'Sales', label: 'Sales' },
-          { value: 'Logistics', label: 'Logistics' },
-          { value: 'Production', label: 'Production' },
-          { value: 'Delivery', label: 'Delivery' },
-        ]);
-      });
-  }, []);
-
-  // Restore previously selected department
-  useEffect(() => {
-    const saved = localStorage.getItem('login_department');
-    if (saved) {
-      setValue('department', saved);
-    }
-  }, [setValue, departments]);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -95,8 +49,7 @@ export function LoginPage() {
     async (data: LoginFormData) => {
       setLoginError(null);
       try {
-        localStorage.setItem('login_department', data.department);
-        await login(data.department, data.username, data.password);
+        await login(data.username, data.password);
         setIsLeaving(true);
       } catch (err: unknown) {
         const msg =
@@ -105,7 +58,7 @@ export function LoginPage() {
         setLoginError(msg);
       }
     },
-    [login, navigate]
+    [login],
   );
 
   const formFilled = isValid;
@@ -134,21 +87,6 @@ export function LoginPage() {
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          <Controller
-            name="department"
-            control={control}
-            render={({ field }) => (
-              <Select
-                label="Department"
-                placeholder="Select department..."
-                value={field.value}
-                onValueChange={field.onChange}
-                options={departments}
-                error={errors.department?.message}
-              />
-            )}
-          />
-
           <Controller
             name="username"
             control={control}

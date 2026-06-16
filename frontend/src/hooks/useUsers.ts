@@ -18,6 +18,7 @@ export function useUsers() {
 export interface CreateUserPayload {
   username: string;
   fullName: string;
+  email: string;
   password: string;
   role: string;
   departmentId?: number;
@@ -27,6 +28,7 @@ export interface UpdateUserPayload {
   id: number;
   username?: string;
   fullName?: string;
+  email?: string;
   password?: string;
   role?: string;
   departmentId?: number;

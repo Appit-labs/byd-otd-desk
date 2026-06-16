@@ -212,6 +212,90 @@
   opacity: 0.5;
 }
 
+/* Readonly Field (date/time, promise date) */
+.readonlyField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: rgba(107, 122, 153, 0.06);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.readonlyLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.readonlyValue {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.promiseValue {
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* Checklist Grid (Accessories multi-select) */
+.checklistLabel {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-1);
+}
+
+.checklistGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  max-height: 200px;
+  overflow-y: auto;
+  padding: var(--spacing-1) 0;
+}
+
+.checklistItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: rgba(107, 122, 153, 0.06);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* Generic field wrapper for non-Input/Select form groups */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
 /* Hold Toggle Button */
 .holdButton {
   display: inline-flex;
@@ -242,4 +326,227 @@
 
 .holdButton.active:hover {
   background: rgba(139, 92, 246, 0.18);
+}
+
+/* ============================================
+   Toggle Switch (GPS)
+   ============================================ */
+.toggleSwitch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--color-border);
+  border: none;
+  cursor: pointer;
+  transition: background 200ms ease;
+  flex-shrink: 0;
+}
+
+.toggleSwitch.toggleOn {
+  background: var(--color-accent);
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 200ms ease;
+}
+
+.toggleOn .toggleKnob {
+  transform: translateX(20px);
+}
+
+/* ============================================
+   Accessories Tags & Datalist
+   ============================================ */
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--spacing-2);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+}
+
+.tagRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: background 150ms;
+}
+
+.tagRemove:hover {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.datalistWrapper {
+  position: relative;
+}
+
+.datalistInput {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.datalistInput:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.datalistInput::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.datalistDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--color-surface-elevated, #1e2233);
+  border: 1px solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  z-index: 20;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.datalistOption {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background 100ms;
+}
+
+.datalistOption:hover {
+  background: rgba(107, 122, 153, 0.1);
+}
+
+/* ============================================
+   Multi-Select Dropdown (Accessories)
+   ============================================ */
+.multiSelectTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.multiSelectTrigger:hover {
+  border-color: var(--color-accent);
+}
+
+.multiSelectValue {
+  color: var(--color-text-primary);
+}
+
+.multiSelectPlaceholder {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.multiSelectArrow {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  transition: transform 150ms ease;
+}
+
+.multiSelectArrowOpen {
+  transform: rotate(180deg);
+}
+
+.multiSelectTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--spacing-2);
+}
+
+.multiSelectDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--color-surface-elevated, #1e2233);
+  border: 1px solid var(--color-border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  z-index: 20;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: var(--spacing-1) 0;
+}
+
+.multiSelectOption {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background 100ms;
+}
+
+.multiSelectOption:hover {
+  background: rgba(107, 122, 153, 0.1);
+}
+
+.multiSelectCheckbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  flex-shrink: 0;
 }

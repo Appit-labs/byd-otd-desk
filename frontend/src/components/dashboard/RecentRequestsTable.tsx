@@ -10,11 +10,11 @@ interface RecentRequestsTableProps {
   isLoading: boolean;
 }
 
-const STATUS_BADGE_MAP: Record<string, 'not_started' | 'pending' | 'on_hold' | 'completed'> = {
-  not_started: 'not_started',
-  pending: 'pending',
-  on_hold: 'on_hold',
-  completed: 'completed',
+const STATUS_BADGE_MAP: Record<string, 'active' | 'cancelled' | 'archived_manual' | 'archived_qc'> = {
+  active: 'active',
+  cancelled: 'cancelled',
+  archived_manual: 'archived_manual',
+  archived_qc: 'archived_qc',
 };
 
 export function RecentRequestsTable({ requests, isLoading }: RecentRequestsTableProps) {
@@ -112,12 +112,12 @@ export function RecentRequestsTable({ requests, isLoading }: RecentRequestsTable
                     </td>
                     <td style={tdStyle}>
                       <span style={{ color: 'var(--color-text-primary)' }}>
-                        {req.carNumber}
+                        {req.chassisNumber}
                       </span>
                     </td>
                     <td style={tdStyle}>
                       <span style={{ color: 'var(--color-text-primary)' }}>
-                        {req.clientName}
+                        {req.customerName}
                       </span>
                     </td>
                     <td style={tdStyle}>

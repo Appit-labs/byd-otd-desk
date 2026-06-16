@@ -1,0 +1,23 @@
+{
+  "fixedSectionOk": true,
+  "nodesRecovered": 0,
+  "edgesRestored": 0,
+  "crossBatchEdgesAdded": 0,
+  "typesRemapped": 3,
+  "complexityRemapped": 0,
+  "notes": [
+    "Fixed nginx.conf: type corrected from 'service' to 'config', ID updated from 'file:frontend/nginx.conf' to 'config:frontend/nginx.conf'. No edges referenced the old ID.",
+    "Fixed tsconfig.tsbuildinfo: type was 'config' but ID prefix was 'file:'. Updated ID to 'config:frontend/tsconfig.tsbuildinfo'. No edges referenced the old ID.",
+    "Fixed vite.config.ts: type was 'config' but ID prefix was 'file:'. Updated ID to 'config:frontend/vite.config.ts'. No edges referenced the old ID.",
+    "All 389 node IDs now match their type prefixes consistently (file:185, config:17, function:117, class:46, document:15, service:8, schema:1).",
+    "All 661 edges have valid source/target node references and include direction='forward'.",
+    "No duplicate node IDs or edges found.",
+    "CSS module styling relationships use edge type 'configures' (e.g., tracker.module.css -> TrackerTable.tsx). This is an LLM labeling choice, not a mechanical error — the relationship is semantically appropriate in context.",
+    "tested_by edges correctly flow from implementation file to test file (e.g., dashboard.service.ts -> dashboard.service.spec.ts), reading as 'implementation is tested by spec'. Semantically correct.",
+    "Cross-batch import map verification: all 216 import edges from the original analysis are present. No missing cross-batch import edges found.",
+    "Intermediate and tmp directories were cleaned up by the pipeline after assembly. All fixes were verified on the final knowledge-graph.json.",
+    "No nodes had dropped/missing IDs or unknown types/complexity values that required recovery.",
+    "All 389 nodes have complete fields (id, type, name, summary, tags, complexity) with meaningful content.",
+    "The 7 dropped dangling edges from the merge report (CSS module mismatches, missing vite.config.ts, nginx routes) were all handled by the merge script's mechanical fixes and no restoration was needed."
+  ]
+}

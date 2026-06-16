@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, PauseCircle, PlayCircle, Trash2 } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,21 +10,26 @@ import { RequestForm } from './RequestForm';
 import { useCreateRequest } from '@/hooks/useCreateRequest';
 import { useUpdateRequest } from '@/hooks/useUpdateRequest';
 import { useDeleteRequest } from '@/hooks/useDeleteRequest';
-import { useRequestHold } from '@/hooks/useRequestHold';
 import type { CarRequest } from '@/types/request';
 import styles from './request-form.module.css';
 
 // ─── Validation Schema ───────────────────────────────────────────
 const requestFormSchema = z.object({
   requestType: z.string().min(1, 'Request type is required'),
-  carNumber: z.string().min(1, 'Car number is required'),
-  bodyNumber: z.string().optional(),
-  carColor: z.string().optional(),
-  carSpec: z.string().optional(),
-  clientName: z.string().min(1, 'Client name is required'),
-  clientTel: z.string().min(1, 'Client telephone is required'),
-  paymentMethod: z.string().min(1, 'Payment method is required'),
-  sellerId: z.string().min(1, 'Seller is required'),
+  chassisNumber: z.string().min(1, 'Chassis number is required'),
+  brandId: z.string().optional(),
+  modelId: z.string().optional(),
+  variantId: z.string().optional(),
+  exteriorColorId: z.string().optional(),
+  interiorColorId: z.string().optional(),
+  vehicleLocation: z.string().optional(),
+  showroomId: z.string().optional(),
+  customerName: z.string().min(1, 'Customer name is required'),
+  customerPhone: z.string().min(1, 'Customer phone is required'),
+  salesConsultantId: z.string().min(1, 'Sales consultant is required'),
+  salesTypeId: z.string().optional(),
+  accessories: z.array(z.string()).optional(),
+  hasGps: z.boolean().optional(),
   remarks: z.string().max(500, 'Remarks must be under 500 characters').optional(),
 });
 
@@ -42,14 +47,19 @@ interface RequestFormDrawerProps {
 function mapRequestToFormValues(request: CarRequest): RequestFormValues {
   return {
     requestType: String(request.requestType?.id ?? ''),
-    carNumber: request.carNumber ?? '',
-    bodyNumber: request.bodyNumber ?? '',
-    carColor: String(request.carColor?.id ?? ''),
-    carSpec: String(request.carSpec?.id ?? ''),
-    clientName: request.clientName ?? '',
-    clientTel: request.clientTel ?? '',
-    paymentMethod: String(request.paymentMethod?.id ?? ''),
-    sellerId: String(request.seller?.id ?? ''),
+    chassisNumber: request.chassisNumber ?? '',
+    brandId: request.brand?.id ? String(request.brand.id) : '',
+    modelId: request.model?.id ? String(request.model.id) : '',
+    variantId: request.variant?.id ? String(request.variant.id) : '',
+    exteriorColorId: request.exteriorColor?.id ? String(request.exteriorColor.id) : '',
+    interiorColorId: request.interiorColor?.id ? String(request.interiorColor.id) : '',
+    vehicleLocation: request.vehicleLocation ?? '',
+    customerName: request.customerName ?? '',
+    customerPhone: request.customerPhone ?? '',
+    salesConsultantId: String(request.salesConsultant?.id ?? ''),
+    salesTypeId: request.salesType?.id ? String(request.salesType.id) : '',
+    accessories: (request.accessories ?? []).map(String),
+    hasGps: request.hasGps ?? false,
     remarks: request.remarks ?? '',
   };
 }
@@ -61,14 +71,19 @@ function useDefaultFormValues(editingRequest?: CarRequest | null): RequestFormVa
   }
   return {
     requestType: '',
-    carNumber: '',
-    bodyNumber: '',
-    carColor: '',
-    carSpec: '',
-    clientName: '',
-    clientTel: '',
-    paymentMethod: '',
-    sellerId: '',
+    chassisNumber: '',
+    brandId: '',
+    modelId: '',
+    variantId: '',
+    exteriorColorId: '',
+    interiorColorId: '',
+    vehicleLocation: '',
+    customerName: '',
+    customerPhone: '',
+    salesConsultantId: '',
+    salesTypeId: '',
+    accessories: [],
+    hasGps: true,
     remarks: '',
   };
 }
@@ -127,7 +142,6 @@ export function RequestFormDrawer({
   // Return focus on close
   const handleClose = useCallback(() => {
     onClose();
-    // Return focus to trigger element after close animation
     requestAnimationFrame(() => {
       triggerRef.current?.focus();
     });
@@ -150,11 +164,9 @@ export function RequestFormDrawer({
   const createMutation = useCreateRequest();
   const updateMutation = useUpdateRequest(editingRequest?.id ?? 0);
   const deleteMutation = useDeleteRequest(editingRequest?.id ?? 0);
-  const holdMutation = useRequestHold(editingRequest?.id ?? 0);
 
   // ── Delete Confirmation Modal State ───────────────────────────
   const isDeletePending = deleteMutation.isPending;
-  const isHoldPending = holdMutation.isPending;
 
   const isSubmitting =
     createMutation.isPending || updateMutation.isPending;
@@ -166,14 +178,22 @@ export function RequestFormDrawer({
     try {
       const payload = {
         requestTypeId: Number(values.requestType),
-        carNumber: values.carNumber,
-        bodyNumber: values.bodyNumber || undefined,
-        carColorId: values.carColor ? Number(values.carColor) : undefined,
-        carSpecId: values.carSpec ? Number(values.carSpec) : undefined,
-        clientName: values.clientName,
-        clientTel: values.clientTel,
-        paymentMethodId: Number(values.paymentMethod),
-        sellerId: Number(values.sellerId),
+        chassisNumber: values.chassisNumber,
+        brandId: values.brandId ? Number(values.brandId) : undefined,
+        modelId: values.modelId ? Number(values.modelId) : undefined,
+        variantId: values.variantId ? Number(values.variantId) : undefined,
+        exteriorColorId: values.exteriorColorId ? Number(values.exteriorColorId) : undefined,
+        interiorColorId: values.interiorColorId ? Number(values.interiorColorId) : undefined,
+        vehicleLocation: values.vehicleLocation || undefined,
+        showroomId: values.showroomId ? Number(values.showroomId) : undefined,
+        customerName: values.customerName,
+        customerPhone: values.customerPhone,
+        salesConsultantId: Number(values.salesConsultantId),
+        salesTypeId: values.salesTypeId ? Number(values.salesTypeId) : undefined,
+        accessories: values.accessories?.length
+          ? values.accessories.map(Number)
+          : undefined,
+        hasGps: values.hasGps ?? true,
         remarks: values.remarks || undefined,
       };
 
@@ -181,10 +201,7 @@ export function RequestFormDrawer({
         await updateMutation.mutateAsync(payload);
         onToast?.('Request updated successfully');
       } else {
-        await createMutation.mutateAsync({
-          ...payload,
-          createdAt: new Date().toISOString(),
-        });
+        await createMutation.mutateAsync(payload);
         onToast?.('Request created successfully');
       }
 
@@ -213,23 +230,6 @@ export function RequestFormDrawer({
       setShowDeleteConfirm(false);
     }
   }, [editingRequest, deleteMutation, onToast, handleClose]);
-
-  // ── Hold Handler ──────────────────────────────────────────────
-  const handleHoldToggle = useCallback(async () => {
-    if (!editingRequest) return;
-    try {
-      await holdMutation.mutateAsync();
-      const action =
-        editingRequest.status === 'on_hold'
-          ? 'Request taken off hold'
-          : 'Request placed on hold';
-      onToast?.(action);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'An unexpected error occurred';
-      onToast?.(`Failed to update hold status: ${message}`);
-    }
-  }, [editingRequest, holdMutation, onToast]);
 
   if (!open) return null;
 
@@ -299,33 +299,6 @@ export function RequestFormDrawer({
                 Delete
               </Button>
             )}
-
-            {/* Hold Toggle (edit mode only) */}
-            {isEditMode && editingRequest && (
-              <button
-                type="button"
-                className={`${styles.holdButton} ${editingRequest.status === 'on_hold' ? styles.active : ''}`}
-                onClick={handleHoldToggle}
-                disabled={isHoldPending}
-                aria-label={
-                  editingRequest.status === 'on_hold'
-                    ? 'Lift hold'
-                    : 'Put on hold'
-                }
-              >
-                {editingRequest.status === 'on_hold' ? (
-                  <>
-                    <PlayCircle size={14} />
-                    Lift Hold
-                  </>
-                ) : (
-                  <>
-                    <PauseCircle size={14} />
-                    Put on Hold
-                  </>
-                )}
-              </button>
-            )}
           </div>
 
           <div className={styles.footerRight}>
@@ -392,6 +365,6 @@ export function RequestFormDrawer({
         </Modal>
       )}
     </>,
-    document.body
+    document.body,
   );
 }

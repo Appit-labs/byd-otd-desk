@@ -24,7 +24,7 @@ services:
     container_name: byd-otd-backend-prod
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3005:3000"
     depends_on:
       mysql:
         condition: service_healthy
@@ -36,11 +36,19 @@ services:
       DB_USERNAME: ${DB_USERNAME:-root}
       DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       DB_DATABASE: ${MYSQL_DATABASE:-byd_otd_desk}
-      DB_SYNC: "true"
+      DB_SYNC: "false"
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRY: ${JWT_EXPIRY:-8h}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3030}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin@123}
+      APP_SECRET: ${APP_SECRET:-local-dev-app-secret-change-in-production}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3030}
+      FALLBACK_SMTP_HOST: ${FALLBACK_SMTP_HOST:-smtp.resend.com}
+      FALLBACK_SMTP_PORT: ${FALLBACK_SMTP_PORT:-465}
+      FALLBACK_SMTP_USER: ${FALLBACK_SMTP_USER:-resend}
+      FALLBACK_SMTP_PASS: ${FALLBACK_SMTP_PASS}
+      FALLBACK_FROM_ADDRESS: ${FALLBACK_FROM_ADDRESS:-onboarding@resend.dev}
+      FALLBACK_FROM_NAME: ${FALLBACK_FROM_NAME:-BYD OTD Desk}
     networks:
       - byd-otd-network
 
@@ -51,7 +59,7 @@ services:
     container_name: byd-otd-frontend-prod
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "3030:80"
     depends_on:
       - backend
     networks:

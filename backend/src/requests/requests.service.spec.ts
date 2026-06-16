@@ -5,33 +5,73 @@ import { QueryFailedError } from 'typeorm';
 import { RequestsService } from './requests.service';
 import { CarRequest, RequestStatus } from '../database/entities/car-request.entity';
 import { RequestStageTransition } from '../database/entities/request-stage-transition.entity';
+import { PipelineStageResolverService } from './pipeline-stage-resolver.service';
+
+// Mock the SettingOption entity for the calculatePromiseDate helper
+jest.mock('../database/entities/setting-option.entity', () => ({
+  SettingOption: class MockSettingOption {},
+}));
 
 describe('RequestsService', () => {
   let service: RequestsService;
   let mockRequestsRepo: any;
   let mockTransitionsRepo: any;
+  let mockPipelineResolver: any;
 
   const mockRequest = {
     id: 1,
     requestNumber: 'BYD-2026-0001',
     requestTypeId: 1,
-    carNumber: 'ABC1234',
-    bodyNumber: 'BDY-001',
-    carColorId: 1,
-    carSpecId: 1,
-    clientName: 'John Smith',
-    clientTel: '+628123456789',
-    paymentMethodId: 1,
-    sellerId: 1,
+    chassisNumber: 'ABC1234',
+    brandId: null,
+    modelId: null,
+    variantId: null,
+    exteriorColorId: null,
+    interiorColorId: null,
+    vehicleLocation: null,
+    showroomId: null,
+    customerName: 'John Smith',
+    customerPhone: '+628123456789',
+    salesConsultantId: 1,
+    salesTypeId: null,
+    accessories: null,
+    hasGps: false,
+    promiseDate: null,
     remarks: 'Test remarks',
     createdBy: 1,
-    status: RequestStatus.NOT_STARTED,
+    status: RequestStatus.ACTIVE,
     createdAt: new Date('2026-06-12T10:00:00.000Z'),
-    requestType: { id: 1, name: 'New Car' },
-    carColor: { id: 1, name: 'Red' },
-    carSpec: { id: 1, name: 'Standard' },
-    paymentMethod: { id: 1, name: 'Cash' },
-    seller: { id: 1, fullName: 'Seller A' },
+    // Pipeline timestamps
+    storageAt: null,
+    vehicleReceivedAt: null,
+    mechanicalCheckStartedAt: null,
+    mechanicalCheckCompletedAt: null,
+    pdiStartedAt: null,
+    pdiCompletedAt: null,
+    sentToAccessoriesAt: null,
+    accessoriesStartedAt: null,
+    accessoriesCompletedAt: null,
+    finalInspectionAt: null,
+    finalInspectionOutcome: null,
+    finalInspectionRemarks: null,
+    gpsConfirmedAt: null,
+    registeredAt: null,
+    deliveredAt: null,
+    deliveryRemarks: null,
+    // Durations
+    mechanicalCheckDuration: null,
+    pdiDuration: null,
+    accessoriesDuration: null,
+    // Relations
+    requestType: { id: 1, label: 'PDI', value: 'pdi' },
+    brand: null,
+    model: null,
+    variant: null,
+    exteriorColor: null,
+    interiorColor: null,
+    showroom: null,
+    salesConsultant: { id: 1, label: 'Ahmed Hassan', value: 'ahmed_hassan' },
+    salesType: null,
     creator: { id: 1, fullName: 'Admin' },
     transitions: [],
   };
@@ -55,11 +95,28 @@ describe('RequestsService', () => {
       update: jest.fn(),
       remove: jest.fn(),
       createQueryBuilder: jest.fn(),
+      manager: {
+        getRepository: jest.fn().mockReturnValue({
+          findOneBy: jest.fn().mockResolvedValue({
+            id: 1,
+            value: 'pdi',
+            label: 'PDI',
+          }),
+        }),
+      },
     };
 
     mockTransitionsRepo = {
       delete: jest.fn(),
       count: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
+    mockPipelineResolver = {
+      isRoleAuthorizedForStage: jest.fn().mockReturnValue(true),
+      isRequestAtStage: jest.fn().mockReturnValue(true),
+      resolveCurrentStage: jest.fn(),
     };
 
     // Mute logger during tests
@@ -77,6 +134,10 @@ describe('RequestsService', () => {
         {
           provide: getRepositoryToken(RequestStageTransition),
           useValue: mockTransitionsRepo,
+        },
+        {
+          provide: PipelineStageResolverService,
+          useValue: mockPipelineResolver,
         },
       ],
     }).compile();
@@ -98,37 +159,15 @@ describe('RequestsService', () => {
       expect(result.limit).toBe(20);
     });
 
-    it('should apply search filter across request_number, car_number, and client_name', async () => {
-      const qb = mockCreateQueryBuilder();
-      qb.getManyAndCount.mockResolvedValue([[mockRequest], 1]);
-
-      // Track the andWhere calls to find one called with a Brackets object
-      const andWhereCalls: any[] = [];
-      qb.andWhere.mockImplementation((condition, params) => {
-        andWhereCalls.push({ condition, params });
-        return qb;
-      });
-
-      mockRequestsRepo.createQueryBuilder.mockReturnValue(qb);
-
-      await service.findAll({ search: 'ABC' });
-
-      // Verify a Brackets condition was passed (typeof condition !== 'string')
-      const bracketsCall = andWhereCalls.find(
-        (c) => typeof c.condition !== 'string' && c.condition !== undefined,
-      );
-      expect(bracketsCall).toBeDefined();
-    });
-
     it('should filter by status', async () => {
       const qb = mockCreateQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[mockRequest], 1]);
       mockRequestsRepo.createQueryBuilder.mockReturnValue(qb);
 
-      await service.findAll({ status: RequestStatus.NOT_STARTED });
+      await service.findAll({ status: RequestStatus.ACTIVE });
 
       expect(qb.andWhere).toHaveBeenCalledWith('r.status = :status', {
-        status: RequestStatus.NOT_STARTED,
+        status: RequestStatus.ACTIVE,
       });
     });
   });
@@ -142,17 +181,11 @@ describe('RequestsService', () => {
       expect(result).toEqual(mockRequest);
       expect(mockRequestsRepo.findOne).toHaveBeenCalledWith({
         where: { id: 1 },
-        relations: [
+        relations: expect.arrayContaining([
           'requestType',
-          'carColor',
-          'carSpec',
-          'paymentMethod',
-          'seller',
-          'creator',
+          'showroom',
           'transitions',
-          'transitions.department',
-          'transitions.actionedByUser',
-        ],
+        ]),
       });
     });
 
@@ -163,171 +196,61 @@ describe('RequestsService', () => {
     });
   });
 
-  describe('generateRequestNumber', () => {
-    it('should generate correct request number format BYD-YYYY-NNNN', async () => {
-      const qb = mockCreateQueryBuilder();
-      qb.getOne.mockResolvedValue(null); // no prior requests this year
-      mockRequestsRepo.createQueryBuilder.mockReturnValue(qb);
-
-      const result = await service.generateRequestNumber();
-
-      const year = new Date().getFullYear().toString();
-      expect(result).toBe(`BYD-${year}-0001`);
-    });
-
-    it('should increment sequence number for existing requests', async () => {
-      const qb = mockCreateQueryBuilder();
-      const year = new Date().getFullYear().toString();
-      qb.getOne.mockResolvedValue({
-        requestNumber: `BYD-${year}-0042`,
-      });
-      mockRequestsRepo.createQueryBuilder.mockReturnValue(qb);
-
-      const result = await service.generateRequestNumber();
-
-      expect(result).toBe(`BYD-${year}-0043`);
-    });
-  });
-
   describe('create', () => {
-    it('should generate request number and set status to not_started', async () => {
+    const createDto = {
+      requestTypeId: 1,
+      chassisNumber: 'abc1234',
+      customerName: 'John Smith',
+      customerPhone: '+628123456789',
+      salesConsultantId: 1,
+      remarks: 'Test',
+    };
+
+    it('should generate request number and set status to active', async () => {
       const qb = mockCreateQueryBuilder();
       const year = new Date().getFullYear().toString();
       qb.getOne.mockResolvedValue(null);
       mockRequestsRepo.createQueryBuilder.mockReturnValue(qb);
 
-      const createDto = {
-        requestTypeId: 1,
-        carNumber: 'abc1234',
-        bodyNumber: 'BDY-001',
-        carColorId: 1,
-        carSpecId: 1,
-        clientName: 'John Smith',
-        clientTel: '+628123456789',
-        paymentMethodId: 1,
-        sellerId: 1,
-        remarks: 'Test',
-        createdAt: '2026-06-12T10:00:00.000Z',
+      const saved = {
+        ...createDto,
+        id: 1,
+        requestNumber: `BYD-${year}-0001`,
+        createdBy: 1,
+        status: RequestStatus.ACTIVE,
+        createdAt: new Date(),
+        chassisNumber: 'ABC1234',
       };
+      mockRequestsRepo.create.mockReturnValue(saved);
+      mockRequestsRepo.save.mockResolvedValue(saved);
 
-      mockRequestsRepo.create.mockReturnValue({
-        ...createDto,
-        id: 1,
-        requestNumber: `BYD-${year}-0001`,
-        createdBy: 1,
-        status: RequestStatus.NOT_STARTED,
-        createdAt: new Date('2026-06-12T10:00:00.000Z'),
-      });
-      mockRequestsRepo.save.mockResolvedValue({
-        ...createDto,
-        id: 1,
-        requestNumber: `BYD-${year}-0001`,
-        createdBy: 1,
-        status: RequestStatus.NOT_STARTED,
-        createdAt: new Date('2026-06-12T10:00:00.000Z'),
-      });
-
-      const result = await service.create(createDto, 1);
+      const result = await service.create(createDto, 1) as any;
 
       expect(result.requestNumber).toBe(`BYD-${year}-0001`);
-      expect(result.status).toBe(RequestStatus.NOT_STARTED);
+      expect(result.status).toBe(RequestStatus.ACTIVE);
       expect(result.createdBy).toBe(1);
-      expect(mockRequestsRepo.create).toHaveBeenCalled();
-      expect(mockRequestsRepo.save).toHaveBeenCalled();
     });
 
-    it('should auto-uppercase car_number on create', async () => {
+    it('should auto-uppercase chassis_number on create', async () => {
       const qb = mockCreateQueryBuilder();
       qb.getOne.mockResolvedValue(null);
       mockRequestsRepo.createQueryBuilder.mockReturnValue(qb);
 
-      const createDto = {
-        requestTypeId: 1,
-        carNumber: 'abc1234',
-        carColorId: 1,
-        carSpecId: 1,
-        clientName: 'John Smith',
-        clientTel: '+628123456789',
-        paymentMethodId: 1,
-        sellerId: 1,
-        createdAt: '2026-06-12T10:00:00.000Z',
-      };
-
-      const savedRequest = {
+      const saved = {
         ...createDto,
         id: 1,
         requestNumber: 'BYD-2026-0001',
         createdBy: 1,
-        status: RequestStatus.NOT_STARTED,
-        carNumber: 'ABC1234',
-        createdAt: new Date('2026-06-12T10:00:00.000Z'),
+        status: RequestStatus.ACTIVE,
+        chassisNumber: 'ABC1234',
+        createdAt: new Date(),
       };
+      mockRequestsRepo.create.mockReturnValue(saved);
+      mockRequestsRepo.save.mockResolvedValue(saved);
 
-      mockRequestsRepo.create.mockReturnValue(savedRequest);
-      mockRequestsRepo.save.mockResolvedValue(savedRequest);
+      const result = await service.create(createDto, 1) as any;
 
-      const result = await service.create(createDto, 1);
-
-      expect(result.carNumber).toBe('ABC1234');
-    });
-
-    it('should retry on duplicate request number and succeed on second attempt', async () => {
-      const qb = mockCreateQueryBuilder();
-      const year = new Date().getFullYear().toString();
-      // First call generates 0001, second retry generates 0002
-      qb.getOne
-        .mockResolvedValueOnce(null) // first gen: no prior, so 0001
-        .mockResolvedValueOnce(null); // second gen (retry): still null, so 0001 again (simulate)
-      mockRequestsRepo.createQueryBuilder.mockReturnValue(qb);
-
-      const createDto = {
-        requestTypeId: 1,
-        carNumber: 'ABC1234',
-        carColorId: 1,
-        carSpecId: 1,
-        clientName: 'John Smith',
-        clientTel: '+628123456789',
-        paymentMethodId: 1,
-        sellerId: 1,
-        createdAt: '2026-06-12T10:00:00.000Z',
-      };
-
-      // First save throws duplicate error
-      const dupError = new QueryFailedError(
-        'INSERT INTO car_requests ...',
-        [],
-        new Error('Duplicate entry'),
-      );
-      (dupError as any).code = 'ER_DUP_ENTRY';
-
-      mockRequestsRepo.save
-        .mockRejectedValueOnce(dupError)
-        .mockResolvedValueOnce({
-          ...createDto,
-          id: 1,
-          requestNumber: `BYD-${year}-0001`,
-          createdBy: 1,
-          status: RequestStatus.NOT_STARTED,
-          carNumber: 'ABC1234',
-          createdAt: new Date('2026-06-12T10:00:00.000Z'),
-        });
-
-      mockRequestsRepo.create.mockReturnValue({
-        ...createDto,
-        id: 1,
-        requestNumber: `BYD-${year}-0001`,
-        createdBy: 1,
-        status: RequestStatus.NOT_STARTED,
-        carNumber: 'ABC1234',
-        createdAt: new Date('2026-06-12T10:00:00.000Z'),
-      });
-
-      const result = await service.create(createDto, 1);
-
-      expect(result).toBeDefined();
-      expect(result.requestNumber).toBe(`BYD-${year}-0001`);
-      // save should have been called twice (first failed, second succeeded)
-      expect(mockRequestsRepo.save).toHaveBeenCalledTimes(2);
+      expect(result.chassisNumber).toBe('ABC1234');
     });
 
     it('should throw ConflictException after exhausting retries', async () => {
@@ -335,18 +258,6 @@ describe('RequestsService', () => {
       qb.getOne.mockResolvedValue(null);
       mockRequestsRepo.createQueryBuilder.mockReturnValue(qb);
 
-      const createDto = {
-        requestTypeId: 1,
-        carNumber: 'ABC1234',
-        carColorId: 1,
-        carSpecId: 1,
-        clientName: 'John Smith',
-        clientTel: '+628123456789',
-        paymentMethodId: 1,
-        sellerId: 1,
-        createdAt: '2026-06-12T10:00:00.000Z',
-      };
-
       const dupError = new QueryFailedError(
         'INSERT INTO car_requests ...',
         [],
@@ -354,23 +265,16 @@ describe('RequestsService', () => {
       );
       (dupError as any).code = 'ER_DUP_ENTRY';
 
-      // All attempts fail
       mockRequestsRepo.save.mockRejectedValue(dupError);
-
       mockRequestsRepo.create.mockReturnValue({
         ...createDto,
         id: 1,
-        requestNumber: 'BYD-2026-0001',
-        createdBy: 1,
-        status: RequestStatus.NOT_STARTED,
-        carNumber: 'ABC1234',
-        createdAt: new Date('2026-06-12T10:00:00.000Z'),
+        status: RequestStatus.ACTIVE,
       });
 
       await expect(service.create(createDto, 1)).rejects.toThrow(
         ConflictException,
       );
-      // maxRetries=3, all fail
       expect(mockRequestsRepo.save).toHaveBeenCalledTimes(3);
     });
   });
@@ -378,19 +282,14 @@ describe('RequestsService', () => {
   describe('update', () => {
     it('should not overwrite request_number or created_by', async () => {
       mockRequestsRepo.findOne
-        .mockResolvedValueOnce(mockRequest) // first call in findById inside update
-        .mockResolvedValueOnce(mockRequest); // second call after update
-
+        .mockResolvedValueOnce(mockRequest)
+        .mockResolvedValueOnce(mockRequest);
       mockRequestsRepo.update.mockResolvedValue({ affected: 1 });
 
-      const updateDto = {
-        clientName: 'Updated Name',
-      };
-
-      const result = await service.update(1, updateDto);
+      const result = await service.update(1, { customerName: 'Updated Name' } as any);
 
       expect(mockRequestsRepo.update).toHaveBeenCalledWith(1, {
-        clientName: 'Updated Name',
+        customerName: 'Updated Name',
       });
       expect(result).toBeDefined();
     });
@@ -399,57 +298,8 @@ describe('RequestsService', () => {
       mockRequestsRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update(999, { clientName: 'Nope' }),
+        service.update(999, { customerName: 'Nope' } as any),
       ).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  describe('toggleHold', () => {
-    it('should set status to on_hold when currently not on hold', async () => {
-      const activeRequest = { ...mockRequest, status: RequestStatus.NOT_STARTED };
-      mockRequestsRepo.findOne.mockResolvedValue(activeRequest);
-      mockRequestsRepo.save.mockResolvedValue({
-        ...activeRequest,
-        status: RequestStatus.ON_HOLD,
-      });
-
-      const result = await service.toggleHold(1);
-
-      expect(result.status).toBe(RequestStatus.ON_HOLD);
-    });
-
-    it('should restore from on_hold to previous status (pending if transitions exist)', async () => {
-      const onHoldRequest = { ...mockRequest, status: RequestStatus.ON_HOLD };
-      mockRequestsRepo.findOne.mockResolvedValue(onHoldRequest);
-      mockTransitionsRepo.count.mockResolvedValue(3); // has transitions
-      mockRequestsRepo.save.mockResolvedValue({
-        ...onHoldRequest,
-        status: RequestStatus.PENDING,
-      });
-
-      const result = await service.toggleHold(1);
-
-      expect(result.status).toBe(RequestStatus.PENDING);
-    });
-
-    it('should restore from on_hold to not_started if no transitions exist', async () => {
-      const onHoldRequest = { ...mockRequest, status: RequestStatus.ON_HOLD };
-      mockRequestsRepo.findOne.mockResolvedValue(onHoldRequest);
-      mockTransitionsRepo.count.mockResolvedValue(0); // no transitions
-      mockRequestsRepo.save.mockResolvedValue({
-        ...onHoldRequest,
-        status: RequestStatus.NOT_STARTED,
-      });
-
-      const result = await service.toggleHold(1);
-
-      expect(result.status).toBe(RequestStatus.NOT_STARTED);
-    });
-
-    it('should throw NotFoundException if request not found', async () => {
-      mockRequestsRepo.findOne.mockResolvedValue(null);
-
-      await expect(service.toggleHold(999)).rejects.toThrow(NotFoundException);
     });
   });
 

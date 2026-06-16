@@ -5,8 +5,8 @@ import {
   CreateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { User } from './user.entity.js';
-import { RequestStageTransition } from './request-stage-transition.entity.js';
+import type { User } from './user.entity.js';
+import type { RequestStageTransition } from './request-stage-transition.entity.js';
 
 @Entity('departments')
 export class Department {
@@ -28,9 +28,9 @@ export class Department {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @OneToMany(() => User, (user) => user.department)
+  @OneToMany('User', (user: any) => user.department)
   users: User[];
 
-  @OneToMany(() => RequestStageTransition, (t) => t.department)
+  @OneToMany('RequestStageTransition', (t: any) => t.department)
   stageTransitions: RequestStageTransition[];
 }

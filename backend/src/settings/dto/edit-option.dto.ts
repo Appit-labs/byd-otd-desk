@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsObject, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class EditOptionDto {
@@ -17,4 +17,19 @@ export class EditOptionDto {
   @IsInt()
   @Min(0)
   sortOrder?: number;
+
+  @ApiPropertyOptional({
+    description: 'Optional JSON metadata merge (e.g. working_days, allows_accessories, outcome_behavior)',
+    example: { working_days: 5 },
+  })
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, any>;
+
+  @ApiPropertyOptional({
+    description: 'Parent option id for hierarchical options',
+  })
+  @IsOptional()
+  @IsInt()
+  parentId?: number;
 }

@@ -10,6 +10,8 @@ interface TrackerToolbarProps {
   onSearchChange: (value: string) => void;
   status: string;
   onStatusChange: (value: string) => void;
+  timeliness: string;
+  onTimelinessChange: (value: string) => void;
   departmentId: string;
   onDepartmentChange: (value: string) => void;
   departments: Department[];
@@ -22,9 +24,10 @@ interface TrackerToolbarProps {
 
 const columnLabels: Record<string, string> = {
   requestNumber: 'Request #',
-  carNumber: 'Car #',
-  clientName: 'Client',
+  chassisNumber: 'VIN',
+  customerName: 'Client',
   status: 'Status',
+  timeliness: 'Status (On Time/Delayed)',
   progress: 'Progress',
 };
 
@@ -33,6 +36,8 @@ export function TrackerToolbar({
   onSearchChange,
   status,
   onStatusChange,
+  timeliness,
+  onTimelinessChange,
   departmentId,
   onDepartmentChange,
   departments,
@@ -113,7 +118,7 @@ export function TrackerToolbar({
   );
 
   const stageColumns = departments.map((d) => d.slug);
-  const allColumns = ['requestNumber', 'carNumber', 'clientName', 'status', 'progress', ...stageColumns];
+  const allColumns = ['requestNumber', 'chassisNumber', 'customerName', 'status', 'timeliness', 'progress', ...stageColumns];
 
   return (
     <div className={styles.toolbar}>
@@ -149,10 +154,22 @@ export function TrackerToolbar({
                   onChange={(e) => onStatusChange(e.target.value)}
                 >
                   <option value="">All Statuses</option>
-                  <option value="not_started">Not Started</option>
-                  <option value="pending">Pending</option>
-                  <option value="on_hold">On Hold</option>
-                  <option value="completed">Completed</option>
+                  <option value="active">Active</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="archived_manual">Archived (Manual)</option>
+                  <option value="archived_qc">Archived (QC)</option>
+                </select>
+              </div>
+              <div className={styles.filterRow}>
+                <span className={styles.filterLabel}>Status</span>
+                <select
+                  className={styles.filterSelect}
+                  value={timeliness}
+                  onChange={(e) => onTimelinessChange(e.target.value)}
+                >
+                  <option value="">All</option>
+                  <option value="on_time">On Time</option>
+                  <option value="delayed">Delayed</option>
                 </select>
               </div>
               <div className={styles.filterRow}>

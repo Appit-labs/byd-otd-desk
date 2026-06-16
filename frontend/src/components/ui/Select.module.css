@@ -75,6 +75,8 @@
   box-shadow: var(--shadow-lg);
   z-index: calc(var(--z-modal) + 5);
   min-width: var(--radix-select-trigger-width);
+  max-height: 280px;
+  overflow-y: auto;
   animation: fadeIn 0.1s ease-out;
 }
 

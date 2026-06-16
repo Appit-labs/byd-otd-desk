@@ -1,9 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, IsNull, Not } from 'typeorm';
-import { CarRequest, RequestStatus } from '../database/entities/car-request.entity.js';
+import { Repository, Between, In, Not, IsNull } from 'typeorm';
+import {
+  CarRequest,
+  RequestStatus,
+  PipelineStage,
+} from '../database/entities/car-request.entity.js';
 import { Department } from '../database/entities/department.entity.js';
-import { RequestStageTransition, TransitionAction } from '../database/entities/request-stage-transition.entity.js';
+import {
+  RequestStageTransition,
+  TransitionAction,
+} from '../database/entities/request-stage-transition.entity.js';
+import { PipelineStageResolverService } from '../requests/pipeline-stage-resolver.service.js';
 
 export interface StatsResult {
   totalRequests: number;
@@ -18,7 +26,7 @@ export interface ComparisonDay {
   previousMonth: number;
 }
 
-interface PipelineStage {
+interface PipelineStageStat {
   departmentId: number;
   departmentName: string;
   slug: string;
@@ -27,7 +35,7 @@ interface PipelineStage {
 }
 
 export interface PipelineSummaryResult {
-  stages: PipelineStage[];
+  stages: PipelineStageStat[];
 }
 
 @Injectable()
@@ -39,33 +47,45 @@ export class DashboardService {
     private departmentsRepository: Repository<Department>,
     @InjectRepository(RequestStageTransition)
     private transitionsRepository: Repository<RequestStageTransition>,
+    private pipelineStageResolver: PipelineStageResolverService,
   ) {}
 
   async getSummary() {
+    const activeStatuses = [RequestStatus.ACTIVE];
+    const archivedStatuses = [
+      RequestStatus.ARCHIVED_MANUAL,
+      RequestStatus.ARCHIVED_QC,
+    ];
+
     const [
       totalRequests,
-      pendingRequests,
-      completedRequests,
-      onHoldRequests,
+      activeRequests,
+      deliveredRequests,
+      cancelledRequests,
+      archivedRequests,
       departments,
     ] = await Promise.all([
       this.requestsRepository.count(),
-      this.requestsRepository.count({ where: { status: RequestStatus.PENDING } }),
-      this.requestsRepository.count({ where: { status: RequestStatus.COMPLETED } }),
-      this.requestsRepository.count({ where: { status: RequestStatus.ON_HOLD } }),
+      this.requestsRepository.count({ where: { status: RequestStatus.ACTIVE } }),
+      // Delivered = all timestamps filled (delivered_at is not null)
+      this.requestsRepository.count({
+        where: { status: RequestStatus.ACTIVE, deliveredAt: Not(IsNull()) },
+      }),
+      this.requestsRepository.count({ where: { status: RequestStatus.CANCELLED } }),
+      this.requestsRepository.count({
+        where: { status: In(archivedStatuses) },
+      }),
       this.departmentsRepository.find({ order: { pipelineOrder: 'ASC' } }),
     ]);
 
-    // Aggregate per-department counts from request_stage_transitions
-    // A request is "pending" in a department if it has been started there but not completed
-    // A request is "completed" in a department if it has a completed transition there
     const departmentStats = await this.getDepartmentStats(departments);
 
     return {
       totalRequests,
-      pendingRequests,
-      completedRequests,
-      onHoldRequests,
+      activeRequests,
+      deliveredRequests,
+      cancelledRequests,
+      archivedRequests,
       departmentStats,
     };
   }
@@ -74,6 +94,7 @@ export class DashboardService {
     const now = new Date();
     const { start, end, prevStart, prevEnd } = this.getPeriodRange(now, period);
 
+    // "Completed" = delivered (delivered_at is set)
     const [totalRequests, completedRequests, prevTotalRequests, prevCompletedRequests] =
       await Promise.all([
         this.requestsRepository.count({
@@ -81,8 +102,7 @@ export class DashboardService {
         }),
         this.requestsRepository.count({
           where: {
-            status: RequestStatus.COMPLETED,
-            completedAt: Between(start, end),
+            deliveredAt: Between(start, end),
           },
         }),
         this.requestsRepository.count({
@@ -90,19 +110,24 @@ export class DashboardService {
         }),
         this.requestsRepository.count({
           where: {
-            status: RequestStatus.COMPLETED,
-            completedAt: Between(prevStart, prevEnd),
+            deliveredAt: Between(prevStart, prevEnd),
           },
         }),
       ]);
 
-    const completionRate = totalRequests > 0
-      ? parseFloat(((completedRequests / totalRequests) * 100).toFixed(1))
-      : 0;
+    const completionRate =
+      totalRequests > 0
+        ? parseFloat(((completedRequests / totalRequests) * 100).toFixed(1))
+        : 0;
 
-    const trend = prevTotalRequests > 0
-      ? parseFloat((((totalRequests - prevTotalRequests) / prevTotalRequests) * 100).toFixed(1))
-      : totalRequests > 0 ? 100 : 0;
+    const trend =
+      prevTotalRequests > 0
+        ? parseFloat(
+            (((totalRequests - prevTotalRequests) / prevTotalRequests) * 100).toFixed(1),
+          )
+        : totalRequests > 0
+          ? 100
+          : 0;
 
     return {
       totalRequests,
@@ -116,17 +141,14 @@ export class DashboardService {
     const targetMonth = month ?? this.formatMonth(new Date());
     const [year, mon] = targetMonth.split('-').map(Number);
 
-    // Current month range
     const currentStart = new Date(year, mon - 1, 1);
     const currentEnd = new Date(year, mon, 0, 23, 59, 59, 999);
 
-    // Previous month range
     const prevStart = new Date(year, mon - 2, 1);
     const prevEnd = new Date(year, mon - 1, 0, 23, 59, 59, 999);
 
     const daysInMonth = currentEnd.getDate();
 
-    // Fetch current month counts per day
     const currentRows = await this.requestsRepository
       .createQueryBuilder('r')
       .select('DAY(r.created_at)', 'day')
@@ -137,7 +159,6 @@ export class DashboardService {
       .orderBy('DAY(r.created_at)', 'ASC')
       .getRawMany<{ day: number; count: string }>();
 
-    // Fetch previous month counts per day
     const prevRows = await this.requestsRepository
       .createQueryBuilder('r')
       .select('DAY(r.created_at)', 'day')
@@ -171,29 +192,24 @@ export class DashboardService {
   }
 
   async getPipelineSummary(): Promise<PipelineSummaryResult> {
-    // For each department, find requests that have a "started" transition
-    // but no "completed" transition in that department
     const departments = await this.departmentsRepository.find({
       order: { pipelineOrder: 'ASC' },
     });
 
-    const stages: PipelineStage[] = await Promise.all(
+    const stages: PipelineStageStat[] = await Promise.all(
       departments.map(async (dept) => {
-        // Subquery: requests that have a started transition for this department
         const startedQb = this.transitionsRepository
           .createQueryBuilder('t')
           .select('t.requestId')
           .where('t.department_id = :deptId', { deptId: dept.id })
           .andWhere('t.action = :started', { started: TransitionAction.STARTED });
 
-        // Subquery: requests that have a completed transition for this department
         const completedQb = this.transitionsRepository
           .createQueryBuilder('t2')
           .select('t2.requestId')
           .where('t2.department_id = :deptId2', { deptId2: dept.id })
           .andWhere('t2.action = :completed', { completed: TransitionAction.COMPLETED });
 
-        // Count requests started but not completed in this department
         const count = await this.transitionsRepository
           .createQueryBuilder('t3')
           .where(`t3.request_id IN (${startedQb.getQuery()})`)
@@ -228,7 +244,6 @@ export class DashboardService {
       completed: number;
     }>
   > {
-    // Single aggregate query: for each department, count started vs completed transitions
     const rawStats = await this.transitionsRepository
       .createQueryBuilder('t')
       .select('t.department_id', 'departmentId')
@@ -269,23 +284,19 @@ export class DashboardService {
     period: 'daily' | 'monthly',
   ): { start: Date; end: Date; prevStart: Date; prevEnd: Date } {
     const year = now.getFullYear();
-    const month = now.getMonth(); // 0-based
+    const month = now.getMonth();
     const day = now.getDate();
 
     if (period === 'daily') {
-      // Today: 00:00:00 to 23:59:59.999
       const start = new Date(year, month, day, 0, 0, 0, 0);
       const end = new Date(year, month, day, 23, 59, 59, 999);
-      // Yesterday
       const prevStart = new Date(year, month, day - 1, 0, 0, 0, 0);
       const prevEnd = new Date(year, month, day - 1, 23, 59, 59, 999);
       return { start, end, prevStart, prevEnd };
     }
 
-    // Monthly: current month
     const start = new Date(year, month, 1, 0, 0, 0, 0);
     const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
-    // Previous month
     const prevStart = new Date(year, month - 1, 1, 0, 0, 0, 0);
     const prevEnd = new Date(year, month, 0, 23, 59, 59, 999);
     return { start, end, prevStart, prevEnd };

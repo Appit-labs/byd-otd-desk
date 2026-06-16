@@ -7,6 +7,8 @@ export interface SettingsOption {
   value: string;
   isActive: boolean;
   sortOrder: number;
+  parentId?: number | null;
+  metadata?: Record<string, any> | null;
 }
 
 interface SettingItem {
@@ -30,9 +32,14 @@ export function useSettings() {
           settings[item.key] = item.options ?? [];
         }
       }
+      // Debug: expose settings globally to verify data
+      if (typeof window !== 'undefined') {
+        (window as any).__settings = settings;
+        (window as any).__settingsKeys = Object.keys(settings);
+      }
       return settings;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 }
 
@@ -45,14 +52,20 @@ export function useAddOption() {
       settingKey,
       label,
       value,
+      parentId,
+      metadata,
     }: {
       settingKey: string;
       label: string;
       value: string;
+      parentId?: number;
+      metadata?: Record<string, any>;
     }) => {
       const response = await api.post(`/v1/settings/${settingKey}/options`, {
         label,
         value,
+        parentId,
+        metadata,
       });
       return response.data;
     },
@@ -70,15 +83,19 @@ export function useEditOption() {
       id,
       label,
       value,
+      parentId,
+      metadata,
     }: {
       settingKey: string;
       id: number;
       label: string;
       value: string;
+      parentId?: number;
+      metadata?: Record<string, any>;
     }) => {
       const response = await api.patch(
         `/v1/settings/${settingKey}/options/${id}`,
-        { label, value }
+        { label, value, parentId, metadata }
       );
       return response.data;
     },
@@ -140,9 +157,10 @@ export function useReorderOptions() {
       settingKey: string;
       optionIds: number[];
     }) => {
+      const orders = optionIds.map((id, index) => ({ id, sortOrder: index }));
       const response = await api.patch(
         `/v1/settings/${settingKey}/options/reorder`,
-        { optionIds }
+        { orders }
       );
       return response.data;
     },

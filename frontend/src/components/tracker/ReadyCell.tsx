@@ -1,24 +1,11 @@
 import type { CarRequest, Department } from '@/types/request';
+import { formatTimestamp } from './trackerUtils';
 import styles from './tracker.module.css';
 
 interface ReadyCellProps {
   request: CarRequest;
   previousDept: Department;
   nextDept: Department;
-}
-
-function formatTimestamp(iso: string): string {
-  const date = new Date(iso);
-  const time = date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  });
-  const day = date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
-  return `${time} ${day}`;
 }
 
 export function ReadyCell({ request, previousDept, nextDept }: ReadyCellProps) {

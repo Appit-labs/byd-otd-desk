@@ -332,6 +332,11 @@
   white-space: nowrap;
 }
 
+.colTimeliness {
+  width: 120px;
+  white-space: nowrap;
+}
+
 .colProgress {
   width: 120px;
 }

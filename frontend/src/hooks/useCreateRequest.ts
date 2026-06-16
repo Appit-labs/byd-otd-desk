@@ -4,16 +4,19 @@ import type { CarRequest } from '@/types/request';
 
 export interface CreateRequestPayload {
   requestTypeId: number;
-  carNumber: string;
-  bodyNumber?: string;
-  carColorId?: number;
-  carSpecId?: number;
-  clientName: string;
-  clientTel: string;
-  paymentMethodId: number;
-  sellerId: number;
+  chassisNumber: string;
+  brandId?: number;
+  modelId?: number;
+  variantId?: number;
+  cutId?: number;
+  vehicleLocation?: string;
+  customerName: string;
+  customerPhone: string;
+  salesConsultantId: number;
+  salesTypeId?: number;
+  accessories?: number[];
+  hasGps?: boolean;
   remarks?: string;
-  createdAt?: string;
 }
 
 export function useCreateRequest() {

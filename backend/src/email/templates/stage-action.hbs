@@ -1,0 +1,16 @@
+{{#> layouts/base}}
+  {{#*inline "body"}}
+    <h2 style="margin:0 0 8px;color:#1a1a2e;font-size:18px;font-weight:700;">{{title}}</h2>
+    <p style="margin:0 0 20px;color:#555555;font-size:15px;line-height:1.5;">{{message}}</p>
+
+    {{> request-card}}
+
+    {{#if ctaUrl}}
+    <div style="text-align:center;margin-top:24px;">
+      <a href="{{ctaUrl}}" style="display:inline-block;background-color:#e94560;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
+        View in Tracker
+      </a>
+    </div>
+    {{/if}}
+  {{/inline}}
+{{/layouts/base}}

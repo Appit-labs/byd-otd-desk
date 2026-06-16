@@ -5,21 +5,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import type { CarRequest, Department, RequestStageTransition } from '@/types/request';
 import { Badge } from '@/components/ui/Badge';
 import { RequestDetailCard } from '@/components/tracker/RequestDetailCard';
+import { ProgressBar } from './ProgressBar';
 import styles from './preview-shared.module.css';
 
 interface RequestProgressCardProps {
   request: CarRequest;
   departments: Department[];
-}
-
-function getStageState(
-  transitions: RequestStageTransition[],
-  deptId: number,
-): 'empty' | 'started' | 'completed' {
-  const deptTransitions = transitions.filter((t) => t.departmentId === deptId);
-  if (deptTransitions.some((t) => t.action === 'completed')) return 'completed';
-  if (deptTransitions.some((t) => t.action === 'started')) return 'started';
-  return 'empty';
 }
 
 function getCurrentStageInfo(
@@ -60,26 +51,10 @@ export function RequestProgressCard({
   const [copied, setCopied] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
 
-  // Sort departments by pipelineOrder
-  const sortedDepartments = useMemo(
-    () => [...departments].sort((a, b) => a.pipelineOrder - b.pipelineOrder),
-    [departments],
-  );
-
   const currentStage = useMemo(
     () => getCurrentStageInfo(request.transitions, departments),
     [request.transitions, departments],
   );
-
-  const completedCount = useMemo(
-    () =>
-      sortedDepartments.filter(
-        (d) => getStageState(request.transitions, d.id) === 'completed',
-      ).length,
-    [sortedDepartments, request.transitions],
-  );
-
-  const totalDepartments = sortedDepartments.length;
 
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
@@ -104,7 +79,7 @@ export function RequestProgressCard({
     }
   }, [expanded]);
 
-  const isCompleted = request.status === 'completed';
+  const isCompleted = !!request.deliveredAt;
 
   const stageTimeText = currentStage
     ? `In ${currentStage.departmentName} — ${formatDistanceToNow(currentStage.actionedAt, { addSuffix: true })}`
@@ -152,62 +127,22 @@ export function RequestProgressCard({
         {/* Car number */}
         <div className={styles.cardSectionRow}>
           <Car size={16} className={styles.cardSectionIcon} />
-          <span>{request.carNumber}</span>
+          <span>{request.chassisNumber}</span>
         </div>
 
         {/* Client name */}
         <div className={styles.cardSectionRow}>
           <Phone size={16} className={styles.cardSectionIcon} />
-          <span>{request.clientName}</span>
+          <span>{request.customerName}</span>
         </div>
 
-        {/* Progress dots */}
+        {/* Progress bar (shared component) */}
         <div className={styles.cardSection}>
-          <div className={styles.progressDots}>
-            {sortedDepartments.map((dept, index) => {
-              const state = getStageState(request.transitions, dept.id);
-              const prevState =
-                index > 0
-                  ? getStageState(
-                      request.transitions,
-                      sortedDepartments[index - 1].id,
-                    )
-                  : null;
-
-              let connectorClass = '';
-              if (prevState === 'completed') {
-                connectorClass = styles.filled;
-              } else if (prevState === 'started') {
-                connectorClass = styles.current;
-              }
-
-              return (
-                <div
-                  key={dept.id}
-                  style={{ display: 'flex', alignItems: 'center', flex: 1 }}
-                >
-                  {index > 0 && (
-                    <div
-                      className={`${styles.dotConnector} ${connectorClass}`}
-                    />
-                  )}
-                  <div
-                    className={`${styles.dot} ${
-                      state === 'completed'
-                        ? styles.filled
-                        : state === 'started'
-                          ? styles.current
-                          : styles.empty
-                    }`}
-                    title={dept.name}
-                  />
-                </div>
-              );
-            })}
-          </div>
-          <span className={styles.progressLabel}>
-            {completedCount}/{totalDepartments} stages completed
-          </span>
+          <ProgressBar
+            transitions={request.transitions}
+            departments={departments}
+            variant="default"
+          />
         </div>
 
         {/* Time in current stage */}

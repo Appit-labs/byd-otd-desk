@@ -36,7 +36,7 @@ export class InitialSchema1718200000000 implements MigrationInterface {
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS settings (
         id INT PRIMARY KEY AUTO_INCREMENT,
-        key VARCHAR(100) UNIQUE NOT NULL,
+        \`key\` VARCHAR(100) UNIQUE NOT NULL,
         label VARCHAR(200) NOT NULL,
         description TEXT NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

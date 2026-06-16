@@ -2,12 +2,12 @@ import {
   IsString,
   IsInt,
   IsOptional,
-  IsDateString,
+  IsBoolean,
+  IsArray,
   MaxLength,
   IsNotEmpty,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsReasonableDate } from '../../common/validators/is-reasonable-date.validator.js';
 
 export class CreateRequestDto {
   @ApiProperty({ example: 1 })
@@ -15,55 +15,80 @@ export class CreateRequestDto {
   @IsNotEmpty()
   requestTypeId: number;
 
-  @ApiProperty({ example: 'ABC1234' })
+  @ApiProperty({ example: 'KMHXX00XXXX000000' })
   @IsString()
   @IsNotEmpty()
-  carNumber: string;
+  chassisNumber: string;
 
-  @ApiPropertyOptional({ example: 'BDY-001' })
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @IsInt()
+  brandId?: number;
+
+  @ApiPropertyOptional({ example: 2 })
+  @IsOptional()
+  @IsInt()
+  modelId?: number;
+
+  @ApiPropertyOptional({ example: 3 })
+  @IsOptional()
+  @IsInt()
+  variantId?: number;
+
+  @ApiPropertyOptional({ example: 1, description: 'Exterior Color ID (FK to setting_options)' })
+  @IsOptional()
+  @IsInt()
+  exteriorColorId?: number;
+
+  @ApiPropertyOptional({ example: 2, description: 'Interior Color ID (FK to setting_options)' })
+  @IsOptional()
+  @IsInt()
+  interiorColorId?: number;
+
+  @ApiPropertyOptional({ example: 'Riyadh Showroom' })
   @IsOptional()
   @IsString()
-  bodyNumber?: string;
+  vehicleLocation?: string;
 
-  @ApiProperty({ example: 1 })
+  @ApiPropertyOptional({ example: 5, description: 'Showroom ID (FK to setting_options)' })
+  @IsOptional()
   @IsInt()
-  @IsNotEmpty()
-  carColorId: number;
-
-  @ApiProperty({ example: 1 })
-  @IsInt()
-  @IsNotEmpty()
-  carSpecId: number;
+  showroomId?: number;
 
   @ApiProperty({ example: 'John Smith' })
   @IsString()
   @IsNotEmpty()
-  clientName: string;
+  customerName: string;
 
   @ApiProperty({ example: '+628123456789' })
   @IsString()
   @IsNotEmpty()
-  clientTel: string;
+  customerPhone: string;
 
   @ApiProperty({ example: 1 })
   @IsInt()
   @IsNotEmpty()
-  paymentMethodId: number;
+  salesConsultantId: number;
 
-  @ApiProperty({ example: 1 })
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
   @IsInt()
-  @IsNotEmpty()
-  sellerId: number;
+  salesTypeId?: number;
+
+  @ApiPropertyOptional({ example: [1, 2] })
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  accessories?: number[];
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  hasGps?: boolean;
 
   @ApiPropertyOptional({ example: 'Client prefers morning delivery' })
   @IsOptional()
   @IsString()
   @MaxLength(500)
   remarks?: string;
-
-  @ApiProperty({ example: '2026-06-12T10:00:00.000Z' })
-  @IsDateString()
-  @IsReasonableDate()
-  @IsNotEmpty()
-  createdAt: string;
 }

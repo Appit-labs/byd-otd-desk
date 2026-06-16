@@ -4,7 +4,7 @@ import {
   Column,
   OneToMany,
 } from 'typeorm';
-import { SettingOption } from './setting-option.entity.js';
+import type { SettingOption } from './setting-option.entity.js';
 
 @Entity('settings')
 export class Setting {
@@ -20,6 +20,6 @@ export class Setting {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @OneToMany(() => SettingOption, (option) => option.setting)
+  @OneToMany('SettingOption', (option: any) => option.setting)
   options: SettingOption[];
 }

@@ -17,6 +17,8 @@ import {
   TransitionAction,
 } from '../database/entities/request-stage-transition.entity.js';
 import { Department } from '../database/entities/department.entity.js';
+import { UserRole } from '../database/entities/user.entity.js';
+import { canRoleTransitionDepartment } from '../common/permissions/permission-matrix.js';
 
 export interface BulkTransitionResult {
   success: number;
@@ -58,10 +60,10 @@ export class StageTransitionsService {
         throw new NotFoundException('Request not found');
       }
 
-      // 2. Block transitions when on_hold
-      if (request.status === RequestStatus.ON_HOLD) {
+      // 2. Block transitions when not active
+      if (request.status !== RequestStatus.ACTIVE) {
         throw new BadRequestException(
-          'Request is on hold. Transitions are blocked until hold is lifted.',
+          `Request is not active (status: ${request.status}). Stage transitions are only allowed on active requests.`,
         );
       }
 
@@ -136,19 +138,25 @@ export class StageTransitionsService {
     user: TransitionUser,
     department: Department,
   ): void {
-    if (user.role === 'super_admin') {
-      return; // Super admin can transition any department
+    // Super admin can transition any department
+    if (user.role === UserRole.SUPER_ADMIN) {
+      return;
     }
 
-    if (
-      user.role === 'department_user' &&
-      user.departmentId === department.id
-    ) {
+    // Admin cannot perform any stage actions
+    if (user.role === UserRole.ADMIN) {
+      throw new ForbiddenException(
+        'Admin users are not authorized to perform stage transitions',
+      );
+    }
+
+    // Check permission matrix: does the user's role allow transitions on this department?
+    if (canRoleTransitionDepartment(user.role as UserRole, department.slug)) {
       return;
     }
 
     throw new ForbiddenException(
-      'You are not authorized to perform transitions for this department',
+      `Your role (${user.role}) is not authorized to perform transitions for department "${department.name}"`,
     );
   }
 
@@ -226,12 +234,9 @@ export class StageTransitionsService {
       throw error;
     }
 
-    // Auto-status: not_started -> pending on first transition
-    if (request.status === RequestStatus.NOT_STARTED) {
-      await entityManager.update(CarRequest, request.id, {
-        status: RequestStatus.PENDING,
-      });
-    }
+    // Auto-status: first transition confirms active
+    // (status is already set to active on creation, so this is a no-op now)
+    // Status remains active throughout; the new pipeline stages use timestamp fields
 
     return savedTransition;
   }
@@ -299,17 +304,8 @@ export class StageTransitionsService {
       throw error;
     }
 
-    // Auto-status: if this is the LAST department (highest pipeline_order), mark request completed
-    const lastDepartment = await entityManager.findOne(Department, {
-      where: {},
-      order: { pipelineOrder: 'DESC' },
-    });
-    if (lastDepartment && department.id === lastDepartment.id) {
-      await entityManager.update(CarRequest, request.id, {
-        status: RequestStatus.COMPLETED,
-        completedAt: new Date(),
-      });
-    }
+    // Status stays active; completion is tracked via the new pipeline timestamp fields
+    // on the car_requests table, not via status enum changes.
 
     return savedTransition;
   }

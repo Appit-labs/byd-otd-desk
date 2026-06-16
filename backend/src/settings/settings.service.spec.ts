@@ -6,6 +6,24 @@ import { SettingsService } from './settings.service';
 import { Setting } from '../database/entities/setting.entity';
 import { SettingOption } from '../database/entities/setting-option.entity';
 
+/** Create a minimal mock SettingOption with all required fields */
+function mockOption(overrides: Partial<SettingOption> = {}): SettingOption {
+  return {
+    id: 1,
+    settingId: 1,
+    parentId: null,
+    label: 'Red',
+    value: 'red',
+    isActive: true,
+    sortOrder: 0,
+    createdAt: new Date(),
+    setting: undefined as any,
+    parent: undefined as any,
+    children: [],
+    ...overrides,
+  } as SettingOption;
+}
+
 describe('SettingsService', () => {
   let service: SettingsService;
   let settingsRepo: any;
@@ -18,26 +36,8 @@ describe('SettingsService', () => {
     label: 'Car Color',
     description: 'Available car colors',
     options: [
-      {
-        id: 1,
-        settingId: 1,
-        label: 'Red',
-        value: 'red',
-        isActive: true,
-        sortOrder: 0,
-        createdAt: new Date(),
-        setting: undefined as any,
-      },
-      {
-        id: 2,
-        settingId: 1,
-        label: 'Blue',
-        value: 'blue',
-        isActive: true,
-        sortOrder: 1,
-        createdAt: new Date(),
-        setting: undefined as any,
-      },
+      mockOption({ id: 1, label: 'Red', value: 'red', sortOrder: 0 }),
+      mockOption({ id: 2, label: 'Blue', value: 'blue', sortOrder: 1 }),
     ],
   };
 
@@ -63,6 +63,7 @@ describe('SettingsService', () => {
       create: jest.fn(),
       save: jest.fn(),
       findOne: jest.fn(),
+      find: jest.fn(),
     };
 
     dataSource = {
@@ -140,21 +141,14 @@ describe('SettingsService', () => {
   describe('addOption', () => {
     it('should create a new option with auto sort_order (max + 1)', async () => {
       settingsRepo.findOne.mockResolvedValue(mockSetting);
-      optionsRepo.findOne.mockResolvedValue({
-        id: 2,
-        settingId: 1,
-        sortOrder: 1,
-      });
+      optionsRepo.findOne.mockResolvedValue(
+        mockOption({ id: 2, sortOrder: 1 }),
+      );
 
       const dto = { label: 'Green', value: 'green' };
-      const createdOption = {
-        settingId: 1,
-        label: 'Green',
-        value: 'green',
-        sortOrder: 2,
-      };
+      const createdOption = mockOption({ label: 'Green', value: 'green', sortOrder: 2 });
       optionsRepo.create.mockReturnValue(createdOption);
-      optionsRepo.save.mockResolvedValue({ id: 3, ...createdOption });
+      optionsRepo.save.mockResolvedValue({ ...createdOption, id: 3 });
 
       const result = await service.addOption('car_color', dto);
 
@@ -165,21 +159,16 @@ describe('SettingsService', () => {
         sortOrder: 2,
       });
       expect(optionsRepo.save).toHaveBeenCalledWith(createdOption);
-      expect(result).toEqual({ id: 3, ...createdOption });
+      expect(result).toEqual({ ...createdOption, id: 3 });
     });
 
     it('should use provided sort_order when given', async () => {
       settingsRepo.findOne.mockResolvedValue(mockSetting);
 
       const dto = { label: 'Green', value: 'green', sortOrder: 5 };
-      const createdOption = {
-        settingId: 1,
-        label: 'Green',
-        value: 'green',
-        sortOrder: 5,
-      };
+      const createdOption = mockOption({ label: 'Green', value: 'green', sortOrder: 5 });
       optionsRepo.create.mockReturnValue(createdOption);
-      optionsRepo.save.mockResolvedValue({ id: 3, ...createdOption });
+      optionsRepo.save.mockResolvedValue({ ...createdOption, id: 3 });
 
       const result = await service.addOption('car_color', dto);
 
@@ -204,20 +193,11 @@ describe('SettingsService', () => {
   describe('editOption', () => {
     it('should update label and value', async () => {
       settingsRepo.findOne.mockResolvedValue(mockSetting);
-      const existingOption = {
-        id: 1,
-        settingId: 1,
-        label: 'Red',
-        value: 'red',
-        isActive: true,
-        sortOrder: 0,
-      };
+      const existingOption = mockOption({ id: 1, label: 'Red', value: 'red' });
       optionsRepo.findOne.mockResolvedValue(existingOption);
-      optionsRepo.save.mockResolvedValue({
-        ...existingOption,
-        label: 'Crimson Red',
-        value: 'crimson_red',
-      });
+      optionsRepo.save.mockResolvedValue(
+        mockOption({ id: 1, label: 'Crimson Red', value: 'crimson_red' }),
+      );
 
       const result = await service.editOption('car_color', 1, {
         label: 'Crimson Red',
@@ -230,19 +210,9 @@ describe('SettingsService', () => {
 
     it('should update sort_order when provided', async () => {
       settingsRepo.findOne.mockResolvedValue(mockSetting);
-      const existingOption = {
-        id: 1,
-        settingId: 1,
-        label: 'Red',
-        value: 'red',
-        isActive: true,
-        sortOrder: 0,
-      };
+      const existingOption = mockOption({ id: 1 });
       optionsRepo.findOne.mockResolvedValue(existingOption);
-      optionsRepo.save.mockResolvedValue({
-        ...existingOption,
-        sortOrder: 5,
-      });
+      optionsRepo.save.mockResolvedValue(mockOption({ id: 1, sortOrder: 5 }));
 
       const result = await service.editOption('car_color', 1, {
         sortOrder: 5,
@@ -264,19 +234,9 @@ describe('SettingsService', () => {
   describe('deprecateOption', () => {
     it('should set isActive to false', async () => {
       settingsRepo.findOne.mockResolvedValue(mockSetting);
-      const existingOption = {
-        id: 1,
-        settingId: 1,
-        label: 'Red',
-        value: 'red',
-        isActive: true,
-        sortOrder: 0,
-      };
+      const existingOption = mockOption({ id: 1, isActive: true });
       optionsRepo.findOne.mockResolvedValue(existingOption);
-      optionsRepo.save.mockResolvedValue({
-        ...existingOption,
-        isActive: false,
-      });
+      optionsRepo.save.mockResolvedValue(mockOption({ id: 1, isActive: false }));
 
       const result = await service.deprecateOption('car_color', 1);
 
@@ -296,19 +256,9 @@ describe('SettingsService', () => {
   describe('restoreOption', () => {
     it('should set isActive to true', async () => {
       settingsRepo.findOne.mockResolvedValue(mockSetting);
-      const existingOption = {
-        id: 1,
-        settingId: 1,
-        label: 'Red',
-        value: 'red',
-        isActive: false,
-        sortOrder: 0,
-      };
+      const existingOption = mockOption({ id: 1, isActive: false });
       optionsRepo.findOne.mockResolvedValue(existingOption);
-      optionsRepo.save.mockResolvedValue({
-        ...existingOption,
-        isActive: true,
-      });
+      optionsRepo.save.mockResolvedValue(mockOption({ id: 1, isActive: true }));
 
       const result = await service.restoreOption('car_color', 1);
 
@@ -353,7 +303,7 @@ describe('SettingsService', () => {
       settingsRepo.findOne.mockResolvedValue(mockSetting);
       mockQueryRunner.manager.findOne
         .mockResolvedValueOnce({ id: 1, sortOrder: 0 })
-        .mockResolvedValueOnce(null); // second option not found
+        .mockResolvedValueOnce(null);
 
       const dto = {
         orders: [

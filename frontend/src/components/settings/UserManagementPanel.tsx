@@ -16,21 +16,35 @@ import type { User } from '@/types/auth';
 import styles from './settings.module.css';
 
 const roleOptions: SelectOption[] = [
+  { value: 'super_admin', label: 'Super Admin' },
   { value: 'admin', label: 'Admin' },
-  { value: 'department_user', label: 'Department User' },
+  { value: 'nvs', label: 'NVS (Storage)' },
+  { value: 'qc_nvs', label: 'QC NVS' },
+  { value: 'mechanical_check', label: 'Mechanical Check' },
+  { value: 'pdi', label: 'PDI' },
+  { value: 'accessories', label: 'Accessories' },
+  { value: 'registration', label: 'Registration' },
+  { value: 'delivery', label: 'Delivery' },
   { value: 'viewer', label: 'Viewer' },
 ];
 
 const roleBadgeClass: Record<string, string> = {
   super_admin: styles.roleBadgeSuperAdmin,
   admin: styles.roleBadgeAdmin,
-  department_user: styles.roleBadgeDeptUser,
+  nvs: styles.roleBadgeDeptUser,
+  qc_nvs: styles.roleBadgeDeptUser,
+  mechanical_check: styles.roleBadgeDeptUser,
+  pdi: styles.roleBadgeDeptUser,
+  accessories: styles.roleBadgeDeptUser,
+  registration: styles.roleBadgeDeptUser,
+  delivery: styles.roleBadgeDeptUser,
   viewer: styles.roleBadgeViewer,
 };
 
 interface UserFormData {
   username: string;
   fullName: string;
+  email: string;
   password: string;
   role: string;
   departmentId?: number;
@@ -39,6 +53,7 @@ interface UserFormData {
 const emptyForm: UserFormData = {
   username: '',
   fullName: '',
+  email: '',
   password: '',
   role: '',
   departmentId: undefined,
@@ -93,6 +108,7 @@ export function UserManagementPanel() {
     setForm({
       username: user.username,
       fullName: user.fullName ?? '',
+      email: (user as any).email ?? '',
       password: '',
       role: user.role,
       departmentId: user.department_id,
@@ -115,15 +131,18 @@ export function UserManagementPanel() {
     if (!form.fullName.trim()) {
       errors.fullName = 'Full name is required';
     }
+    if (!form.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      errors.email = 'Invalid email format';
+    }
     if (!editingUser && (!form.password || form.password.length < 6)) {
       errors.password = 'Password must be at least 6 characters';
     }
     if (!form.role) {
       errors.role = 'Role is required';
     }
-    if (form.role === 'department_user' && !form.departmentId) {
-      errors.departmentId = 'Department is required for department users';
-    }
+    // Department is optional for all roles (role permissions are defined server-side)
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -138,6 +157,7 @@ export function UserManagementPanel() {
           id: editingUser.id,
           username: form.username.trim(),
           fullName: form.fullName.trim(),
+          email: form.email.trim(),
           ...(form.password ? { password: form.password } : {}),
           role: form.role,
           ...(form.departmentId ? { departmentId: form.departmentId } : {}),
@@ -149,6 +169,7 @@ export function UserManagementPanel() {
         {
           username: form.username.trim(),
           fullName: form.fullName.trim(),
+          email: form.email.trim(),
           password: form.password,
           role: form.role,
           ...(form.departmentId ? { departmentId: form.departmentId } : {}),
@@ -306,6 +327,16 @@ export function UserManagementPanel() {
             error={formErrors.fullName}
           />
           <Input
+            label="Email"
+            type="email"
+            placeholder="e.g. jdoe@example.com"
+            value={form.email}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, email: e.target.value }))
+            }
+            error={formErrors.email}
+          />
+          <Input
             label={editingUser ? 'Password (leave blank to keep current)' : 'Password'}
             type="password"
             placeholder="Min. 6 characters"
@@ -320,23 +351,21 @@ export function UserManagementPanel() {
             placeholder="Select role..."
             value={form.role || undefined}
             onValueChange={(val) =>
-              setForm((f) => ({ ...f, role: val, departmentId: val !== 'department_user' ? undefined : f.departmentId }))
+              setForm((f) => ({ ...f, role: val }))
             }
             options={roleOptions}
             error={formErrors.role}
           />
-          {form.role === 'department_user' && (
-            <Select
-              label="Department"
-              placeholder="Select department..."
-              value={form.departmentId ? String(form.departmentId) : undefined}
-              onValueChange={(val) =>
-                setForm((f) => ({ ...f, departmentId: Number(val) }))
-              }
-              options={departmentOptions}
-              error={formErrors.departmentId}
-            />
-          )}
+          <Select
+            label="Department (optional)"
+            placeholder="Select department..."
+            value={form.departmentId ? String(form.departmentId) : undefined}
+            onValueChange={(val) =>
+              setForm((f) => ({ ...f, departmentId: Number(val) }))
+            }
+            options={departmentOptions}
+            error={formErrors.departmentId}
+          />
 
           <div className={styles.formActions}>
             <Button variant="ghost" onClick={closeModal}>
@@ -356,7 +385,13 @@ function formatRole(role: string): string {
   const map: Record<string, string> = {
     super_admin: 'Super Admin',
     admin: 'Admin',
-    department_user: 'Dept. User',
+    nvs: 'NVS',
+    qc_nvs: 'QC NVS',
+    mechanical_check: 'Mech. Check',
+    pdi: 'PDI',
+    accessories: 'Accessories',
+    registration: 'Registration',
+    delivery: 'Delivery',
     viewer: 'Viewer',
   };
   return map[role] ?? role;

@@ -1,0 +1,38 @@
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f9fa;border:1px solid #e0e0e0;border-radius:6px;margin:16px 0;">
+  <tr>
+    <td style="padding:16px;">
+      <table width="100%" cellpadding="5" cellspacing="0" style="font-size:14px;color:#333333;">
+        <tr>
+          <td style="color:#666666;width:130px;font-size:13px;">Chassis No.</td>
+          <td style="font-weight:600;">{{request.chassisNumber}}</td>
+        </tr>
+        {{#if request.brand}}
+        <tr>
+          <td style="color:#666666;font-size:13px;">Brand / Model</td>
+          <td>{{request.brand}}{{#if request.model}} / {{request.model}}{{/if}}{{#if request.variant}} / {{request.variant}}{{/if}}</td>
+        </tr>
+        {{/if}}
+        <tr>
+          <td style="color:#666666;font-size:13px;">Customer</td>
+          <td>{{request.customerName}}</td>
+        </tr>
+        {{#if request.requestType}}
+        <tr>
+          <td style="color:#666666;font-size:13px;">Request Type</td>
+          <td>{{request.requestType}}</td>
+        </tr>
+        {{/if}}
+        {{#if request.promiseDate}}
+        <tr>
+          <td style="color:#666666;font-size:13px;">Promise Date</td>
+          <td>{{request.promiseDate}}</td>
+        </tr>
+        {{/if}}
+        <tr>
+          <td style="color:#666666;font-size:13px;">Current Stage</td>
+          <td style="font-weight:600;color:#e94560;">{{request.currentStage}}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

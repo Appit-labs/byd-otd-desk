@@ -26,7 +26,7 @@ export class UsersController {
 
   @Get()
   @Roles('super_admin', 'admin')
-  @ApiOperation({ summary: 'List all users' })
+  @ApiOperation({ summary: 'List all users (admin and super_admin only)' })
   @ApiQuery({ name: 'skip', required: false, type: Number })
   @ApiQuery({ name: 'take', required: false, type: Number })
   async findAll(

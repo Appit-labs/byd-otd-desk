@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -9,6 +10,23 @@ import { SettingOption } from '../database/entities/setting-option.entity.js';
 import { AddOptionDto } from './dto/add-option.dto.js';
 import { EditOptionDto } from './dto/edit-option.dto.js';
 import { ReorderDto } from './dto/reorder.dto.js';
+
+/** Values for request_type options that must never be deleted */
+const PROTECTED_REQUEST_TYPES = ['pdi', 're_pdi', 'no_pdi'];
+
+/**
+ * Auto-generate a URL-safe slug from a human-readable label.
+ * Example: "Window Tinting" → "window_tinting"
+ */
+function labelToSlug(label: string): string {
+  return label
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s_-]/g, '')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+}
 
 @Injectable()
 export class SettingsService {
@@ -27,7 +45,7 @@ export class SettingsService {
     });
   }
 
-  async getByKey(key: string): Promise<Setting> {
+  async getByKey(key: string, parentId?: number): Promise<Setting> {
     const setting = await this.settingsRepository.findOne({
       where: { key },
       relations: { options: true },
@@ -35,11 +53,31 @@ export class SettingsService {
     if (!setting) {
       throw new NotFoundException(`Setting with key "${key}" not found`);
     }
+    // Filter by parentId if provided
+    let options = setting.options;
+    if (parentId !== undefined) {
+      options = options.filter((opt) => opt.parentId === parentId);
+    }
     // Sort options by sortOrder
-    setting.options = setting.options.sort(
-      (a, b) => a.sortOrder - b.sortOrder,
-    );
+    setting.options = options.sort((a, b) => a.sortOrder - b.sortOrder);
     return setting;
+  }
+
+  async getOptionsByKey(key: string, parentId?: number): Promise<SettingOption[]> {
+    const setting = await this.settingsRepository.findOne({
+      where: { key },
+    });
+    if (!setting) {
+      throw new NotFoundException(`Setting with key "${key}" not found`);
+    }
+    const where: any = { settingId: setting.id, isActive: true };
+    if (parentId !== undefined) {
+      where.parentId = parentId;
+    }
+    return this.optionsRepository.find({
+      where,
+      order: { sortOrder: 'ASC' },
+    });
   }
 
   async addOption(settingKey: string, dto: AddOptionDto): Promise<SettingOption> {
@@ -54,11 +92,15 @@ export class SettingsService {
       sortOrder = maxOption ? maxOption.sortOrder + 1 : 0;
     }
 
+    const value = (dto.value?.trim() || labelToSlug(dto.label)) || labelToSlug(dto.label);
+
     const option = this.optionsRepository.create({
       settingId: setting.id,
       label: dto.label,
-      value: dto.value,
+      value,
       sortOrder,
+      parentId: dto.parentId ?? null,
+      metadata: dto.metadata ?? null,
     });
 
     return this.optionsRepository.save(option);
@@ -82,12 +124,27 @@ export class SettingsService {
 
     if (dto.label !== undefined) {
       option.label = dto.label;
+      // If label changes and value is empty/missing, regenerate slug from new label
+      if (!dto.value?.trim()) {
+        option.value = labelToSlug(dto.label);
+      }
     }
-    if (dto.value !== undefined) {
+    if (dto.value !== undefined && dto.value.trim()) {
       option.value = dto.value;
     }
     if (dto.sortOrder !== undefined) {
       option.sortOrder = dto.sortOrder;
+    }
+    if (dto.parentId !== undefined) {
+      option.parentId = dto.parentId;
+    }
+    if (dto.metadata !== undefined) {
+      // Merge with existing metadata rather than full replace, so callers
+      // can patch a single metadata key without destroying other keys.
+      option.metadata = {
+        ...(option.metadata ?? {}),
+        ...dto.metadata,
+      };
     }
 
     return this.optionsRepository.save(option);
@@ -98,6 +155,14 @@ export class SettingsService {
     optionId: number,
   ): Promise<SettingOption> {
     const option = await this.findOptionOrThrow(settingKey, optionId);
+
+    // Prevent deletion of protected request types
+    if (settingKey === 'request_type' && PROTECTED_REQUEST_TYPES.includes(option.value)) {
+      throw new ForbiddenException(
+        `The request type "${option.label}" (${option.value}) cannot be deleted.`,
+      );
+    }
+
     option.isActive = false;
     return this.optionsRepository.save(option);
   }

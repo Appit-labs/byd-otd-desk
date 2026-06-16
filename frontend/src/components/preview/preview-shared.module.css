@@ -163,8 +163,8 @@
 }
 
 .dot.filled {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-accent-alt);
+  border-color: var(--color-accent-alt);
 }
 
 .dot.current {

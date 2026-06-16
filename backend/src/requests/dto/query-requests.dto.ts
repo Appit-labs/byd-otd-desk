@@ -52,12 +52,23 @@ export class QueryRequestsDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  sellerId?: number;
+  brandId?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  salesConsultantId?: number;
 
   @ApiPropertyOptional({ default: 'created_at' })
   @IsOptional()
   @IsString()
   sortBy?: string = 'created_at';
+
+  @ApiPropertyOptional({ default: 'all', enum: ['all', 'on_time', 'delayed'] })
+  @IsOptional()
+  @IsString()
+  timeliness?: 'all' | 'on_time' | 'delayed' = 'all';
 
   @ApiPropertyOptional({ default: 'DESC', enum: ['ASC', 'DESC'] })
   @IsOptional()

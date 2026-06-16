@@ -9,7 +9,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isHydrated: boolean;
   isLoading: boolean;
-  login: (department: string, username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   hydrate: () => void;
 }
@@ -21,7 +21,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isHydrated: false,
   isLoading: false,
 
-  login: async (_department: string, username: string, password: string) => {
+  login: async (username: string, password: string) => {
     set({ isLoading: true });
 
     try {
@@ -121,7 +121,13 @@ export function getRoleBasedDefaultPath(role?: UserRole): string {
     case 'super_admin':
     case 'admin':
       return '/dashboard';
-    case 'department_user':
+    case 'nvs':
+    case 'qc_nvs':
+    case 'mechanical_check':
+    case 'pdi':
+    case 'accessories':
+    case 'registration':
+    case 'delivery':
       return '/tracker';
     case 'viewer':
       return '/preview';

@@ -7,9 +7,9 @@ import {
   JoinColumn,
   Unique,
 } from 'typeorm';
-import { CarRequest } from './car-request.entity.js';
-import { Department } from './department.entity.js';
-import { User } from './user.entity.js';
+import type { CarRequest } from './car-request.entity.js';
+import type { Department } from './department.entity.js';
+import type { User } from './user.entity.js';
 
 export enum TransitionAction {
   STARTED = 'started',
@@ -25,14 +25,14 @@ export class RequestStageTransition {
   @Column({ name: 'request_id' })
   requestId: number;
 
-  @ManyToOne(() => CarRequest)
+  @ManyToOne('CarRequest')
   @JoinColumn({ name: 'request_id' })
   request: CarRequest;
 
   @Column({ name: 'department_id' })
   departmentId: number;
 
-  @ManyToOne(() => Department)
+  @ManyToOne('Department')
   @JoinColumn({ name: 'department_id' })
   department: Department;
 
@@ -42,7 +42,7 @@ export class RequestStageTransition {
   @Column({ name: 'actioned_by' })
   actionedBy: number;
 
-  @ManyToOne(() => User)
+  @ManyToOne('User')
   @JoinColumn({ name: 'actioned_by' })
   actionedByUser: User;
 

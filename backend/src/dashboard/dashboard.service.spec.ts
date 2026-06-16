@@ -4,6 +4,7 @@ import { DashboardService } from './dashboard.service';
 import { CarRequest, RequestStatus } from '../database/entities/car-request.entity';
 import { Department } from '../database/entities/department.entity';
 import { RequestStageTransition, TransitionAction } from '../database/entities/request-stage-transition.entity';
+import { PipelineStageResolverService } from '../requests/pipeline-stage-resolver.service';
 
 describe('DashboardService', () => {
   let service: DashboardService;
@@ -54,6 +55,10 @@ describe('DashboardService', () => {
         {
           provide: getRepositoryToken(RequestStageTransition),
           useValue: mockTransitionsRepo,
+        },
+        {
+          provide: PipelineStageResolverService,
+          useValue: { resolveCurrentStage: jest.fn(), getApplicableStages: jest.fn() },
         },
       ],
     }).compile();

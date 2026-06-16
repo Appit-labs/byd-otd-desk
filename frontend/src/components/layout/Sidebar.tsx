@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Car, Eye, Settings, Menu, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, Car, Eye, Settings, Menu, X, LogOut, BarChart3 } from 'lucide-react';
 import { useAuthStore, getRoleBasedDefaultPath } from '@/stores/auth.store';
 import type { UserRole } from '@/types';
 import fullLogo from '@/assets/logos/BYD-OTP-DESK_full-logo.png';
@@ -23,13 +23,19 @@ const topNavItems: NavItemConfig[] = [
     path: '/tracker',
     label: 'Tracker',
     icon: <Car size={20} />,
-    allowedRoles: ['super_admin', 'admin', 'department_user'],
+    allowedRoles: ['super_admin', 'admin', 'nvs', 'qc_nvs', 'mechanical_check', 'pdi', 'accessories', 'registration', 'delivery'],
   },
   {
     path: '/preview',
     label: 'Preview',
     icon: <Eye size={20} />,
-    allowedRoles: ['super_admin', 'admin', 'department_user', 'viewer'],
+    allowedRoles: ['super_admin', 'admin', 'nvs', 'qc_nvs', 'mechanical_check', 'pdi', 'accessories', 'registration', 'delivery', 'viewer'],
+  },
+  {
+    path: '/reports',
+    label: 'Reports',
+    icon: <BarChart3 size={20} />,
+    allowedRoles: ['super_admin', 'admin'],
   },
 ];
 
@@ -46,7 +52,13 @@ function roleLabel(role: UserRole): string {
   switch (role) {
     case 'super_admin': return 'Super Admin';
     case 'admin': return 'Admin';
-    case 'department_user': return 'Dept User';
+    case 'nvs': return 'NVS';
+    case 'qc_nvs': return 'QC NVS';
+    case 'mechanical_check': return 'Mech. Check';
+    case 'pdi': return 'PDI';
+    case 'accessories': return 'Accessories';
+    case 'registration': return 'Registration';
+    case 'delivery': return 'Delivery';
     case 'viewer': return 'Viewer';
   }
 }

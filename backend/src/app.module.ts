@@ -9,12 +9,17 @@ import { DepartmentsModule } from './departments/departments.module.js';
 import { RequestsModule } from './requests/requests.module.js';
 import { SettingsModule } from './settings/settings.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
+import { ReportsModule } from './reports/reports.module.js';
+import { EmailModule } from './email/email.module.js';
+import './database/migrations/index.js'; // ensure migration files are compiled into dist
 import { User } from './database/entities/user.entity.js';
 import { Department } from './database/entities/department.entity.js';
 import { CarRequest } from './database/entities/car-request.entity.js';
 import { RequestStageTransition } from './database/entities/request-stage-transition.entity.js';
 import { Setting } from './database/entities/setting.entity.js';
 import { SettingOption } from './database/entities/setting-option.entity.js';
+import { EmailConfig } from './database/entities/email-config.entity.js';
+import { NotificationLog } from './database/entities/notification-log.entity.js';
 import { SeederService } from './common/seeder.service.js';
 
 @Module({
@@ -39,6 +44,8 @@ import { SeederService } from './common/seeder.service.js';
           RequestStageTransition,
           Setting,
           SettingOption,
+          EmailConfig,
+          NotificationLog,
         ],
         synchronize: configService.get('DB_SYNC', 'false') === 'true',
         logging: configService.get('DB_LOGGING', 'false') === 'true',
@@ -52,6 +59,8 @@ import { SeederService } from './common/seeder.service.js';
       RequestStageTransition,
       Setting,
       SettingOption,
+      EmailConfig,
+      NotificationLog,
     ]),
     AuthModule,
     UsersModule,
@@ -59,6 +68,8 @@ import { SeederService } from './common/seeder.service.js';
     RequestsModule,
     SettingsModule,
     DashboardModule,
+    ReportsModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],

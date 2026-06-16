@@ -114,7 +114,7 @@ export function PipelineFunnelChart({ data, isLoading }: PipelineFunnelChartProp
 
   return (
     <Card title="Pipeline Funnel">
-      <ResponsiveContainer width="100%" height={Math.max(200, sortedData.length * 48)}>
+      <ResponsiveContainer width="100%" height={300}>
         <BarChart
           data={sortedData}
           layout="vertical"

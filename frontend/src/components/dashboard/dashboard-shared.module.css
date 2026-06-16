@@ -6,6 +6,9 @@
   border-radius: var(--radius-xl);
   padding: var(--spacing-6);
   transition: box-shadow var(--transition-base);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .cardWrapper:hover {

@@ -19,6 +19,7 @@ interface TrackerTableProps {
   onFiltersChange: (filters: RequestFilters) => void;
   userRole: string;
   onEditRequest?: (request: CarRequest) => void;
+  onStageAction?: (requestId: number, stage: string, action: string) => void;
 }
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -271,6 +272,7 @@ export function TrackerTable({
   onFiltersChange,
   userRole,
   onEditRequest,
+  onStageAction,
 }: TrackerTableProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -306,10 +308,9 @@ export function TrackerTable({
     [toggleExpand],
   );
 
-  /** Stub for stage actions — wired up when backend integration is added. */
-  const handleStageAction = useCallback((_reqId: number, _stage: string, _action: string) => {
-    // TODO: integrate with stage mutation API
-  }, []);
+  const handleStageAction = useCallback((reqId: number, stage: string, action: string) => {
+    onStageAction?.(reqId, stage, action);
+  }, [onStageAction]);
 
   const expandedRequest =
     expandedId !== null ? requests.find((r) => r.id === expandedId) : null;

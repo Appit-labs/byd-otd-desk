@@ -1,13 +1,18 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { AlertCircle, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useRequests } from '@/hooks/useRequests';
 import { useDepartments } from '@/hooks/useDepartments';
 import type { RequestFilters } from '@/hooks/useRequests';
+import { useStageActions } from '@/hooks/useStageActions';
+import { useSettings, type SettingsOption } from '@/hooks/useSettings';
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
 import { TrackerToolbar } from '@/components/tracker/TrackerToolbar';
 import { TrackerTable } from '@/components/tracker/TrackerTable';
 import { RequestFormDrawer } from '@/components/forms/RequestFormDrawer';
 import type { CarRequest } from '@/types/request';
+import { PipelineStage } from '@/types/request';
 import styles from '@/components/tracker/tracker.module.css';
 
 const DEFAULT_COLUMN_VISIBILITY: Record<string, boolean> = {
@@ -34,6 +39,36 @@ export default function TrackerPage() {
   }
 
   return <TrackerPageInner userRole={userRole} />;
+}
+
+/** Map stage slugs used by TrackerTable to PipelineStage enum values. */
+const SLUG_TO_STAGE: Record<string, PipelineStage> = {
+  storage: PipelineStage.STORAGE,
+  vehicle_received: PipelineStage.SHOWROOM,
+  mechanical_check: PipelineStage.MECHANICAL_CHECK,
+  pdi: PipelineStage.PDI,
+  sent_to_accessories: PipelineStage.SENT_TO_ACCESSORIES,
+  accessories: PipelineStage.ACCESSORIES,
+  final_inspection: PipelineStage.FINAL_INSPECTION,
+  gps: PipelineStage.GPS,
+  registration: PipelineStage.REGISTRATION,
+  delivery: PipelineStage.DELIVERY,
+};
+
+/** Normalise TrackerTable action strings to useStageActions-compatible actions. */
+function normalizeAction(action: string): 'start' | 'complete' | 'confirm' {
+  switch (action) {
+    case 'dispatch':
+    case 'receive':
+    case 'register':
+      return 'confirm';
+    case 'start':
+    case 'complete':
+    case 'confirm':
+      return action;
+    default:
+      return 'confirm';
+  }
 }
 
 function TrackerPageInner({
@@ -68,6 +103,23 @@ function TrackerPageInner({
     isLoading: isDepartmentsLoading,
     error: departmentsError,
   } = useDepartments();
+
+  const { executeAction } = useStageActions();
+  const { data: settings } = useSettings();
+
+  const fiOutcomes = useMemo(() => {
+    const rawOptions = (settings as Record<string, SettingsOption[]> | undefined)?.['final_inspection'] ?? [];
+    return rawOptions
+      .filter((o) => o.isActive)
+      .map((o) => ({
+        value: o.label,
+        label: o.label,
+        type: (o.metadata?.outcome_behavior === 'archive' ? 'archive' : 'done') as 'done' | 'archive',
+      }));
+  }, [settings]);
+
+  const [fiModalOpen, setFiModalOpen] = useState(false);
+  const [fiModalRequestId, setFiModalRequestId] = useState<number | null>(null);
 
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(DEFAULT_COLUMN_VISIBILITY);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -127,6 +179,56 @@ function TrackerPageInner({
     setTimeout(() => setEditingRequest(null), 300);
   }, []);
 
+  const handleStageAction = useCallback(
+    async (requestId: number, stage: string, action: string) => {
+      const stageEnum = SLUG_TO_STAGE[stage];
+      if (stageEnum === undefined) return;
+
+      // Final Inspection needs special handling — open modal
+      if (stageEnum === PipelineStage.FINAL_INSPECTION && action === 'open_modal') {
+        setFiModalRequestId(requestId);
+        setFiModalOpen(true);
+        return;
+      }
+
+      // All other stages — direct API call
+      try {
+        await executeAction({ requestId, stage: stageEnum, action: normalizeAction(action) });
+        showToast('Action completed successfully');
+      } catch (err) {
+        showError(`Action failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    },
+    [executeAction, showError, showToast],
+  );
+
+  const handleFinalInspectionSubmit = useCallback(
+    async (outcome: string, remarks?: string) => {
+      if (!fiModalRequestId) return;
+      const requestId = fiModalRequestId;
+      setFiModalOpen(false);
+      setFiModalRequestId(null);
+
+      try {
+        const token = localStorage.getItem('auth_token');
+        await fetch(`/api/v1/requests/${requestId}/final-inspection`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ outcome, remarks }),
+        });
+        showToast('Final inspection submitted');
+        // Trigger refetch of requests data
+        window.dispatchEvent(new Event('request-updated'));
+      } catch (err) {
+        showError(`Final inspection failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    },
+    [fiModalRequestId, showError, showToast],
+  );
+
   return (
     <div className={styles.page}>
       <h1 className={styles.pageTitle}>Tracker</h1>
@@ -183,7 +285,20 @@ function TrackerPageInner({
         onFiltersChange={handleFiltersChange}
         userRole={userRole}
         onEditRequest={handleEditRequest}
+        onStageAction={handleStageAction}
       />
+
+      <Modal
+        open={fiModalOpen}
+        onClose={() => { setFiModalOpen(false); setFiModalRequestId(null); }}
+        title="Final Inspection"
+      >
+        <FinalInspectionForm
+          outcomes={fiOutcomes}
+          onSubmit={handleFinalInspectionSubmit}
+          onCancel={() => { setFiModalOpen(false); setFiModalRequestId(null); }}
+        />
+      </Modal>
 
       <RequestFormDrawer
         open={isDrawerOpen}
@@ -232,6 +347,86 @@ function TrackerPageInner({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Final Inspection Form Component ─────────────────────────────
+
+interface FiOutcome {
+  value: string;
+  label: string;
+  type: 'done' | 'archive';
+}
+
+const FALLBACK_FI_OUTCOMES: FiOutcome[] = [
+  { value: 'Good condition', label: 'Good condition', type: 'done' },
+  { value: 'Release as is', label: 'Release as is', type: 'done' },
+  { value: 'Sales team / manager to check', label: 'Sales team / manager to check', type: 'done' },
+  { value: 'Return to fin', label: 'Return to fin', type: 'archive' },
+  { value: 'Return the car (take time)', label: 'Return the car (take time)', type: 'archive' },
+];
+
+function FinalInspectionForm({
+  outcomes: outcomesProp,
+  onSubmit,
+  onCancel,
+}: {
+  outcomes?: FiOutcome[];
+  onSubmit: (outcome: string, remarks?: string) => void;
+  onCancel: () => void;
+}) {
+  const [selectedOutcome, setSelectedOutcome] = useState('');
+  const [remarks, setRemarks] = useState('');
+
+  const outcomes = (outcomesProp && outcomesProp.length > 0) ? outcomesProp : FALLBACK_FI_OUTCOMES;
+
+  const handleSubmit = () => {
+    if (!selectedOutcome) return;
+    onSubmit(selectedOutcome, remarks || undefined);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+      <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
+        Select the final inspection outcome:
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+        {outcomes.map((o) => (
+          <label
+            key={o.value}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)',
+              padding: 'var(--spacing-2) var(--spacing-3)',
+              border: selectedOutcome === o.value ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)', cursor: 'pointer',
+              backgroundColor: selectedOutcome === o.value ? 'var(--color-primary-light)' : 'transparent',
+              fontSize: 'var(--text-sm)',
+            }}
+          >
+            <input type="radio" name="fi-outcome" value={o.value}
+              checked={selectedOutcome === o.value}
+              onChange={() => setSelectedOutcome(o.value)}
+              style={{ accentColor: 'var(--color-primary)' }}
+            />
+            <span style={{ flex: 1 }}>{o.label}</span>
+            <span style={{ fontSize: 'var(--text-xs)', color: o.type === 'archive' ? 'var(--color-error)' : 'var(--color-success)', fontWeight: 500 }}>
+              {o.type === 'archive' ? 'Archives' : 'Proceeds'}
+            </span>
+          </label>
+        ))}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-1)' }}>
+        <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--color-text-primary)' }}>Remarks (optional)</label>
+        <textarea value={remarks} onChange={(e) => setRemarks(e.target.value)}
+          placeholder="Add any remarks about the inspection..." rows={3}
+          style={{ padding: 'var(--spacing-2)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)', resize: 'vertical', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
+        />
+      </div>
+      <div style={{ display: 'flex', gap: 'var(--spacing-2)', justifyContent: 'flex-end' }}>
+        <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        <Button variant="primary" onClick={handleSubmit} disabled={!selectedOutcome}>Submit</Button>
+      </div>
     </div>
   );
 }

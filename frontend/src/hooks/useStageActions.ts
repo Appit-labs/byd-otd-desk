@@ -25,7 +25,7 @@ export function resolveCurrentStage(request: CarRequest): PipelineStage | null {
 
   // Filter out conditional stages that don't apply
   const requestTypeVal = request.requestType?.value;
-  const hasPdi = requestTypeVal === 'pdi';
+  const hasPdi = requestTypeVal === 'pdi' || requestTypeVal === 're_pdi';
   const hasAccessories = request.hasAccessories === true
     || (!!request.accessories && request.accessories.length > 0);
   const hasGps = request.hasGps === true;

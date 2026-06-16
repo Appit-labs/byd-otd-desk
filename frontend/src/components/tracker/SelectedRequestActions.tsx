@@ -11,6 +11,7 @@ interface SelectedRequestActionsProps {
   onStageAction: (requestId: number, stage: string, action: string) => void;
   onCancelRequest: (requestId: number) => void;
   onArchiveRequest: (requestId: number) => void;
+  onReactivateRequest: (requestId: number) => void;
 }
 
 const STAGE_ORDER = [
@@ -122,6 +123,7 @@ export function SelectedRequestActions({
   onStageAction,
   onCancelRequest,
   onArchiveRequest,
+  onReactivateRequest,
 }: SelectedRequestActionsProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -131,7 +133,7 @@ export function SelectedRequestActions({
     return (
       <div className={styles.actionToolbar}>
         <span className={styles.actionToolbarTitle}>
-          {request.requestNumber} — ✓ Completed
+          {request.requestNumber} — 📦 Archived ({request.status === 'archived_qc' ? 'QC' : 'Manual'})
         </span>
         <div className={styles.actionToolbarProgress}>
           {STAGE_ORDER.map((stage) => {
@@ -149,10 +151,9 @@ export function SelectedRequestActions({
           })}
         </div>
         {(userRole === 'super_admin' || userRole === 'admin') && (
-          <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
-            <Button variant="ghost" size="sm" onClick={() => onArchiveRequest(request.id)}>Archive</Button>
-            <Button variant="ghost" size="sm" onClick={() => onCancelRequest(request.id)} style={{ color: 'var(--color-error)' }}>Cancel</Button>
-          </div>
+          <Button variant="primary" size="sm" onClick={() => onReactivateRequest(request.id)}>
+            Reactivate
+          </Button>
         )}
       </div>
     );

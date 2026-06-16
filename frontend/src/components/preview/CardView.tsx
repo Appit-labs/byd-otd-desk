@@ -1,4 +1,4 @@
-import type { CarRequest, Department, RequestStatus } from '@/types/request';
+import type { CarRequest, RequestStatus } from '@/types/request';
 import { RequestProgressCard } from '@/components/preview/RequestProgressCard';
 import { ClipboardList } from 'lucide-react';
 import styles from '@/pages/Preview/preview.module.css';
@@ -19,7 +19,6 @@ export const STATUS_LABELS: Record<RequestStatus, string> = {
 
 interface CardViewProps {
   requests: CarRequest[];
-  departments: Department[];
   completedExpanded: boolean;
   onToggleCompleted: () => void;
 }
@@ -39,7 +38,6 @@ function groupByStatus(requests: CarRequest[]): Map<RequestStatus, CarRequest[]>
 
 export function CardView({
   requests,
-  departments,
   completedExpanded,
   onToggleCompleted,
 }: CardViewProps) {
@@ -114,7 +112,6 @@ export function CardView({
                 <RequestProgressCard
                   key={req.id}
                   request={req}
-                  departments={departments}
                 />
               ))}
               {!showAll && hasMore && (

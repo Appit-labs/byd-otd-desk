@@ -236,14 +236,13 @@ export default function PreviewPage() {
 
       {/* ── Table View (default) ────────────── */}
       {viewMode === 'table' && showData && (
-        <TableView requests={requests} departments={departments} />
+        <TableView requests={requests} />
       )}
 
       {/* ── Card View ───────────────────────── */}
       {viewMode === 'cards' && showData && (
         <CardView
           requests={requests}
-          departments={departments}
           completedExpanded={completedExpanded}
           onToggleCompleted={handleToggleCompleted}
         />
@@ -253,7 +252,6 @@ export default function PreviewPage() {
       {!isLoading && !hasRequests && !queryError && (
         <CardView
           requests={[]}
-          departments={departments}
           completedExpanded={completedExpanded}
           onToggleCompleted={handleToggleCompleted}
         />

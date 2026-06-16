@@ -1,8 +1,8 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { Copy, Check, Car, Phone, Clock } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+
 import { AnimatePresence, motion } from 'motion/react';
-import type { CarRequest, Department, RequestStageTransition } from '@/types/request';
+import type { CarRequest } from '@/types/request';
 import { Badge } from '@/components/ui/Badge';
 import { RequestDetailCard } from '@/components/tracker/RequestDetailCard';
 import { ProgressBar } from './ProgressBar';
@@ -10,51 +10,37 @@ import styles from './preview-shared.module.css';
 
 interface RequestProgressCardProps {
   request: CarRequest;
-  departments: Department[];
 }
 
-function getCurrentStageInfo(
-  transitions: RequestStageTransition[],
-  departments: Department[],
-): { departmentName: string; actionedAt: Date } | null {
-  // Find the latest "started" transition without a matching "completed" after it
-  const startedWithoutCompleted = transitions
-    .filter((t) => t.action === 'started')
-    .filter((started) => {
-      return !transitions.some(
-        (t) =>
-          t.action === 'completed' &&
-          t.departmentId === started.departmentId &&
-          new Date(t.actionedAt) > new Date(started.actionedAt),
-      );
-    })
-    .sort(
-      (a, b) =>
-        new Date(b.actionedAt).getTime() - new Date(a.actionedAt).getTime(),
-    );
-
-  if (startedWithoutCompleted.length === 0) return null;
-
-  const latest = startedWithoutCompleted[0];
-  const dept = departments.find((d) => d.id === latest.departmentId);
-  return {
-    departmentName: dept?.name ?? `Department #${latest.departmentId}`,
-    actionedAt: new Date(latest.actionedAt),
-  };
+function getCurrentStageLabel(req: CarRequest): string | null {
+  if (req.status !== 'active') return null;
+  const checks: { label: string; done: boolean; skipped: boolean }[] = [
+    { label: 'Storage', done: !!req.storageAt, skipped: false },
+    { label: 'Vehicle Received', done: !!req.vehicleReceivedAt, skipped: false },
+    { label: 'Mech. Check', done: !!req.mechanicalCheckCompletedAt, skipped: false },
+    { label: 'PDI', done: !!req.pdiCompletedAt, skipped: req.requestType?.value === 'no_pdi' },
+    { label: 'Sent to Acc.', done: !!req.sentToAccessoriesAt, skipped: !req.hasAccessories && (!req.accessories || req.accessories.length === 0) },
+    { label: 'Accessories', done: !!req.accessoriesCompletedAt, skipped: !req.hasAccessories && (!req.accessories || req.accessories.length === 0) },
+    { label: 'Final Insp.', done: !!req.finalInspectionAt, skipped: false },
+    { label: 'GPS', done: !!req.gpsConfirmedAt, skipped: !req.hasGps },
+    { label: 'Registration', done: !!req.registeredAt, skipped: false },
+    { label: 'Delivery', done: !!req.deliveredAt, skipped: false },
+  ];
+  for (const c of checks) {
+    if (c.skipped) continue;
+    if (!c.done) return c.label;
+  }
+  return 'Completed';
 }
 
 export function RequestProgressCard({
   request,
-  departments,
 }: RequestProgressCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
 
-  const currentStage = useMemo(
-    () => getCurrentStageInfo(request.transitions, departments),
-    [request.transitions, departments],
-  );
+  const currentStageLabel = getCurrentStageLabel(request);
 
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
@@ -79,11 +65,11 @@ export function RequestProgressCard({
     }
   }, [expanded]);
 
-  const isCompleted = !!request.deliveredAt;
+  const isCompleted = !!request.deliveredAt || request.status !== 'active';
 
-  const stageTimeText = currentStage
-    ? `In ${currentStage.departmentName} — ${formatDistanceToNow(currentStage.actionedAt, { addSuffix: true })}`
-    : null;
+  const stageTimeText = currentStageLabel
+    ? `Current: ${currentStageLabel}`
+    : isCompleted ? 'Completed' : null;
 
   return (
     <div className={styles.cardWrapper}>
@@ -139,8 +125,7 @@ export function RequestProgressCard({
         {/* Progress bar (shared component) */}
         <div className={styles.cardSection}>
           <ProgressBar
-            transitions={request.transitions}
-            departments={departments}
+            request={request}
             variant="default"
           />
         </div>

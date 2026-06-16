@@ -1,51 +1,53 @@
-import type { CarRequest, Department, RequestStageTransition } from '@/types/request';
+import type { CarRequest } from '@/types/request';
 import styles from './progress-bar.module.css';
-
-interface ProgressBarProps {
-  transitions: RequestStageTransition[];
-  departments: Department[];
-  /** 'default' = dots + connectors (for cards), 'compact' = dots only (for table cells) */
-  variant?: 'default' | 'compact';
-}
 
 export type StageState = 'empty' | 'started' | 'completed';
 
-export function getStageState(
-  transitions: RequestStageTransition[],
-  deptId: number,
-): StageState {
-  const deptTransitions = transitions.filter((t) => t.departmentId === deptId);
-  if (deptTransitions.some((t) => t.action === 'completed')) return 'completed';
-  if (deptTransitions.some((t) => t.action === 'started')) return 'started';
-  return 'empty';
+interface StageDef {
+  slug: string;
+  label: string;
+  isSkipped: (req: CarRequest) => boolean;
+  isComplete: (req: CarRequest) => boolean;
+  isStarted: (req: CarRequest) => boolean;
 }
 
-/**
- * Shared progress bar / pipeline visualisation.
- *
- * - default: horizontal row of stage dots connected by lines. Each
- *   dot + connector is coloured based on the stage state.
- * - compact: small coloured dots only, suitable for tight table cells.
- */
+const STAGES: StageDef[] = [
+  { slug: 'storage', label: 'Storage', isSkipped: () => false, isComplete: r => !!r.storageAt, isStarted: () => false },
+  { slug: 'vehicle_received', label: 'Received', isSkipped: () => false, isComplete: r => !!r.vehicleReceivedAt, isStarted: () => false },
+  { slug: 'mechanical_check', label: 'Mech Check', isSkipped: () => false, isComplete: r => !!r.mechanicalCheckCompletedAt, isStarted: r => !!r.mechanicalCheckStartedAt },
+  { slug: 'pdi', label: 'PDI', isSkipped: r => r.requestType?.value === 'no_pdi', isComplete: r => !!r.pdiCompletedAt, isStarted: r => !!r.pdiStartedAt },
+  { slug: 'sent_to_accessories', label: 'To Acc.', isSkipped: r => !r.hasAccessories && (!r.accessories || r.accessories.length === 0), isComplete: r => !!r.sentToAccessoriesAt, isStarted: () => false },
+  { slug: 'accessories', label: 'Accessories', isSkipped: r => !r.hasAccessories && (!r.accessories || r.accessories.length === 0), isComplete: r => !!r.accessoriesCompletedAt, isStarted: r => !!r.accessoriesStartedAt },
+  { slug: 'final_inspection', label: 'Final Insp.', isSkipped: () => false, isComplete: r => !!r.finalInspectionAt, isStarted: () => false },
+  { slug: 'gps', label: 'GPS', isSkipped: r => !r.hasGps, isComplete: r => !!r.gpsConfirmedAt, isStarted: () => false },
+  { slug: 'registration', label: 'Registration', isSkipped: () => false, isComplete: r => !!r.registeredAt, isStarted: () => false },
+  { slug: 'delivery', label: 'Delivery', isSkipped: () => false, isComplete: r => !!r.deliveredAt, isStarted: () => false },
+];
+
+interface ProgressBarProps {
+  request: CarRequest;
+  variant?: 'default' | 'compact';
+}
+
 export function ProgressBar({
-  transitions,
-  departments,
+  request,
   variant = 'default',
 }: ProgressBarProps) {
-  const sorted = [...departments].sort(
-    (a, b) => a.pipelineOrder - b.pipelineOrder,
-  );
+  const applicable = STAGES.filter(s => !s.isSkipped(request));
+  const completedCount = applicable.filter(s => s.isComplete(request)).length;
 
   if (variant === 'compact') {
     return (
       <div className={styles.compact}>
-        {sorted.map((dept) => {
-          const state = getStageState(transitions, dept.id);
+        {applicable.map((stage) => {
+          const done = stage.isComplete(request);
+          const started = stage.isStarted(request);
+          const state: StageState = done ? 'completed' : started ? 'started' : 'empty';
           return (
             <div
-              key={dept.id}
+              key={stage.slug}
               className={`${styles.compactDot} ${styles[state]}`}
-              title={`${dept.name}: ${state === 'completed' ? 'Done' : state === 'started' ? 'In Progress' : 'Pending'}`}
+              title={`${stage.label}: ${state === 'completed' ? 'Done' : state === 'started' ? 'In Progress' : 'Pending'}`}
             />
           );
         })}
@@ -53,28 +55,26 @@ export function ProgressBar({
     );
   }
 
-  /* ---- default: dots + connectors ---- */
-  const completedCount = sorted.filter(
-    (d) => getStageState(transitions, d.id) === 'completed',
-  ).length;
-
   return (
     <div className={styles.track}>
       <div className={styles.row}>
-        {sorted.map((dept, idx) => {
-          const state = getStageState(transitions, dept.id);
+        {applicable.map((stage, idx) => {
+          const done = stage.isComplete(request);
+          const started = stage.isStarted(request);
+          const state: StageState = done ? 'completed' : started ? 'started' : 'empty';
 
-          // Connector colour is driven by the *preceding* dot's state
-          const prevState =
-            idx > 0 ? getStageState(transitions, sorted[idx - 1].id) : null;
+          const prevStage = idx > 0 ? applicable[idx - 1] : null;
+          const prevDone = prevStage ? prevStage.isComplete(request) : null;
 
           let connectorClass = '';
-          if (prevState === 'completed') connectorClass = styles.completed;
-          else if (prevState === 'started') connectorClass = styles.active;
+          if (prevDone === true) connectorClass = styles.completed;
+          else if (prevDone === false) {
+            const prevStarted = prevStage!.isStarted(request);
+            connectorClass = prevStarted ? styles.active : '';
+          }
 
           return (
-            <div key={dept.id} className={styles.segment}>
-              {/* Connector line before the dot (hidden for first) */}
+            <div key={stage.slug} className={styles.segment}>
               {idx > 0 && (
                 <div
                   className={`${styles.connector} ${connectorClass}`}
@@ -83,31 +83,24 @@ export function ProgressBar({
               )}
               <div
                 className={`${styles.dot} ${styles[state]}`}
-                title={dept.name}
+                title={stage.label}
               />
             </div>
           );
         })}
       </div>
       <span className={styles.label}>
-        {completedCount}/{sorted.length} stages completed
+        {completedCount}/{applicable.length} stages completed
       </span>
     </div>
   );
 }
 
 /**
- * Convenience hook for computing stage state from a CarRequest.
+ * Convenience hook for computing progress from a CarRequest.
  */
-export function useProgressInfo(
-  request: CarRequest,
-  departments: Department[],
-) {
-  const sorted = [...departments].sort(
-    (a, b) => a.pipelineOrder - b.pipelineOrder,
-  );
-  const completed = sorted.filter(
-    (d) => getStageState(request.transitions, d.id) === 'completed',
-  ).length;
-  return { completed, total: sorted.length };
+export function useProgressInfo(request: CarRequest) {
+  const applicable = STAGES.filter(s => !s.isSkipped(request));
+  const completed = applicable.filter(s => s.isComplete(request)).length;
+  return { completed, total: applicable.length };
 }

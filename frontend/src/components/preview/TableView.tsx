@@ -1,48 +1,35 @@
-import type { CarRequest, Department, RequestStageTransition } from '@/types/request';
-import { ProgressBar, getStageState } from '@/components/preview/ProgressBar';
+import type { CarRequest } from '@/types/request';
+import { ProgressBar } from '@/components/preview/ProgressBar';
 import { Badge } from '@/components/ui/Badge';
 import styles from './table-view.module.css';
 
 interface TableViewProps {
   requests: CarRequest[];
-  departments: Department[];
 }
 
-function getCurrentStageName(
-  transitions: RequestStageTransition[],
-  departments: Department[],
-): string {
-  // Find the latest "started" without a matching "completed" after it
-  const startedWithoutCompleted = transitions
-    .filter((t) => t.action === 'started')
-    .filter((started) => {
-      return !transitions.some(
-        (t) =>
-          t.action === 'completed' &&
-          t.departmentId === started.departmentId &&
-          new Date(t.actionedAt) > new Date(started.actionedAt),
-      );
-    })
-    .sort(
-      (a, b) =>
-        new Date(b.actionedAt).getTime() - new Date(a.actionedAt).getTime(),
-    );
-
-  if (startedWithoutCompleted.length === 0) {
-    // Check if ALL departments are completed → fully done
-    const sortedDepts = [...departments].sort(
-      (a, b) => a.pipelineOrder - b.pipelineOrder,
-    );
-    const allDone = sortedDepts.every(
-      (d) => getStageState(transitions, d.id) === 'completed',
-    );
-    if (allDone) return 'Completed';
-    return 'Not started';
+function getCurrentStageName(req: CarRequest): string {
+  if (req.status !== 'active') {
+    if (req.status === 'archived_manual' || req.status === 'archived_qc') return 'Archived';
+    if (req.status === 'cancelled') return 'Cancelled';
+    return req.status;
   }
-
-  const latest = startedWithoutCompleted[0];
-  const dept = departments.find((d) => d.id === latest.departmentId);
-  return dept?.name ?? `Dept #${latest.departmentId}`;
+  const checks: { label: string; done: boolean; skipped: boolean }[] = [
+    { label: 'Storage', done: !!req.storageAt, skipped: false },
+    { label: 'Vehicle Received', done: !!req.vehicleReceivedAt, skipped: false },
+    { label: 'Mech. Check', done: !!req.mechanicalCheckCompletedAt, skipped: false },
+    { label: 'PDI', done: !!req.pdiCompletedAt, skipped: req.requestType?.value === 'no_pdi' },
+    { label: 'Sent to Acc.', done: !!req.sentToAccessoriesAt, skipped: !req.hasAccessories && (!req.accessories || req.accessories.length === 0) },
+    { label: 'Accessories', done: !!req.accessoriesCompletedAt, skipped: !req.hasAccessories && (!req.accessories || req.accessories.length === 0) },
+    { label: 'Final Insp.', done: !!req.finalInspectionAt, skipped: false },
+    { label: 'GPS', done: !!req.gpsConfirmedAt, skipped: !req.hasGps },
+    { label: 'Registration', done: !!req.registeredAt, skipped: false },
+    { label: 'Delivery', done: !!req.deliveredAt, skipped: false },
+  ];
+  for (const c of checks) {
+    if (c.skipped) continue;
+    if (!c.done) return c.label;
+  }
+  return 'Completed';
 }
 
 /**
@@ -70,7 +57,7 @@ function formatDate(iso: string): string {
   });
 }
 
-export function TableView({ requests, departments }: TableViewProps) {
+export function TableView({ requests }: TableViewProps) {
   return (
     <div className={styles.wrapper}>
       <table className={styles.table}>
@@ -91,7 +78,7 @@ export function TableView({ requests, departments }: TableViewProps) {
         <tbody>
           {requests.map((req) => {
             const delayed = isDelayed(req);
-            const stageName = getCurrentStageName(req.transitions, departments);
+            const stageName = getCurrentStageName(req);
 
             return (
               <tr key={req.id} className={styles.row}>
@@ -143,8 +130,7 @@ export function TableView({ requests, departments }: TableViewProps) {
                 {/* Progress (compact) */}
                 <td>
                   <ProgressBar
-                    transitions={req.transitions}
-                    departments={departments}
+                    request={req}
                     variant="compact"
                   />
                 </td>

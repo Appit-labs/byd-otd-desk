@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useRequests } from '@/hooks/useRequests';
 import { useDepartments } from '@/hooks/useDepartments';
 import type { RequestFilters } from '@/hooks/useRequests';
-import { useStageActions, useCancelRequest, useArchiveRequest } from '@/hooks/useStageActions';
+import { useStageActions, useCancelRequest, useArchiveRequest, useReactivateRequest } from '@/hooks/useStageActions';
 import { useSettings, type SettingsOption } from '@/hooks/useSettings';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -122,6 +122,7 @@ function TrackerPageInner({
   const { executeAction } = useStageActions();
   const cancelMutation = useCancelRequest();
   const archiveMutation = useArchiveRequest();
+  const reactivateMutation = useReactivateRequest();
   const { data: settings } = useSettings();
   const queryClient = useQueryClient();
 
@@ -240,6 +241,19 @@ function TrackerPageInner({
       }
     },
     [archiveMutation, showError, showToast],
+  );
+
+  const handleReactivateRequest = useCallback(
+    async (requestId: number) => {
+      try {
+        await reactivateMutation.mutateAsync({ requestId, resetDates: false });
+        showToast('Request reactivated');
+        setSelectedIds(new Set());
+      } catch (err) {
+        showError(`Reactivate failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    },
+    [reactivateMutation, showError, showToast],
   );
 
   const handleSelectAll = useCallback(() => {
@@ -380,9 +394,41 @@ function TrackerPageInner({
             onStageAction={(id, stage, action) => handleStageAction(id, stage, action, true)}
             onCancelRequest={handleCancelRequest}
             onArchiveRequest={handleArchiveRequest}
+            onReactivateRequest={handleReactivateRequest}
           />
         );
       })()}
+
+      {selectedIds.size > 1 && (userRole === 'super_admin' || userRole === 'admin') && (
+        <div className={styles.actionToolbar}>
+          <span className={styles.actionToolbarTitle}>
+            {selectedIds.size} requests selected
+          </span>
+          <div style={{ display: 'flex', gap: 'var(--spacing-2)', marginLeft: 'auto' }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const ids = Array.from(selectedIds);
+                ids.forEach(id => handleArchiveRequest(id));
+              }}
+            >
+              Archive All
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const ids = Array.from(selectedIds);
+                ids.forEach(id => handleCancelRequest(id));
+              }}
+              style={{ color: 'var(--color-error)' }}
+            >
+              Cancel All
+            </Button>
+          </div>
+        </div>
+      )}
 
       <TrackerTable
         requests={requests}

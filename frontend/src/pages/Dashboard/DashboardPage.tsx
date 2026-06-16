@@ -120,34 +120,40 @@ function DashboardContent() {
         /* Dashboard Grid */
         <div className={styles.grid}>
           {/* Welcome Card */}
-          <WelcomeCard activeRequestCount={activeRequestCount} />
+          <div style={{ gridArea: 'welcome' }}>
+            <WelcomeCard activeRequestCount={activeRequestCount} />
+          </div>
 
           {/* Daily Requests / Completed Stats */}
-          <StatsCard
-            title="Total Requests"
-            value={statsQuery.data?.totalRequests ?? 0}
-            trend={statsQuery.data?.trend ?? 0}
-            subtitle={
-              period === 'daily'
-                ? 'Requests created today'
-                : 'Requests created this month'
-            }
-            accentColor="var(--color-accent)"
-            delay={0.05}
-          />
+          <div style={{ gridArea: 'daily-requests' }}>
+            <StatsCard
+              title="Total Requests"
+              value={statsQuery.data?.totalRequests ?? 0}
+              trend={statsQuery.data?.trend ?? 0}
+              subtitle={
+                period === 'daily'
+                  ? 'Requests created today'
+                  : 'Requests created this month'
+              }
+              accentColor="var(--color-accent)"
+              delay={0.05}
+            />
+          </div>
 
-          <StatsCard
-            title="Completion Rate"
-            value={completionRate}
-            trend={statsQuery.data?.trend ?? 0}
-            subtitle={
-              period === 'daily'
-                ? 'Requests completed today'
-                : `Requests completed this month`
-            }
-            accentColor={completionColor}
-            delay={0.1}
-          />
+          <div style={{ gridArea: 'completed' }}>
+            <StatsCard
+              title="Completion Rate"
+              value={completionRate}
+              trend={statsQuery.data?.trend ?? 0}
+              subtitle={
+                period === 'daily'
+                  ? 'Requests completed today'
+                  : `Requests completed this month`
+              }
+              accentColor={completionColor}
+              delay={0.1}
+            />
+          </div>
 
           {/* Comparison Chart */}
           <div style={{ gridArea: 'chart' }}>

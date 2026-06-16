@@ -7,7 +7,10 @@ import styles from './tracker.module.css';
 
 interface SelectedRequestActionsProps {
   request: CarRequest;
+  userRole: string;
   onStageAction: (requestId: number, stage: string, action: string) => void;
+  onCancelRequest: (requestId: number) => void;
+  onArchiveRequest: (requestId: number) => void;
 }
 
 const STAGE_ORDER = [
@@ -115,7 +118,10 @@ function getNextStageAction(req: CarRequest): { stage: StageSlug; action: string
 
 export function SelectedRequestActions({
   request,
+  userRole,
   onStageAction,
+  onCancelRequest,
+  onArchiveRequest,
 }: SelectedRequestActionsProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -142,6 +148,12 @@ export function SelectedRequestActions({
             );
           })}
         </div>
+        {(userRole === 'super_admin' || userRole === 'admin') && (
+          <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
+            <Button variant="ghost" size="sm" onClick={() => onArchiveRequest(request.id)}>Archive</Button>
+            <Button variant="ghost" size="sm" onClick={() => onCancelRequest(request.id)} style={{ color: 'var(--color-error)' }}>Cancel</Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -178,6 +190,12 @@ export function SelectedRequestActions({
             );
           })}
         </div>
+        {(userRole === 'super_admin' || userRole === 'admin') && (
+          <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
+            <Button variant="ghost" size="sm" onClick={() => onArchiveRequest(request.id)}>Archive</Button>
+            <Button variant="ghost" size="sm" onClick={() => onCancelRequest(request.id)} style={{ color: 'var(--color-error)' }}>Cancel</Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -213,18 +231,39 @@ export function SelectedRequestActions({
             );
           })}
         </div>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => setConfirmOpen(true)}
-        >
-          {nextAction.action === 'start' ? (
-            <Play size={14} />
-          ) : (
-            <Check size={14} />
+        <div style={{ display: 'flex', gap: 'var(--spacing-2)', alignItems: 'center' }}>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setConfirmOpen(true)}
+          >
+            {nextAction.action === 'start' ? (
+              <Play size={14} />
+            ) : (
+              <Check size={14} />
+            )}
+            {actionLabel}
+          </Button>
+          {(userRole === 'super_admin' || userRole === 'admin') && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onArchiveRequest(request.id)}
+              >
+                Archive
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onCancelRequest(request.id)}
+                style={{ color: 'var(--color-error)' }}
+              >
+                Cancel
+              </Button>
+            </>
           )}
-          {actionLabel}
-        </Button>
+        </div>
       </div>
 
       <Modal

@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useRequests } from '@/hooks/useRequests';
 import { useDepartments } from '@/hooks/useDepartments';
 import type { RequestFilters } from '@/hooks/useRequests';
-import { useStageActions } from '@/hooks/useStageActions';
+import { useStageActions, useCancelRequest, useArchiveRequest } from '@/hooks/useStageActions';
 import { useSettings, type SettingsOption } from '@/hooks/useSettings';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -120,6 +120,8 @@ function TrackerPageInner({
   } = useDepartments();
 
   const { executeAction } = useStageActions();
+  const cancelMutation = useCancelRequest();
+  const archiveMutation = useArchiveRequest();
   const { data: settings } = useSettings();
   const queryClient = useQueryClient();
 
@@ -213,6 +215,32 @@ function TrackerPageInner({
       return next;
     });
   }, []);
+
+  const handleCancelRequest = useCallback(
+    async (requestId: number) => {
+      try {
+        await cancelMutation.mutateAsync(requestId);
+        showToast('Request cancelled');
+        setSelectedIds(new Set());
+      } catch (err) {
+        showError(`Cancel failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    },
+    [cancelMutation, showError, showToast],
+  );
+
+  const handleArchiveRequest = useCallback(
+    async (requestId: number) => {
+      try {
+        await archiveMutation.mutateAsync(requestId);
+        showToast('Request archived');
+        setSelectedIds(new Set());
+      } catch (err) {
+        showError(`Archive failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    },
+    [archiveMutation, showError, showToast],
+  );
 
   const handleSelectAll = useCallback(() => {
     setSelectedIds((prev) => {
@@ -348,7 +376,10 @@ function TrackerPageInner({
         return (
           <SelectedRequestActions
             request={selectedRequest}
+            userRole={userRole}
             onStageAction={(id, stage, action) => handleStageAction(id, stage, action, true)}
+            onCancelRequest={handleCancelRequest}
+            onArchiveRequest={handleArchiveRequest}
           />
         );
       })()}
@@ -405,6 +436,7 @@ function TrackerPageInner({
       </Modal>
 
       <RequestFormDrawer
+        key={editingRequest?.id ?? 'new'}
         open={isDrawerOpen}
         onClose={handleDrawerClose}
         editingRequest={editingRequest}

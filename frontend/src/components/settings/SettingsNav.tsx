@@ -9,6 +9,8 @@ export type SettingsSection =
   | 'exterior_color'
   | 'interior_color'
   | 'accessory'
+  | 'vehicle_location'
+  | 'showroom'
   | 'sales_consultant'
   | 'sales_type'
   | 'request_type'
@@ -38,6 +40,8 @@ const groups: CategoryGroup[] = [
       { key: 'exterior_color', label: 'Exterior Colors' },
       { key: 'interior_color', label: 'Interior Colors' },
       { key: 'accessory', label: 'Accessories' },
+      { key: 'vehicle_location', label: 'Vehicle Locations' },
+      { key: 'showroom', label: 'Showrooms' },
     ],
   },
   {

@@ -28,6 +28,8 @@ const dropdownDefs: Record<string, DropdownDef> = {
   exterior_color: { key: 'exterior_color', label: 'Exterior Colors' },
   interior_color: { key: 'interior_color', label: 'Interior Colors' },
   accessory: { key: 'accessory', label: 'Accessories' },
+  vehicle_location: { key: 'vehicle_location', label: 'Vehicle Locations' },
+  showroom: { key: 'showroom', label: 'Showrooms' },
   sales_consultant: { key: 'sales_consultant', label: 'Sales Consultants' },
   sales_type: { key: 'sales_type', label: 'Sales Types' },
 };

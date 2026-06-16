@@ -149,9 +149,9 @@ export function useStageActions() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation<unknown, Error, StageActionParams>({
-    mutationFn: async ({ requestId, stage, action }) => {
+    mutationFn: async ({ requestId, stage, action, payload }) => {
       const endpoint = getStageEndpoint(stage, action);
-      await api.post(`/v1/requests/${requestId}/${endpoint}`);
+      await api.post(`/v1/requests/${requestId}/${endpoint}`, payload ?? {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requests'] });

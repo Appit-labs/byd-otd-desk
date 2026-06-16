@@ -142,6 +142,7 @@ function TrackerPageInner({
 
   // Confirmation modal for stage actions
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmRemarks, setConfirmRemarks] = useState('');
   const [confirmAction, setConfirmAction] = useState<{
     requestId: number;
     stage: string;
@@ -283,6 +284,7 @@ function TrackerPageInner({
 
       // Show confirmation modal first
       const stageLabel = STAGE_LABELS[stage] ?? stage;
+      setConfirmRemarks('');
       setConfirmAction({ requestId, stage, action, label: `${action} — ${stageLabel}` });
       setConfirmOpen(true);
     },
@@ -293,9 +295,10 @@ function TrackerPageInner({
     requestId: number,
     stageEnum: PipelineStage,
     action: 'start' | 'complete' | 'confirm',
+    payload?: Record<string, unknown>,
   ) => {
     try {
-      await executeAction({ requestId, stage: stageEnum, action });
+      await executeAction({ requestId, stage: stageEnum, action, payload });
       showToast('Action completed successfully');
       // Force immediate refetch so next action has fresh data
       await queryClient.refetchQueries({ queryKey: ['requests'] });
@@ -318,8 +321,10 @@ function TrackerPageInner({
     if (stageEnum === undefined) return;
     setConfirmOpen(false);
     setConfirmAction(null);
-    await doExecuteAction(requestId, stageEnum, normalizeAction(action));
-  }, [confirmAction, doExecuteAction]);
+    const normAction = normalizeAction(action);
+    const payload = confirmRemarks.trim() ? { remarks: confirmRemarks.trim() } : undefined;
+    await doExecuteAction(requestId, stageEnum, normAction, payload);
+  }, [confirmAction, confirmRemarks, doExecuteAction]);
 
   const handleFinalInspectionSubmit = useCallback(
     async (outcome: string, remarks?: string) => {
@@ -468,6 +473,28 @@ function TrackerPageInner({
           <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)' }}>
             Are you sure you want to <strong>{confirmAction?.label}</strong>?
           </p>
+          {confirmAction?.action !== 'start' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-1)' }}>
+              <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--color-text-primary)' }}>
+                Remarks (optional)
+              </label>
+              <textarea
+                value={confirmRemarks}
+                onChange={(e) => setConfirmRemarks(e.target.value)}
+                placeholder="Add remarks about this action..."
+                rows={3}
+                style={{
+                  padding: 'var(--spacing-2)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 'var(--text-sm)',
+                  resize: 'vertical',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text-primary)',
+                }}
+              />
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 'var(--spacing-2)', justifyContent: 'flex-end' }}>
             <Button
               variant="ghost"

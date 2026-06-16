@@ -370,7 +370,7 @@ export function TrackerTable({
               <th style={{ width: 150 }}>Customer</th>
               <th style={{ width: 180 }}>Brand/Model</th>
               <th style={{ width: 120 }}>Request Type</th>
-              <th style={{ width: 120 }}>Promise Date</th>
+              <th style={{ width: 150 }}>Promise Date</th>
               <th style={{ width: 160 }}>Storage</th>
               <th style={{ width: 160 }}>Vehicle Received</th>
               <th style={{ width: 180 }}>Mechanical Check</th>

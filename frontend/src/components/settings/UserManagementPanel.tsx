@@ -11,7 +11,6 @@ import {
   useUpdateUser,
   useToggleUserStatus,
 } from '@/hooks/useUsers';
-import { useDepartments } from '@/hooks/useDepartments';
 import type { User } from '@/types/auth';
 import styles from './settings.module.css';
 
@@ -47,7 +46,6 @@ interface UserFormData {
   email: string;
   password: string;
   role: string;
-  departmentId?: number;
 }
 
 const emptyForm: UserFormData = {
@@ -56,12 +54,10 @@ const emptyForm: UserFormData = {
   email: '',
   password: '',
   role: '',
-  departmentId: undefined,
 };
 
 export function UserManagementPanel() {
   const { data: users, isLoading: usersLoading } = useUsers();
-  const { data: departments } = useDepartments();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const toggleStatus = useToggleUserStatus();
@@ -71,15 +67,6 @@ export function UserManagementPanel() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [form, setForm] = useState<UserFormData>(emptyForm);
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof UserFormData, string>>>({});
-
-  const departmentOptions: SelectOption[] = useMemo(
-    () =>
-      (departments ?? []).map((d) => ({
-        value: String(d.id),
-        label: d.name,
-      })),
-    [departments]
-  );
 
   const filteredUsers = useMemo(() => {
     if (!users) return [];
@@ -111,7 +98,6 @@ export function UserManagementPanel() {
       email: (user as any).email ?? '',
       password: '',
       role: user.role,
-      departmentId: user.department_id,
     });
     setFormErrors({});
     setModalOpen(true);
@@ -160,7 +146,6 @@ export function UserManagementPanel() {
           email: form.email.trim(),
           ...(form.password ? { password: form.password } : {}),
           role: form.role,
-          ...(form.departmentId ? { departmentId: form.departmentId } : {}),
         },
         { onSuccess: closeModal }
       );
@@ -172,7 +157,6 @@ export function UserManagementPanel() {
           email: form.email.trim(),
           password: form.password,
           role: form.role,
-          ...(form.departmentId ? { departmentId: form.departmentId } : {}),
         },
         { onSuccess: closeModal }
       );
@@ -356,17 +340,6 @@ export function UserManagementPanel() {
             options={roleOptions}
             error={formErrors.role}
           />
-          <Select
-            label="Department (optional)"
-            placeholder="Select department..."
-            value={form.departmentId ? String(form.departmentId) : undefined}
-            onValueChange={(val) =>
-              setForm((f) => ({ ...f, departmentId: Number(val) }))
-            }
-            options={departmentOptions}
-            error={formErrors.departmentId}
-          />
-
           <div className={styles.formActions}>
             <Button variant="ghost" onClick={closeModal}>
               Cancel

@@ -297,12 +297,13 @@ function TrackerPageInner({
     try {
       await executeAction({ requestId, stage: stageEnum, action });
       showToast('Action completed successfully');
-      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      // Force immediate refetch so next action has fresh data
+      await queryClient.refetchQueries({ queryKey: ['requests'] });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       // Auto-refresh on stage mismatch — frontend data is stale
       if (msg.includes('not at the correct stage') || msg.includes('current stage')) {
-        queryClient.invalidateQueries({ queryKey: ['requests'] });
+        await queryClient.refetchQueries({ queryKey: ['requests'] });
         showError('Request state changed. Data refreshed — please try again.');
       } else {
         showError(`Action failed: ${msg}`);

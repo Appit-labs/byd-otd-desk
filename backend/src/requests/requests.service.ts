@@ -300,6 +300,7 @@ export class RequestsService {
         salesTypeId: dto.salesTypeId,
         accessories: dto.accessories,
         hasGps: dto.hasGps ?? false,
+        hasAccessories: dto.hasAccessories ?? false,
         promiseDate,
         remarks: dto.remarks,
         requestNumber,
@@ -352,6 +353,7 @@ export class RequestsService {
       'salesConsultantId',
       'salesTypeId',
       'accessories',
+      'hasAccessories',
       'hasGps',
       'remarks',
     ] as const;
@@ -1064,6 +1066,7 @@ export class RequestsService {
       esc(r.customerPhone),
       esc(r.salesConsultant?.label ?? ''),
       esc(r.salesType?.label ?? ''),
+      esc(r.hasAccessories ? 'Yes' : 'No'),
       esc(r.hasGps ? 'Yes' : 'No'),
       esc(r.promiseDate?.toISOString() ?? ''),
       esc(r.status),

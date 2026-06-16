@@ -86,6 +86,11 @@ export class CreateRequestDto {
   @IsBoolean()
   hasGps?: boolean;
 
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  hasAccessories?: boolean;
+
   @ApiPropertyOptional({ example: 'Client prefers morning delivery' })
   @IsOptional()
   @IsString()

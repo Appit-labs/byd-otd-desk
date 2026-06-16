@@ -83,6 +83,7 @@ export interface CarRequest {
   salesConsultant: SettingOption;
   salesType?: SettingOption | null;
   accessories?: number[] | null;
+  hasAccessories: boolean;
   hasGps: boolean;
   promiseDate?: string | null;
   remarks?: string;

@@ -249,8 +249,7 @@ export class PipelineStageResolverService {
   getApplicableStages(request: CarRequest): StageDefinition[] {
     const requestTypeValue = request.requestType?.value;
     const hasPdi = requestTypeHasPdi(requestTypeValue);
-    const hasAccessories =
-      hasPdi && request.accessories != null && request.accessories.length > 0;
+    const hasAccessories = request.hasAccessories === true;
     const hasGps = request.hasGps === true;
 
     const applicable: StageDefinition[] = [];

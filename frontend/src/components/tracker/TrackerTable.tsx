@@ -66,7 +66,7 @@ function isStageSkipped(req: CarRequest, stage: StageSlug): boolean {
       return req.requestType?.value === 'no_pdi';
     case 'sent_to_accessories':
     case 'accessories':
-      return !req.accessories || req.accessories.length === 0;
+      return !req.hasAccessories;
     case 'gps':
       return !req.hasGps;
     default:

@@ -29,6 +29,7 @@ const requestFormSchema = z.object({
   salesConsultantId: z.string().min(1, 'Sales consultant is required'),
   salesTypeId: z.string().optional(),
   accessories: z.array(z.string()).optional(),
+  hasAccessories: z.boolean().optional(),
   hasGps: z.boolean().optional(),
   remarks: z.string().max(500, 'Remarks must be under 500 characters').optional(),
 });
@@ -59,6 +60,7 @@ function mapRequestToFormValues(request: CarRequest): RequestFormValues {
     salesConsultantId: String(request.salesConsultant?.id ?? ''),
     salesTypeId: request.salesType?.id ? String(request.salesType.id) : '',
     accessories: (request.accessories ?? []).map(String),
+    hasAccessories: request.hasAccessories ?? false,
     hasGps: request.hasGps ?? false,
     remarks: request.remarks ?? '',
   };
@@ -83,7 +85,8 @@ function useDefaultFormValues(editingRequest?: CarRequest | null): RequestFormVa
     salesConsultantId: '',
     salesTypeId: '',
     accessories: [],
-    hasGps: true,
+    hasAccessories: false,
+    hasGps: false,
     remarks: '',
   };
 }
@@ -193,7 +196,8 @@ export function RequestFormDrawer({
         accessories: values.accessories?.length
           ? values.accessories.map(Number)
           : undefined,
-        hasGps: values.hasGps ?? true,
+        hasAccessories: values.hasAccessories ?? false,
+        hasGps: values.hasGps ?? false,
         remarks: values.remarks || undefined,
       };
 

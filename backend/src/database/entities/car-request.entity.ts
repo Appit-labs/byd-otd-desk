@@ -131,8 +131,11 @@ export class CarRequest {
   @Column({ type: 'json', nullable: true })
   accessories: number[];
 
-  @Column({ name: 'has_gps', default: true })
+  @Column({ name: 'has_gps', default: false })
   hasGps: boolean;
+
+  @Column({ name: 'has_accessories', default: false })
+  hasAccessories: boolean;
 
   @Column({ name: 'promise_date', nullable: true })
   promiseDate: Date;

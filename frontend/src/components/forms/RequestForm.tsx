@@ -30,6 +30,7 @@ export function RequestForm() {
   const modelId = watch('modelId');
   const accessoryIds: string[] = watch('accessories') ?? [];
   const hasGps = watch('hasGps');
+  const hasAccessories = watch('hasAccessories');
   const [accessoryDropdownOpen, setAccessoryDropdownOpen] = useState(false);
   const accessoryDropdownRef = useRef<HTMLDivElement>(null);
   const accessoryTriggerRef = useRef<HTMLButtonElement>(null);
@@ -103,16 +104,13 @@ export function RequestForm() {
     return toSelectOptions(allVariants.filter((v) => v.parentId === Number(modelId)));
   }, [settings?.variant, modelId]);
 
-  // ── Determine if request type is PDI (for conditional accessories) ──
+  // ── Determine request type (for promise date calculation) ──
   const selectedRequestType = useMemo(() => {
     if (!requestTypeId) return undefined;
     return (settings?.request_type ?? []).find(
       (o) => String(o.id) === requestTypeId,
     );
   }, [settings?.request_type, requestTypeId]);
-
-  const isPdi = selectedRequestType?.metadata?.allows_accessories === true
-    || selectedRequestType?.value === 'pdi';
 
   // ── Promise date calculation ──
   const promiseDate = useMemo(() => {
@@ -143,14 +141,7 @@ export function RequestForm() {
     }
   }, [modelId, setValue]);
 
-  // Hide accessories when not PDI
-  useEffect(() => {
-    if (!isPdi) {
-      setValue('accessories', [], { shouldValidate: false });
-    }
-  }, [isPdi, setValue]);
-
-  // Close accessory dropdown on outside click
+  // Close accessory dropdown on outside click or scroll
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -160,8 +151,13 @@ export function RequestForm() {
         setAccessoryDropdownOpen(false);
       }
     };
+    const handleScroll = () => setAccessoryDropdownOpen(false);
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, []);
 
   const toggleAccessory = (value: string) => {
@@ -219,78 +215,96 @@ export function RequestForm() {
           )}
         />
 
-        {/* 3. Accessories — conditional on PDI, multi-select dropdown */}
-        {isPdi && (
-          <div className={styles.field} ref={accessoryDropdownRef}>
-            <label className={styles.checklistLabel}>Accessories</label>
+        {/* 3. Accessories toggle switch + multi-select dropdown */}
+        <div className={styles.field}>
+          <label className={styles.checklistLabel}>Accessories</label>
+          <label className={styles.toggleRow}>
+            <span>Include accessories stage in pipeline</span>
             <button
               type="button"
-              ref={accessoryTriggerRef}
-              className={styles.multiSelectTrigger}
+              role="switch"
+              aria-checked={hasAccessories ?? false}
+              className={`${styles.toggleSwitch} ${hasAccessories ? styles.toggleOn : ''}`}
               onClick={() => {
-                const rect = accessoryTriggerRef.current?.getBoundingClientRect();
-                if (rect) {
-                  setAccessoryDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
-                }
-                setAccessoryDropdownOpen((v) => !v);
+                const next = !hasAccessories;
+                setValue('hasAccessories', next, { shouldValidate: true });
+                if (!next) setValue('accessories', [], { shouldValidate: true });
               }}
             >
-              <span className={accessoryIds.length > 0 ? styles.multiSelectValue : styles.multiSelectPlaceholder}>
-                {accessoryIds.length > 0
-                  ? `${accessoryIds.length} selected`
-                  : 'Select accessories...'}
-              </span>
-              <span className={`${styles.multiSelectArrow} ${accessoryDropdownOpen ? styles.multiSelectArrowOpen : ''}`}>
-                ▾
-              </span>
+              <span className={styles.toggleKnob} />
             </button>
-            {accessoryIds.length > 0 && (
-              <div className={styles.multiSelectTags}>
-                {accessoryIds.map((id) => {
-                  const opt = accessoryOptions.find((o) => o.value === id);
-                  return (
-                    <span key={id} className={styles.tag}>
-                      <span>{opt?.label ?? id}</span>
-                      <button
-                        type="button"
-                        className={styles.tagRemove}
-                        onClick={() => toggleAccessory(id)}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-            {accessoryDropdownOpen && createPortal(
-              <div
-                ref={accessoryPortalRef}
-                className={styles.multiSelectDropdown}
-                style={{
-                  position: 'fixed',
-                  top: accessoryDropdownPos.top,
-                  left: accessoryDropdownPos.left,
-                  width: accessoryDropdownPos.width,
-                  zIndex: 9999,
+          </label>
+          {hasAccessories && (
+            <div className={styles.field} ref={accessoryDropdownRef} style={{ marginTop: 'var(--spacing-2)' }}>
+              <button
+                type="button"
+                ref={accessoryTriggerRef}
+                className={styles.multiSelectTrigger}
+                onClick={() => {
+                  const rect = accessoryTriggerRef.current?.getBoundingClientRect();
+                  if (rect) {
+                    setAccessoryDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+                  }
+                  setAccessoryDropdownOpen((v) => !v);
                 }}
               >
-                {accessoryOptions.map((opt) => (
-                  <label key={opt.value} className={styles.multiSelectOption}>
-                    <input
-                      type="checkbox"
-                      checked={accessoryIds.includes(opt.value)}
-                      onChange={() => toggleAccessory(opt.value)}
-                      className={styles.multiSelectCheckbox}
-                    />
-                    <span>{opt.label}</span>
-                  </label>
-                ))}
-              </div>,
-              document.body,
-            )}
-          </div>
-        )}
+                <span className={accessoryIds.length > 0 ? styles.multiSelectValue : styles.multiSelectPlaceholder}>
+                  {accessoryIds.length > 0
+                    ? `${accessoryIds.length} selected`
+                    : 'Select accessories...'}
+                </span>
+                <span className={`${styles.multiSelectArrow} ${accessoryDropdownOpen ? styles.multiSelectArrowOpen : ''}`}>
+                  ▾
+                </span>
+              </button>
+              {accessoryIds.length > 0 && (
+                <div className={styles.multiSelectTags}>
+                  {accessoryIds.map((id) => {
+                    const opt = accessoryOptions.find((o) => o.value === id);
+                    return (
+                      <span key={id} className={styles.tag}>
+                        <span>{opt?.label ?? id}</span>
+                        <button
+                          type="button"
+                          className={styles.tagRemove}
+                          onClick={() => toggleAccessory(id)}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+              {accessoryDropdownOpen && createPortal(
+                <div
+                  ref={accessoryPortalRef}
+                  className={styles.multiSelectDropdown}
+                  style={{
+                    position: 'fixed',
+                    top: accessoryDropdownPos.top,
+                    left: accessoryDropdownPos.left,
+                    width: accessoryDropdownPos.width,
+                    zIndex: 9999,
+                  }}
+                >
+                  {accessoryOptions.map((opt) => (
+                    <label key={opt.value} className={styles.multiSelectOption}>
+                      <input
+                        type="checkbox"
+                        checked={accessoryIds.includes(opt.value)}
+                        onChange={() => toggleAccessory(opt.value)}
+                        className={styles.multiSelectCheckbox}
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>,
+                document.body,
+              )}
+            </div>
+          )}
+        </div>
 
         {/* 4. GPS toggle switch */}
         <div className={styles.field}>

@@ -24,6 +24,10 @@
   min-width: 0;
 }
 
+.segment:first-child {
+  flex: 0 0 auto;
+}
+
 /* Connector line between dots */
 .connector {
   flex: 1;

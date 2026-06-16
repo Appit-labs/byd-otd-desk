@@ -1,0 +1,1911 @@
+{
+  "name": "byd-otd-desk",
+  "description": "BYD OTD Desk - Order to Delivery Tracking System. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
+  "languages": [
+    "conf",
+    "config",
+    "css",
+    "dockerfile",
+    "hbs",
+    "html",
+    "javascript",
+    "json",
+    "markdown",
+    "sql",
+    "tsbuildinfo",
+    "typescript",
+    "unknown",
+    "yaml"
+  ],
+  "frameworks": [
+    "NestJS",
+    "Fastify",
+    "TypeORM",
+    "Handlebars",
+    "Passport",
+    "Swagger",
+    "React",
+    "Vite",
+    "Zustand",
+    "React Router",
+    "React Hook Form",
+    "Zod",
+    "TanStack Query",
+    "Recharts",
+    "Radix UI",
+    "Jest",
+    "Docker",
+    "Docker Compose"
+  ],
+  "files": [
+    {
+      "path": ".env.example",
+      "language": "config",
+      "sizeLines": 20,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/assemble-review.json",
+      "language": "json",
+      "sizeLines": 23,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/fingerprints.json",
+      "language": "json",
+      "sizeLines": 9726,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/knowledge-graph.json",
+      "language": "json",
+      "sizeLines": 0,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/meta.json",
+      "language": "json",
+      "sizeLines": 6,
+      "fileCategory": "config"
+    },
+    {
+      "path": "00-MASTER-PLAN.md",
+      "language": "markdown",
+      "sizeLines": 26,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "01-roles-permissions.md",
+      "language": "markdown",
+      "sizeLines": 96,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "02-new-request-form.md",
+      "language": "markdown",
+      "sizeLines": 94,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "03-pipeline-stages-actions.md",
+      "language": "markdown",
+      "sizeLines": 118,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "04-tracker-table-enhancements.md",
+      "language": "markdown",
+      "sizeLines": 26,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "05-settings-configuration.md",
+      "language": "markdown",
+      "sizeLines": 35,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "06-reports-dashboard.md",
+      "language": "markdown",
+      "sizeLines": 42,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "07-preview-page-and-progress-bar.md",
+      "language": "markdown",
+      "sizeLines": 58,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "08-post-impl-fixes-enhancements.md",
+      "language": "markdown",
+      "sizeLines": 379,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "09-email-system.md",
+      "language": "markdown",
+      "sizeLines": 989,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "backend/.env",
+      "language": "config",
+      "sizeLines": 33,
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/.env.example",
+      "language": "config",
+      "sizeLines": 34,
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/Dockerfile",
+      "language": "dockerfile",
+      "sizeLines": 25,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "backend/eslint.config.mjs",
+      "language": "javascript",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/nest-cli.json",
+      "language": "json",
+      "sizeLines": 19,
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/package.json",
+      "language": "json",
+      "sizeLines": 105,
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/README.md",
+      "language": "markdown",
+      "sizeLines": 98,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "backend/scripts/init.sql",
+      "language": "sql",
+      "sizeLines": 4,
+      "fileCategory": "data"
+    },
+    {
+      "path": "backend/src/app.controller.spec.ts",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/app.controller.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/app.module.ts",
+      "language": "typescript",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/app.service.ts",
+      "language": "typescript",
+      "sizeLines": 11,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/auth/auth.controller.ts",
+      "language": "typescript",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/auth/auth.module.ts",
+      "language": "typescript",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/auth/auth.service.spec.ts",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/auth/auth.service.ts",
+      "language": "typescript",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/auth/dto/index.ts",
+      "language": "typescript",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/auth/dto/login.dto.ts",
+      "language": "typescript",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/auth/jwt.strategy.ts",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/auth/roles.guard.ts",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/decorators/current-user.decorator.ts",
+      "language": "typescript",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/decorators/roles.decorator.ts",
+      "language": "typescript",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/dto/pagination.dto.ts",
+      "language": "typescript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/filters/http-exception.filter.spec.ts",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/filters/http-exception.filter.ts",
+      "language": "typescript",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/interceptors/response-transform.interceptor.spec.ts",
+      "language": "typescript",
+      "sizeLines": 106,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/interceptors/response-transform.interceptor.ts",
+      "language": "typescript",
+      "sizeLines": 65,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/permissions/permission-matrix.ts",
+      "language": "typescript",
+      "sizeLines": 224,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/seeder.service.ts",
+      "language": "typescript",
+      "sizeLines": 531,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/utils/dates.ts",
+      "language": "typescript",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/common/validators/is-reasonable-date.validator.ts",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/config/data-source.prod.ts",
+      "language": "typescript",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/config/data-source.ts",
+      "language": "typescript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/dashboard/dashboard.controller.ts",
+      "language": "typescript",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/dashboard/dashboard.module.ts",
+      "language": "typescript",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/dashboard/dashboard.service.spec.ts",
+      "language": "typescript",
+      "sizeLines": 233,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/dashboard/dashboard.service.ts",
+      "language": "typescript",
+      "sizeLines": 310,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/entities/car-request.entity.ts",
+      "language": "typescript",
+      "sizeLines": 237,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/entities/department.entity.ts",
+      "language": "typescript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/entities/email-config.entity.ts",
+      "language": "typescript",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/entities/notification-log.entity.ts",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/entities/request-stage-transition.entity.ts",
+      "language": "typescript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/entities/setting-option.entity.ts",
+      "language": "typescript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/entities/setting.entity.ts",
+      "language": "typescript",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/entities/user.entity.ts",
+      "language": "typescript",
+      "sizeLines": 63,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/migrations/1718200000000-InitialSchema.ts",
+      "language": "typescript",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/migrations/1718300000000-UpdateRolesEnum.ts",
+      "language": "typescript",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/migrations/1718400000000-UpdateCarRequests.ts",
+      "language": "typescript",
+      "sizeLines": 202,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/migrations/1718500000000-AddPipelineFields.ts",
+      "language": "typescript",
+      "sizeLines": 179,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/migrations/1718600000000-AddMetadataToSettingOptions.ts",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/migrations/1718700000000-Plan08Changes.ts",
+      "language": "typescript",
+      "sizeLines": 132,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/migrations/1718800000000-AddEmailTables.ts",
+      "language": "typescript",
+      "sizeLines": 73,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/migrations/1718900000000-AddNotificationsEnabled.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/migrations/1719000000000-AddHasAccessories.ts",
+      "language": "typescript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/migrations/index.ts",
+      "language": "typescript",
+      "sizeLines": 11,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/database/seed.ts",
+      "language": "typescript",
+      "sizeLines": 526,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/departments/departments.controller.ts",
+      "language": "typescript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/departments/departments.module.ts",
+      "language": "typescript",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/departments/departments.service.spec.ts",
+      "language": "typescript",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/departments/departments.service.ts",
+      "language": "typescript",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/dto/update-email-config.dto.ts",
+      "language": "typescript",
+      "sizeLines": 50,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/email.controller.ts",
+      "language": "typescript",
+      "sizeLines": 73,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/email.module.ts",
+      "language": "typescript",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/email.service.ts",
+      "language": "typescript",
+      "sizeLines": 355,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/notification.events.ts",
+      "language": "typescript",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/notification.listener.ts",
+      "language": "typescript",
+      "sizeLines": 168,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/smtp-config.service.ts",
+      "language": "typescript",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/templates/layouts/base.hbs",
+      "language": "hbs",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/templates/partials/request-card.hbs",
+      "language": "hbs",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/templates/stage-action.hbs",
+      "language": "hbs",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/templates/test-email.hbs",
+      "language": "hbs",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/email/transport.factory.ts",
+      "language": "typescript",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main.ts",
+      "language": "typescript",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/reports/reports.controller.ts",
+      "language": "typescript",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/reports/reports.module.ts",
+      "language": "typescript",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/reports/reports.service.ts",
+      "language": "typescript",
+      "sizeLines": 233,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/dto/create-request.dto.ts",
+      "language": "typescript",
+      "sizeLines": 99,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/dto/query-requests.dto.ts",
+      "language": "typescript",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/dto/stage-action.dto.ts",
+      "language": "typescript",
+      "sizeLines": 67,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/dto/transition-request.dto.ts",
+      "language": "typescript",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/dto/update-request.dto.ts",
+      "language": "typescript",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/pipeline-stage-resolver.service.ts",
+      "language": "typescript",
+      "sizeLines": 422,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/requests.controller.ts",
+      "language": "typescript",
+      "sizeLines": 410,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/requests.module.ts",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/requests.service.spec.ts",
+      "language": "typescript",
+      "sizeLines": 326,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/requests.service.ts",
+      "language": "typescript",
+      "sizeLines": 1096,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/stage-transitions.service.spec.ts",
+      "language": "typescript",
+      "sizeLines": 524,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/requests/stage-transitions.service.ts",
+      "language": "typescript",
+      "sizeLines": 312,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/settings/dto/add-option.dto.ts",
+      "language": "typescript",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/settings/dto/edit-option.dto.ts",
+      "language": "typescript",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/settings/dto/reorder.dto.ts",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/settings/settings.controller.ts",
+      "language": "typescript",
+      "sizeLines": 121,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/settings/settings.module.ts",
+      "language": "typescript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/settings/settings.service.spec.ts",
+      "language": "typescript",
+      "sizeLines": 323,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/settings/settings.service.ts",
+      "language": "typescript",
+      "sizeLines": 228,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/users/dto/create-user.dto.ts",
+      "language": "typescript",
+      "sizeLines": 50,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/users/dto/update-user.dto.ts",
+      "language": "typescript",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/users/dto/user-query.dto.ts",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/users/users.controller.ts",
+      "language": "typescript",
+      "sizeLines": 80,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/users/users.module.ts",
+      "language": "typescript",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/users/users.service.spec.ts",
+      "language": "typescript",
+      "sizeLines": 149,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/users/users.service.ts",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/test/jest-e2e.json",
+      "language": "json",
+      "sizeLines": 14,
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/tsconfig.build.json",
+      "language": "json",
+      "sizeLines": 4,
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/tsconfig.json",
+      "language": "json",
+      "sizeLines": 28,
+      "fileCategory": "config"
+    },
+    {
+      "path": "BYD_OTD_Desk_Project_Plan.md",
+      "language": "markdown",
+      "sizeLines": 921,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docker-compose.prod.yml",
+      "language": "yaml",
+      "sizeLines": 73,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "sizeLines": 39,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "email_system_plan.md",
+      "language": "markdown",
+      "sizeLines": 498,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "feature_and_fix_plan_7_items.md",
+      "language": "markdown",
+      "sizeLines": 428,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend/Dockerfile",
+      "language": "dockerfile",
+      "sizeLines": 23,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "frontend/docs/superpowers/plans/2026-06-12-preview-page-phase-5-1.md",
+      "language": "markdown",
+      "sizeLines": 1091,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend/index.html",
+      "language": "html",
+      "sizeLines": 19,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/nginx.conf",
+      "language": "conf",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/package.json",
+      "language": "json",
+      "sizeLines": 35,
+      "fileCategory": "config"
+    },
+    {
+      "path": "frontend/src/App.tsx",
+      "language": "typescript",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/dashboard/ComparisonBarChart.tsx",
+      "language": "typescript",
+      "sizeLines": 180,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/dashboard/dashboard-shared.module.css",
+      "language": "css",
+      "sizeLines": 89,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/dashboard/PipelineFunnelChart.tsx",
+      "language": "typescript",
+      "sizeLines": 196,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/dashboard/RecentRequestsTable.tsx",
+      "language": "typescript",
+      "sizeLines": 243,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/dashboard/StatsCard.tsx",
+      "language": "typescript",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/dashboard/WelcomeCard.tsx",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/forms/request-form.module.css",
+      "language": "css",
+      "sizeLines": 552,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/forms/RequestForm.tsx",
+      "language": "typescript",
+      "sizeLines": 545,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/forms/RequestFormDrawer.tsx",
+      "language": "typescript",
+      "sizeLines": 378,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/layout/AppShell.module.css",
+      "language": "css",
+      "sizeLines": 18,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/layout/AppShell.tsx",
+      "language": "typescript",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/layout/ProtectedLayout.tsx",
+      "language": "typescript",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/layout/Sidebar.module.css",
+      "language": "css",
+      "sizeLines": 264,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/layout/Sidebar.tsx",
+      "language": "typescript",
+      "sizeLines": 166,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/preview/CardView.tsx",
+      "language": "typescript",
+      "sizeLines": 150,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/preview/preview-shared.module.css",
+      "language": "css",
+      "sizeLines": 212,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/preview/PreviewFilters.tsx",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/preview/progress-bar.module.css",
+      "language": "css",
+      "sizeLines": 114,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/preview/ProgressBar.tsx",
+      "language": "typescript",
+      "sizeLines": 106,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/preview/RequestProgressCard.tsx",
+      "language": "typescript",
+      "sizeLines": 163,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/preview/table-view.module.css",
+      "language": "css",
+      "sizeLines": 104,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/preview/TableView.tsx",
+      "language": "typescript",
+      "sizeLines": 144,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/settings/DropdownOptionsManager.tsx",
+      "language": "typescript",
+      "sizeLines": 419,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/settings/EmailConfigPanel.tsx",
+      "language": "typescript",
+      "sizeLines": 407,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/settings/FinalInspectionOptionsManager.tsx",
+      "language": "typescript",
+      "sizeLines": 368,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/settings/RequestTypeOptionsManager.tsx",
+      "language": "typescript",
+      "sizeLines": 396,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/settings/settings.module.css",
+      "language": "css",
+      "sizeLines": 813,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/settings/SettingsNav.tsx",
+      "language": "typescript",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/settings/UserManagementPanel.tsx",
+      "language": "typescript",
+      "sizeLines": 389,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/tracker/BulkActionBar.tsx",
+      "language": "typescript",
+      "sizeLines": 104,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/tracker/detailCard.module.css",
+      "language": "css",
+      "sizeLines": 41,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/tracker/ReadyCell.tsx",
+      "language": "typescript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/tracker/RequestDetailCard.tsx",
+      "language": "typescript",
+      "sizeLines": 146,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/tracker/SelectedRequestActions.tsx",
+      "language": "typescript",
+      "sizeLines": 289,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/tracker/StageCell.tsx",
+      "language": "typescript",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/tracker/tracker.module.css",
+      "language": "css",
+      "sizeLines": 866,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/tracker/TrackerTable.tsx",
+      "language": "typescript",
+      "sizeLines": 808,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/tracker/TrackerToolbar.tsx",
+      "language": "typescript",
+      "sizeLines": 286,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/tracker/trackerUtils.ts",
+      "language": "typescript",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/ui/Badge.module.css",
+      "language": "css",
+      "sizeLines": 82,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/ui/Badge.tsx",
+      "language": "typescript",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/ui/Button.module.css",
+      "language": "css",
+      "sizeLines": 132,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/ui/Button.tsx",
+      "language": "typescript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/ui/Card.module.css",
+      "language": "css",
+      "sizeLines": 31,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/ui/Card.tsx",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/ui/Input.module.css",
+      "language": "css",
+      "sizeLines": 77,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/ui/Input.tsx",
+      "language": "typescript",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/ui/Modal.module.css",
+      "language": "css",
+      "sizeLines": 68,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/ui/Modal.tsx",
+      "language": "typescript",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/ui/Select.module.css",
+      "language": "css",
+      "sizeLines": 122,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/ui/Select.tsx",
+      "language": "typescript",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/ui/Skeleton.module.css",
+      "language": "css",
+      "sizeLines": 47,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/ui/Skeleton.tsx",
+      "language": "typescript",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/ui/Spinner.module.css",
+      "language": "css",
+      "sizeLines": 13,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/components/ui/Spinner.tsx",
+      "language": "typescript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useCreateRequest.ts",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useDashboard.ts",
+      "language": "typescript",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useDeleteRequest.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useDepartments.ts",
+      "language": "typescript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useExportRequests.ts",
+      "language": "typescript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useReports.ts",
+      "language": "typescript",
+      "sizeLines": 137,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useRequestHold.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useRequests.ts",
+      "language": "typescript",
+      "sizeLines": 82,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useSettings.ts",
+      "language": "typescript",
+      "sizeLines": 171,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useStageActions.ts",
+      "language": "typescript",
+      "sizeLines": 231,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useStageTransition.ts",
+      "language": "typescript",
+      "sizeLines": 67,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useUpdateRequest.ts",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/hooks/useUsers.ts",
+      "language": "typescript",
+      "sizeLines": 83,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/pages/Dashboard/dashboard.module.css",
+      "language": "css",
+      "sizeLines": 137,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/pages/Dashboard/DashboardPage.tsx",
+      "language": "typescript",
+      "sizeLines": 210,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/pages/Login/LoginPage.module.css",
+      "language": "css",
+      "sizeLines": 98,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/pages/Login/LoginPage.tsx",
+      "language": "typescript",
+      "sizeLines": 143,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/pages/Preview/preview.module.css",
+      "language": "css",
+      "sizeLines": 284,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/pages/Preview/PreviewPage.tsx",
+      "language": "typescript",
+      "sizeLines": 261,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/pages/Reports/reports.module.css",
+      "language": "css",
+      "sizeLines": 242,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/pages/Reports/ReportsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 757,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/pages/Settings/SettingsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 86,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/pages/Tracker/TrackerPage.tsx",
+      "language": "typescript",
+      "sizeLines": 615,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/services/api.ts",
+      "language": "typescript",
+      "sizeLines": 43,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/stores/auth.store.ts",
+      "language": "typescript",
+      "sizeLines": 137,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/styles/fonts.css",
+      "language": "css",
+      "sizeLines": 2,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/styles/global.css",
+      "language": "css",
+      "sizeLines": 114,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/styles/tokens.css",
+      "language": "css",
+      "sizeLines": 69,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/types/auth.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/types/index.ts",
+      "language": "typescript",
+      "sizeLines": 2,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/types/request.ts",
+      "language": "typescript",
+      "sizeLines": 134,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/utils/dates.ts",
+      "language": "typescript",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/vite-env.d.ts",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "language": "json",
+      "sizeLines": 25,
+      "fileCategory": "config"
+    },
+    {
+      "path": "frontend/tsconfig.tsbuildinfo",
+      "language": "tsbuildinfo",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "language": "typescript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "sizeLines": 28,
+      "fileCategory": "config"
+    },
+    {
+      "path": "RUNNING.md",
+      "language": "markdown",
+      "sizeLines": 166,
+      "fileCategory": "docs"
+    }
+  ],
+  "totalFiles": 226,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "large",
+  "importMap": {
+    ".env.example": [],
+    ".understand-anything/.understandignore": [],
+    ".understand-anything/assemble-review.json": [],
+    ".understand-anything/fingerprints.json": [],
+    ".understand-anything/knowledge-graph.json": [],
+    ".understand-anything/meta.json": [],
+    "00-MASTER-PLAN.md": [],
+    "01-roles-permissions.md": [],
+    "02-new-request-form.md": [],
+    "03-pipeline-stages-actions.md": [],
+    "04-tracker-table-enhancements.md": [],
+    "05-settings-configuration.md": [],
+    "06-reports-dashboard.md": [],
+    "07-preview-page-and-progress-bar.md": [],
+    "08-post-impl-fixes-enhancements.md": [],
+    "09-email-system.md": [],
+    "backend/.env": [],
+    "backend/.env.example": [],
+    "backend/Dockerfile": [],
+    "backend/eslint.config.mjs": [],
+    "backend/nest-cli.json": [],
+    "backend/package.json": [],
+    "backend/README.md": [],
+    "backend/scripts/init.sql": [],
+    "backend/src/app.controller.spec.ts": [
+      "backend/src/app.controller.ts"
+    ],
+    "backend/src/app.controller.ts": [],
+    "backend/src/app.module.ts": [],
+    "backend/src/app.service.ts": [],
+    "backend/src/auth/auth.controller.ts": [],
+    "backend/src/auth/auth.module.ts": [],
+    "backend/src/auth/auth.service.spec.ts": [
+      "backend/src/auth/auth.service.ts",
+      "backend/src/database/entities/user.entity.ts",
+      "backend/src/users/users.service.ts"
+    ],
+    "backend/src/auth/auth.service.ts": [],
+    "backend/src/auth/dto/index.ts": [],
+    "backend/src/auth/dto/login.dto.ts": [],
+    "backend/src/auth/jwt.strategy.ts": [],
+    "backend/src/auth/roles.guard.ts": [],
+    "backend/src/common/decorators/current-user.decorator.ts": [],
+    "backend/src/common/decorators/roles.decorator.ts": [],
+    "backend/src/common/dto/pagination.dto.ts": [],
+    "backend/src/common/filters/http-exception.filter.spec.ts": [
+      "backend/src/common/filters/http-exception.filter.ts"
+    ],
+    "backend/src/common/filters/http-exception.filter.ts": [],
+    "backend/src/common/interceptors/response-transform.interceptor.spec.ts": [
+      "backend/src/common/interceptors/response-transform.interceptor.ts"
+    ],
+    "backend/src/common/interceptors/response-transform.interceptor.ts": [],
+    "backend/src/common/permissions/permission-matrix.ts": [],
+    "backend/src/common/seeder.service.ts": [
+      "backend/src/database/entities/department.entity.ts",
+      "backend/src/database/entities/setting-option.entity.ts",
+      "backend/src/database/entities/setting.entity.ts",
+      "backend/src/database/entities/user.entity.ts"
+    ],
+    "backend/src/common/utils/dates.ts": [],
+    "backend/src/common/validators/is-reasonable-date.validator.ts": [],
+    "backend/src/config/data-source.prod.ts": [],
+    "backend/src/config/data-source.ts": [],
+    "backend/src/dashboard/dashboard.controller.ts": [],
+    "backend/src/dashboard/dashboard.module.ts": [],
+    "backend/src/dashboard/dashboard.service.spec.ts": [
+      "backend/src/dashboard/dashboard.service.ts",
+      "backend/src/database/entities/car-request.entity.ts",
+      "backend/src/database/entities/department.entity.ts",
+      "backend/src/database/entities/request-stage-transition.entity.ts",
+      "backend/src/requests/pipeline-stage-resolver.service.ts"
+    ],
+    "backend/src/dashboard/dashboard.service.ts": [],
+    "backend/src/database/entities/car-request.entity.ts": [],
+    "backend/src/database/entities/department.entity.ts": [],
+    "backend/src/database/entities/email-config.entity.ts": [],
+    "backend/src/database/entities/notification-log.entity.ts": [],
+    "backend/src/database/entities/request-stage-transition.entity.ts": [],
+    "backend/src/database/entities/setting-option.entity.ts": [],
+    "backend/src/database/entities/setting.entity.ts": [],
+    "backend/src/database/entities/user.entity.ts": [],
+    "backend/src/database/migrations/1718200000000-InitialSchema.ts": [],
+    "backend/src/database/migrations/1718300000000-UpdateRolesEnum.ts": [],
+    "backend/src/database/migrations/1718400000000-UpdateCarRequests.ts": [],
+    "backend/src/database/migrations/1718500000000-AddPipelineFields.ts": [],
+    "backend/src/database/migrations/1718600000000-AddMetadataToSettingOptions.ts": [],
+    "backend/src/database/migrations/1718700000000-Plan08Changes.ts": [],
+    "backend/src/database/migrations/1718800000000-AddEmailTables.ts": [],
+    "backend/src/database/migrations/1718900000000-AddNotificationsEnabled.ts": [],
+    "backend/src/database/migrations/1719000000000-AddHasAccessories.ts": [],
+    "backend/src/database/migrations/index.ts": [],
+    "backend/src/database/seed.ts": [],
+    "backend/src/departments/departments.controller.ts": [],
+    "backend/src/departments/departments.module.ts": [],
+    "backend/src/departments/departments.service.spec.ts": [
+      "backend/src/database/entities/department.entity.ts",
+      "backend/src/departments/departments.service.ts"
+    ],
+    "backend/src/departments/departments.service.ts": [],
+    "backend/src/email/dto/update-email-config.dto.ts": [],
+    "backend/src/email/email.controller.ts": [],
+    "backend/src/email/email.module.ts": [],
+    "backend/src/email/email.service.ts": [],
+    "backend/src/email/notification.events.ts": [],
+    "backend/src/email/notification.listener.ts": [],
+    "backend/src/email/smtp-config.service.ts": [],
+    "backend/src/email/templates/layouts/base.hbs": [],
+    "backend/src/email/templates/partials/request-card.hbs": [],
+    "backend/src/email/templates/stage-action.hbs": [],
+    "backend/src/email/templates/test-email.hbs": [],
+    "backend/src/email/transport.factory.ts": [],
+    "backend/src/main.ts": [],
+    "backend/src/reports/reports.controller.ts": [],
+    "backend/src/reports/reports.module.ts": [],
+    "backend/src/reports/reports.service.ts": [],
+    "backend/src/requests/dto/create-request.dto.ts": [],
+    "backend/src/requests/dto/query-requests.dto.ts": [],
+    "backend/src/requests/dto/stage-action.dto.ts": [],
+    "backend/src/requests/dto/transition-request.dto.ts": [],
+    "backend/src/requests/dto/update-request.dto.ts": [],
+    "backend/src/requests/pipeline-stage-resolver.service.ts": [],
+    "backend/src/requests/requests.controller.ts": [],
+    "backend/src/requests/requests.module.ts": [],
+    "backend/src/requests/requests.service.spec.ts": [
+      "backend/src/database/entities/car-request.entity.ts",
+      "backend/src/database/entities/request-stage-transition.entity.ts",
+      "backend/src/requests/pipeline-stage-resolver.service.ts",
+      "backend/src/requests/requests.service.ts"
+    ],
+    "backend/src/requests/requests.service.ts": [],
+    "backend/src/requests/stage-transitions.service.spec.ts": [
+      "backend/src/database/entities/car-request.entity.ts",
+      "backend/src/database/entities/department.entity.ts",
+      "backend/src/database/entities/request-stage-transition.entity.ts",
+      "backend/src/requests/stage-transitions.service.ts"
+    ],
+    "backend/src/requests/stage-transitions.service.ts": [],
+    "backend/src/settings/dto/add-option.dto.ts": [],
+    "backend/src/settings/dto/edit-option.dto.ts": [],
+    "backend/src/settings/dto/reorder.dto.ts": [],
+    "backend/src/settings/settings.controller.ts": [],
+    "backend/src/settings/settings.module.ts": [],
+    "backend/src/settings/settings.service.spec.ts": [
+      "backend/src/database/entities/setting-option.entity.ts",
+      "backend/src/database/entities/setting.entity.ts",
+      "backend/src/settings/settings.service.ts"
+    ],
+    "backend/src/settings/settings.service.ts": [],
+    "backend/src/users/dto/create-user.dto.ts": [],
+    "backend/src/users/dto/update-user.dto.ts": [],
+    "backend/src/users/dto/user-query.dto.ts": [],
+    "backend/src/users/users.controller.ts": [],
+    "backend/src/users/users.module.ts": [],
+    "backend/src/users/users.service.spec.ts": [
+      "backend/src/database/entities/user.entity.ts",
+      "backend/src/users/users.service.ts"
+    ],
+    "backend/src/users/users.service.ts": [],
+    "backend/test/jest-e2e.json": [],
+    "backend/tsconfig.build.json": [],
+    "backend/tsconfig.json": [],
+    "BYD_OTD_Desk_Project_Plan.md": [],
+    "docker-compose.prod.yml": [],
+    "docker-compose.yml": [],
+    "email_system_plan.md": [],
+    "feature_and_fix_plan_7_items.md": [],
+    "frontend/Dockerfile": [],
+    "frontend/docs/superpowers/plans/2026-06-12-preview-page-phase-5-1.md": [],
+    "frontend/index.html": [],
+    "frontend/nginx.conf": [],
+    "frontend/package.json": [],
+    "frontend/src/App.tsx": [
+      "frontend/src/components/layout/AppShell.tsx",
+      "frontend/src/components/layout/ProtectedLayout.tsx",
+      "frontend/src/pages/Dashboard/DashboardPage.tsx",
+      "frontend/src/pages/Login/LoginPage.tsx",
+      "frontend/src/pages/Preview/PreviewPage.tsx",
+      "frontend/src/pages/Reports/ReportsPage.tsx",
+      "frontend/src/pages/Settings/SettingsPage.tsx",
+      "frontend/src/pages/Tracker/TrackerPage.tsx",
+      "frontend/src/stores/auth.store.ts"
+    ],
+    "frontend/src/components/dashboard/ComparisonBarChart.tsx": [
+      "frontend/src/components/ui/Card.tsx",
+      "frontend/src/hooks/useDashboard.ts"
+    ],
+    "frontend/src/components/dashboard/dashboard-shared.module.css": [],
+    "frontend/src/components/dashboard/PipelineFunnelChart.tsx": [
+      "frontend/src/components/ui/Card.tsx",
+      "frontend/src/hooks/useDashboard.ts"
+    ],
+    "frontend/src/components/dashboard/RecentRequestsTable.tsx": [
+      "frontend/src/components/ui/Badge.tsx",
+      "frontend/src/components/ui/Card.tsx",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/dashboard/StatsCard.tsx": [
+      "frontend/src/components/dashboard/dashboard-shared.module.css"
+    ],
+    "frontend/src/components/dashboard/WelcomeCard.tsx": [
+      "frontend/src/components/dashboard/dashboard-shared.module.css",
+      "frontend/src/stores/auth.store.ts"
+    ],
+    "frontend/src/components/forms/request-form.module.css": [],
+    "frontend/src/components/forms/RequestForm.tsx": [
+      "frontend/src/components/forms/request-form.module.css",
+      "frontend/src/components/forms/RequestFormDrawer.tsx",
+      "frontend/src/components/ui/Input.tsx",
+      "frontend/src/components/ui/Select.tsx",
+      "frontend/src/hooks/useSettings.ts",
+      "frontend/src/utils/dates.ts"
+    ],
+    "frontend/src/components/forms/RequestFormDrawer.tsx": [
+      "frontend/src/components/forms/request-form.module.css",
+      "frontend/src/components/forms/RequestForm.tsx",
+      "frontend/src/components/ui/Button.tsx",
+      "frontend/src/components/ui/Modal.tsx",
+      "frontend/src/hooks/useCreateRequest.ts",
+      "frontend/src/hooks/useDeleteRequest.ts",
+      "frontend/src/hooks/useUpdateRequest.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/layout/AppShell.module.css": [],
+    "frontend/src/components/layout/AppShell.tsx": [
+      "frontend/src/components/layout/AppShell.module.css",
+      "frontend/src/components/layout/Sidebar.tsx"
+    ],
+    "frontend/src/components/layout/ProtectedLayout.tsx": [
+      "frontend/src/stores/auth.store.ts"
+    ],
+    "frontend/src/components/layout/Sidebar.module.css": [],
+    "frontend/src/components/layout/Sidebar.tsx": [
+      "frontend/src/components/layout/Sidebar.module.css",
+      "frontend/src/stores/auth.store.ts",
+      "frontend/src/types/index.ts"
+    ],
+    "frontend/src/components/preview/CardView.tsx": [
+      "frontend/src/components/preview/RequestProgressCard.tsx",
+      "frontend/src/pages/Preview/preview.module.css",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/preview/preview-shared.module.css": [],
+    "frontend/src/components/preview/PreviewFilters.tsx": [
+      "frontend/src/components/ui/Select.tsx",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/preview/progress-bar.module.css": [],
+    "frontend/src/components/preview/ProgressBar.tsx": [
+      "frontend/src/components/preview/progress-bar.module.css",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/preview/RequestProgressCard.tsx": [
+      "frontend/src/components/preview/preview-shared.module.css",
+      "frontend/src/components/preview/ProgressBar.tsx",
+      "frontend/src/components/tracker/RequestDetailCard.tsx",
+      "frontend/src/components/ui/Badge.tsx",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/preview/table-view.module.css": [],
+    "frontend/src/components/preview/TableView.tsx": [
+      "frontend/src/components/preview/ProgressBar.tsx",
+      "frontend/src/components/preview/table-view.module.css",
+      "frontend/src/components/ui/Badge.tsx",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/settings/DropdownOptionsManager.tsx": [
+      "frontend/src/components/settings/settings.module.css",
+      "frontend/src/components/ui/Button.tsx",
+      "frontend/src/components/ui/Spinner.tsx",
+      "frontend/src/hooks/useSettings.ts"
+    ],
+    "frontend/src/components/settings/EmailConfigPanel.tsx": [
+      "frontend/src/components/settings/settings.module.css",
+      "frontend/src/components/ui/Button.tsx",
+      "frontend/src/components/ui/Spinner.tsx",
+      "frontend/src/services/api.ts"
+    ],
+    "frontend/src/components/settings/FinalInspectionOptionsManager.tsx": [
+      "frontend/src/components/settings/settings.module.css",
+      "frontend/src/components/ui/Button.tsx",
+      "frontend/src/components/ui/Spinner.tsx",
+      "frontend/src/hooks/useSettings.ts"
+    ],
+    "frontend/src/components/settings/RequestTypeOptionsManager.tsx": [
+      "frontend/src/components/settings/settings.module.css",
+      "frontend/src/components/ui/Button.tsx",
+      "frontend/src/components/ui/Spinner.tsx",
+      "frontend/src/hooks/useSettings.ts"
+    ],
+    "frontend/src/components/settings/settings.module.css": [],
+    "frontend/src/components/settings/SettingsNav.tsx": [
+      "frontend/src/components/settings/settings.module.css"
+    ],
+    "frontend/src/components/settings/UserManagementPanel.tsx": [
+      "frontend/src/components/settings/settings.module.css",
+      "frontend/src/components/ui/Button.tsx",
+      "frontend/src/components/ui/Input.tsx",
+      "frontend/src/components/ui/Modal.tsx",
+      "frontend/src/components/ui/Select.tsx",
+      "frontend/src/components/ui/Spinner.tsx",
+      "frontend/src/hooks/useUsers.ts",
+      "frontend/src/types/auth.ts"
+    ],
+    "frontend/src/components/tracker/BulkActionBar.tsx": [
+      "frontend/src/components/tracker/tracker.module.css",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/tracker/detailCard.module.css": [],
+    "frontend/src/components/tracker/ReadyCell.tsx": [
+      "frontend/src/components/tracker/tracker.module.css",
+      "frontend/src/components/tracker/trackerUtils.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/tracker/RequestDetailCard.tsx": [
+      "frontend/src/components/tracker/detailCard.module.css",
+      "frontend/src/components/ui/Badge.tsx",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/tracker/SelectedRequestActions.tsx": [
+      "frontend/src/components/tracker/tracker.module.css",
+      "frontend/src/components/ui/Button.tsx",
+      "frontend/src/components/ui/Modal.tsx",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/tracker/StageCell.tsx": [
+      "frontend/src/components/tracker/tracker.module.css",
+      "frontend/src/components/tracker/trackerUtils.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/tracker/tracker.module.css": [],
+    "frontend/src/components/tracker/TrackerTable.tsx": [
+      "frontend/src/components/tracker/RequestDetailCard.tsx",
+      "frontend/src/components/tracker/tracker.module.css",
+      "frontend/src/components/ui/Badge.tsx",
+      "frontend/src/components/ui/Skeleton.tsx",
+      "frontend/src/hooks/useRequests.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/tracker/TrackerToolbar.tsx": [
+      "frontend/src/components/tracker/tracker.module.css",
+      "frontend/src/components/ui/Button.tsx",
+      "frontend/src/hooks/useExportRequests.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/components/tracker/trackerUtils.ts": [],
+    "frontend/src/components/ui/Badge.module.css": [],
+    "frontend/src/components/ui/Badge.tsx": [
+      "frontend/src/components/ui/Badge.module.css"
+    ],
+    "frontend/src/components/ui/Button.module.css": [],
+    "frontend/src/components/ui/Button.tsx": [
+      "frontend/src/components/ui/Button.module.css"
+    ],
+    "frontend/src/components/ui/Card.module.css": [],
+    "frontend/src/components/ui/Card.tsx": [
+      "frontend/src/components/ui/Card.module.css"
+    ],
+    "frontend/src/components/ui/Input.module.css": [],
+    "frontend/src/components/ui/Input.tsx": [
+      "frontend/src/components/ui/Input.module.css"
+    ],
+    "frontend/src/components/ui/Modal.module.css": [],
+    "frontend/src/components/ui/Modal.tsx": [
+      "frontend/src/components/ui/Modal.module.css"
+    ],
+    "frontend/src/components/ui/Select.module.css": [],
+    "frontend/src/components/ui/Select.tsx": [
+      "frontend/src/components/ui/Select.module.css"
+    ],
+    "frontend/src/components/ui/Skeleton.module.css": [],
+    "frontend/src/components/ui/Skeleton.tsx": [
+      "frontend/src/components/ui/Skeleton.module.css"
+    ],
+    "frontend/src/components/ui/Spinner.module.css": [],
+    "frontend/src/components/ui/Spinner.tsx": [
+      "frontend/src/components/ui/Spinner.module.css"
+    ],
+    "frontend/src/hooks/useCreateRequest.ts": [
+      "frontend/src/services/api.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/hooks/useDashboard.ts": [
+      "frontend/src/services/api.ts"
+    ],
+    "frontend/src/hooks/useDeleteRequest.ts": [
+      "frontend/src/services/api.ts"
+    ],
+    "frontend/src/hooks/useDepartments.ts": [
+      "frontend/src/services/api.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/hooks/useExportRequests.ts": [
+      "frontend/src/services/api.ts"
+    ],
+    "frontend/src/hooks/useReports.ts": [
+      "frontend/src/services/api.ts"
+    ],
+    "frontend/src/hooks/useRequestHold.ts": [
+      "frontend/src/services/api.ts"
+    ],
+    "frontend/src/hooks/useRequests.ts": [
+      "frontend/src/services/api.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/hooks/useSettings.ts": [
+      "frontend/src/services/api.ts"
+    ],
+    "frontend/src/hooks/useStageActions.ts": [
+      "frontend/src/services/api.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/hooks/useStageTransition.ts": [
+      "frontend/src/services/api.ts"
+    ],
+    "frontend/src/hooks/useUpdateRequest.ts": [
+      "frontend/src/services/api.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/hooks/useUsers.ts": [
+      "frontend/src/services/api.ts",
+      "frontend/src/types/auth.ts"
+    ],
+    "frontend/src/main.tsx": [
+      "frontend/src/App.tsx",
+      "frontend/src/styles/global.css"
+    ],
+    "frontend/src/pages/Dashboard/dashboard.module.css": [],
+    "frontend/src/pages/Dashboard/DashboardPage.tsx": [
+      "frontend/src/components/dashboard/ComparisonBarChart.tsx",
+      "frontend/src/components/dashboard/PipelineFunnelChart.tsx",
+      "frontend/src/components/dashboard/RecentRequestsTable.tsx",
+      "frontend/src/components/dashboard/StatsCard.tsx",
+      "frontend/src/components/dashboard/WelcomeCard.tsx",
+      "frontend/src/components/ui/Skeleton.tsx",
+      "frontend/src/hooks/useDashboard.ts",
+      "frontend/src/hooks/useRequests.ts",
+      "frontend/src/pages/Dashboard/dashboard.module.css",
+      "frontend/src/stores/auth.store.ts"
+    ],
+    "frontend/src/pages/Login/LoginPage.module.css": [],
+    "frontend/src/pages/Login/LoginPage.tsx": [
+      "frontend/src/components/ui/Button.tsx",
+      "frontend/src/components/ui/Input.tsx",
+      "frontend/src/pages/Login/LoginPage.module.css",
+      "frontend/src/stores/auth.store.ts"
+    ],
+    "frontend/src/pages/Preview/preview.module.css": [],
+    "frontend/src/pages/Preview/PreviewPage.tsx": [
+      "frontend/src/components/preview/CardView.tsx",
+      "frontend/src/components/preview/PreviewFilters.tsx",
+      "frontend/src/components/preview/TableView.tsx",
+      "frontend/src/components/ui/Skeleton.tsx",
+      "frontend/src/hooks/useDepartments.ts",
+      "frontend/src/hooks/useRequests.ts",
+      "frontend/src/pages/Preview/preview.module.css"
+    ],
+    "frontend/src/pages/Reports/reports.module.css": [],
+    "frontend/src/pages/Reports/ReportsPage.tsx": [
+      "frontend/src/components/ui/Skeleton.tsx",
+      "frontend/src/hooks/useReports.ts",
+      "frontend/src/pages/Reports/reports.module.css",
+      "frontend/src/stores/auth.store.ts"
+    ],
+    "frontend/src/pages/Settings/SettingsPage.tsx": [
+      "frontend/src/components/settings/DropdownOptionsManager.tsx",
+      "frontend/src/components/settings/EmailConfigPanel.tsx",
+      "frontend/src/components/settings/FinalInspectionOptionsManager.tsx",
+      "frontend/src/components/settings/RequestTypeOptionsManager.tsx",
+      "frontend/src/components/settings/settings.module.css",
+      "frontend/src/components/settings/SettingsNav.tsx",
+      "frontend/src/components/settings/UserManagementPanel.tsx",
+      "frontend/src/stores/auth.store.ts"
+    ],
+    "frontend/src/pages/Tracker/TrackerPage.tsx": [
+      "frontend/src/components/forms/RequestFormDrawer.tsx",
+      "frontend/src/components/tracker/SelectedRequestActions.tsx",
+      "frontend/src/components/tracker/tracker.module.css",
+      "frontend/src/components/tracker/TrackerTable.tsx",
+      "frontend/src/components/tracker/TrackerToolbar.tsx",
+      "frontend/src/components/ui/Button.tsx",
+      "frontend/src/components/ui/Modal.tsx",
+      "frontend/src/hooks/useDepartments.ts",
+      "frontend/src/hooks/useRequests.ts",
+      "frontend/src/hooks/useSettings.ts",
+      "frontend/src/hooks/useStageActions.ts",
+      "frontend/src/services/api.ts",
+      "frontend/src/stores/auth.store.ts",
+      "frontend/src/types/request.ts"
+    ],
+    "frontend/src/services/api.ts": [],
+    "frontend/src/stores/auth.store.ts": [
+      "frontend/src/services/api.ts",
+      "frontend/src/types/index.ts"
+    ],
+    "frontend/src/styles/fonts.css": [],
+    "frontend/src/styles/global.css": [],
+    "frontend/src/styles/tokens.css": [],
+    "frontend/src/types/auth.ts": [],
+    "frontend/src/types/index.ts": [],
+    "frontend/src/types/request.ts": [],
+    "frontend/src/utils/dates.ts": [],
+    "frontend/src/vite-env.d.ts": [],
+    "frontend/tsconfig.json": [],
+    "frontend/tsconfig.tsbuildinfo": [],
+    "frontend/vite.config.ts": [],
+    "package.json": [],
+    "RUNNING.md": []
+  }
+}

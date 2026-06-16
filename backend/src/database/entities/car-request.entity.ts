@@ -157,11 +157,17 @@ export class CarRequest {
   @Column({ name: 'mechanical_check_completed_at', type: 'datetime', nullable: true })
   mechanicalCheckCompletedAt: Date;
 
+  @Column({ name: 'mechanical_check_remarks', type: 'text', nullable: true })
+  mechanicalCheckRemarks: string;
+
   @Column({ name: 'pdi_started_at', type: 'datetime', nullable: true })
   pdiStartedAt: Date;
 
   @Column({ name: 'pdi_completed_at', type: 'datetime', nullable: true })
   pdiCompletedAt: Date;
+
+  @Column({ name: 'pdi_remarks', type: 'text', nullable: true })
+  pdiRemarks: string;
 
   @Column({ name: 'sent_to_accessories_at', type: 'datetime', nullable: true })
   sentToAccessoriesAt: Date;
@@ -171,6 +177,9 @@ export class CarRequest {
 
   @Column({ name: 'accessories_completed_at', type: 'datetime', nullable: true })
   accessoriesCompletedAt: Date;
+
+  @Column({ name: 'accessories_remarks', type: 'text', nullable: true })
+  accessoriesRemarks: string;
 
   @Column({ name: 'final_inspection_at', type: 'datetime', nullable: true })
   finalInspectionAt: Date;

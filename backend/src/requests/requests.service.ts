@@ -550,7 +550,8 @@ export class RequestsService {
     await this.requestsRepository.update(id, {
       mechanicalCheckCompletedAt: now,
       mechanicalCheckDuration: duration,
-    });
+      mechanicalCheckRemarks: dto.remarks ?? undefined,
+    } as any);
 
     // Fire-and-forget notification: PDI if PDI request, else QC NVS
     const updated = await this.findById(id);
@@ -610,7 +611,8 @@ export class RequestsService {
     await this.requestsRepository.update(id, {
       pdiCompletedAt: now,
       pdiDuration: duration,
-    });
+      pdiRemarks: dto.remarks ?? undefined,
+    } as any);
 
     // Fire-and-forget notification to QC NVS
     const updated = await this.findById(id);
@@ -691,7 +693,8 @@ export class RequestsService {
     await this.requestsRepository.update(id, {
       accessoriesCompletedAt: now,
       accessoriesDuration: duration,
-    });
+      accessoriesRemarks: dto.remarks ?? undefined,
+    } as any);
 
     // Fire-and-forget notification to QC NVS
     const updated = await this.findById(id);
@@ -1151,24 +1154,29 @@ export class RequestsService {
     const AMBER = 'FFD97706';
 
     const headers = [
-      'Request #', 'Chassis (VIN)', 'Type', 'Brand', 'Model', 'Variant',
+      'Request #', 'Date', 'Chassis (VIN)', 'Type', 'Brand', 'Model', 'Variant',
       'Ext. Color', 'Int. Color', 'Location', 'Showroom',
       'Customer', 'Phone', 'Consultant', 'Sales Type',
       'Acc.', 'GPS', 'Promise Date', 'Status',
-      'Storage', 'Received', 'Mech. Check', 'PDI',
-      'To Acc.', 'Accessories', 'Final Insp.', 'FI Outcome',
-      'GPS Done', 'Registered', 'Delivered', 'Created', 'Remarks',
+      'Storage', 'Received',
+      'MC Start', 'MC Done', 'MC Remarks',
+      'PDI Start', 'PDI Done', 'PDI Remarks',
+      'To Acc.', 'Acc. Start', 'Acc. Done', 'Acc. Remarks',
+      'Final Insp.', 'FI Outcome', 'FI Remarks',
+      'GPS Done', 'Registered',
+      'Delivery', 'Delivery Remarks',
+      'Created', 'Remarks',
     ];
-    const COL_COUNT = headers.length; // 31
+    const COL_COUNT = headers.length; // 40
 
-    // ── Row 1: Top accent bar (thin red line) ──
+    // ── Row 1: Top accent bar ──
     ws.getRow(1).height = 4;
     for (let c = 1; c <= COL_COUNT; c++) {
       ws.getCell(1, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: RED } };
       ws.getCell(1, c).border = { bottom: { style: 'thin', color: { argb: RED } } };
     }
 
-    // ── Row 2-3: Title block with navy background ──
+    // ── Row 2-3: Title ──
     ws.mergeCells(2, 1, 2, COL_COUNT);
     ws.getCell('A2').value = 'BYD OTD DESK';
     ws.getCell('A2').font = { name: 'Calibri', size: 20, bold: true, color: { argb: WHITE } };
@@ -1183,10 +1191,8 @@ export class RequestsService {
     ws.getCell('A3').alignment = { horizontal: 'left', vertical: 'middle' };
     ws.getRow(3).height = 24;
 
-    // ── Row 4: Separator ──
     ws.getRow(4).height = 3;
 
-    // ── Row 5: Metadata bar ──
     const periodLabel: Record<string, string> = { week: 'This Week', month: 'This Month', year: 'This Year', all: 'All Time' };
     ws.mergeCells(5, 1, 5, COL_COUNT);
     ws.getCell('A5').value = `${periodLabel[period] ?? period}  •  ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}  •  ${items.length} request${items.length !== 1 ? 's' : ''}  •  Generated ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
@@ -1194,19 +1200,17 @@ export class RequestsService {
     ws.getCell('A5').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRAY_50 } };
     ws.getCell('A5').alignment = { horizontal: 'left', vertical: 'middle' };
     ws.getRow(5).height = 22;
-
-    // ── Row 6: Spacer ──
     ws.getRow(6).height = 8;
 
-    // ── Row 7: Column headers ──
+    // ── Header row ──
     const HEADER_ROW = 7;
-    ws.getRow(HEADER_ROW).height = 42;
+    ws.getRow(HEADER_ROW).height = 48;
     headers.forEach((h, i) => {
       const cell = ws.getCell(HEADER_ROW, i + 1);
       cell.value = h;
-      cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: WHITE } };
+      cell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: WHITE } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
-      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true, textRotation: i >= 21 && i <= 36 ? 0 : 0 };
       cell.border = {
         top: { style: 'thin', color: { argb: NAVY } },
         bottom: { style: 'medium', color: { argb: BLUE } },
@@ -1221,21 +1225,25 @@ export class RequestsService {
       const isEven = idx % 2 === 0;
       const bg = isEven ? WHITE : OFF_WHITE;
       const vals = [
-        r.requestNumber, r.chassisNumber, r.requestType?.label ?? '', r.brand?.label ?? '',
+        r.requestNumber, fmtDate(r.createdAt), r.chassisNumber, r.requestType?.label ?? '', r.brand?.label ?? '',
         r.model?.label ?? '', r.variant?.label ?? '', r.exteriorColor?.label ?? '',
         r.interiorColor?.label ?? '', r.vehicleLocation ?? '', r.showroom?.label ?? '',
         r.customerName, r.customerPhone, r.salesConsultant?.label ?? '', r.salesType?.label ?? '',
         r.hasAccessories ? '✓' : '—', r.hasGps ? '✓' : '—',
         fmtDate(r.promiseDate), r.status,
-        fmtDate(r.storageAt), fmtDate(r.vehicleReceivedAt), fmtDate(r.mechanicalCheckCompletedAt),
-        fmtDate(r.pdiCompletedAt), fmtDate(r.sentToAccessoriesAt), fmtDate(r.accessoriesCompletedAt),
-        fmtDate(r.finalInspectionAt), r.finalInspectionOutcome ?? '', fmtDate(r.gpsConfirmedAt),
-        fmtDate(r.registeredAt), fmtDate(r.deliveredAt), fmtDate(r.createdAt), r.remarks ?? '',
+        fmtDate(r.storageAt), fmtDate(r.vehicleReceivedAt),
+        fmtDate(r.mechanicalCheckStartedAt), fmtDate(r.mechanicalCheckCompletedAt), r.mechanicalCheckRemarks ?? '',
+        fmtDate(r.pdiStartedAt), fmtDate(r.pdiCompletedAt), r.pdiRemarks ?? '',
+        fmtDate(r.sentToAccessoriesAt), fmtDate(r.accessoriesStartedAt), fmtDate(r.accessoriesCompletedAt), r.accessoriesRemarks ?? '',
+        fmtDate(r.finalInspectionAt), r.finalInspectionOutcome ?? '', r.finalInspectionRemarks ?? '',
+        fmtDate(r.gpsConfirmedAt), fmtDate(r.registeredAt),
+        fmtDate(r.deliveredAt), r.deliveryRemarks ?? '',
+        fmtDate(r.createdAt), r.remarks ?? '',
       ];
       vals.forEach((v, col) => {
         const cell = ws.getCell(row, col + 1);
         cell.value = v ?? '';
-        cell.font = { name: 'Calibri', size: 10, color: { argb: GRAY_800 } };
+        cell.font = { name: 'Calibri', size: 9, color: { argb: GRAY_800 } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
         cell.alignment = { vertical: 'middle' };
         cell.border = {
@@ -1244,28 +1252,30 @@ export class RequestsService {
           left: { style: 'hair', color: { argb: GRAY_200 } },
           right: { style: 'hair', color: { argb: GRAY_200 } },
         };
-        // Request number — accent color
-        if (col === 0) cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: BLUE } };
+        // Request number — navy bold
+        if (col === 0) cell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: NAVY } };
+        // Date column
+        if (col === 1) cell.font = { name: 'Calibri', size: 9, color: { argb: GRAY_600 } };
         // Status badge
-        if (col === 17) {
+        if (col === 18) {
           const s = String(v).toLowerCase();
           if (s === 'active') {
-            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: GREEN } };
+            cell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: GREEN } };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFF0FDF4' : 'FFECFDF5' } };
           } else if (s.includes('cancel')) {
-            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: RED } };
+            cell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: RED } };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFFEF2F2' : 'FFFEE2E2' } };
           } else if (s.includes('archived')) {
-            cell.font = { name: 'Calibri', size: 10, color: { argb: GRAY_600 } };
+            cell.font = { name: 'Calibri', size: 9, color: { argb: GRAY_600 } };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFF9FAFB' : 'FFF3F4F6' } };
           }
         }
-        // Checkmark styling
-        if ((col === 14 || col === 15) && v === '✓') {
+        // Checkmarks
+        if ((col === 15 || col === 16) && v === '✓') {
           cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: GREEN } };
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         }
-        if ((col === 14 || col === 15) && v === '—') {
+        if ((col === 15 || col === 16) && v === '—') {
           cell.font = { name: 'Calibri', size: 10, color: { argb: GRAY_400 } };
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         }
@@ -1275,7 +1285,7 @@ export class RequestsService {
     const dataEndRow = HEADER_ROW + items.length;
 
     // ── Column widths ──
-    [17,22,10,12,14,12,13,13,17,20,20,15,17,14,6,6,15,14,15,15,15,14,14,15,15,18,15,15,15,15,28].forEach((w, i) => {
+    [16,15,21,9,11,13,10,12,12,16,18,19,14,16,13,5,5,14,13,14,14,14,14,14,14,14,13,13,14,14,14,15,16,14,14,13,14,15,14,22].forEach((w, i) => {
       ws.getColumn(i + 1).width = w;
     });
 

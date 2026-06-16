@@ -346,7 +346,7 @@ export function TrackerTable({
               <th style={{ width: 44 }} aria-label="Expand row" />
 
               <th style={{ width: 180 }}>Request</th>
-              <th style={{ width: 110 }}>Date</th>
+              <th style={{ width: 150 }}>Date</th>
               <th style={{ width: 150 }}>Customer</th>
               <th style={{ width: 180 }}>Brand/Model</th>
               <th style={{ width: 120 }}>Request Type</th>

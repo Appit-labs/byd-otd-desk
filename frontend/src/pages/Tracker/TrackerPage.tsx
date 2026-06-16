@@ -12,6 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { TrackerToolbar } from '@/components/tracker/TrackerToolbar';
 import { TrackerTable } from '@/components/tracker/TrackerTable';
+import { BulkActionBar } from '@/components/tracker/BulkActionBar';
 import { RequestFormDrawer } from '@/components/forms/RequestFormDrawer';
 import type { CarRequest } from '@/types/request';
 import { PipelineStage } from '@/types/request';
@@ -129,6 +130,7 @@ function TrackerPageInner({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingRequest, setEditingRequest] = useState<CarRequest | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const requests = requestsData?.items ?? [];
   const total = requestsData?.total ?? 0;
@@ -181,6 +183,42 @@ function TrackerPageInner({
     setIsDrawerOpen(false);
     setTimeout(() => setEditingRequest(null), 300);
   }, []);
+
+  const handleSelectId = useCallback((id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === requests.length && requests.length > 0) return new Set();
+      return new Set(requests.map((r: CarRequest) => r.id));
+    });
+  }, [requests]);
+
+  const handleBulkAction = useCallback(
+    async (stage: string, action: 'start' | 'complete' | 'confirm') => {
+      const ids = Array.from(selectedIds);
+      setSelectedIds(new Set());
+      let failed = 0;
+      for (const id of ids) {
+        try {
+          const stageEnum = SLUG_TO_STAGE[stage];
+          if (stageEnum === undefined) continue;
+          await executeAction({ requestId: id, stage: stageEnum, action });
+        } catch {
+          failed++;
+        }
+      }
+      if (failed > 0) showError(`${failed}/${ids.length} requests failed`);
+      else showToast(`${ids.length} requests updated`);
+    },
+    [selectedIds, executeAction, showError, showToast],
+  );
 
   const handleStageAction = useCallback(
     async (requestId: number, stage: string, action: string) => {
@@ -269,6 +307,15 @@ function TrackerPageInner({
         onError={showError}
       />
 
+      {selectedIds.size > 0 && (
+        <BulkActionBar
+          selectedRequests={requests.filter((r) => selectedIds.has(r.id))}
+          userRole={userRole}
+          onCancel={() => setSelectedIds(new Set())}
+          onBulkAction={handleBulkAction}
+        />
+      )}
+
       <TrackerTable
         requests={requests}
         isLoading={isRequestsLoading || isDepartmentsLoading}
@@ -280,6 +327,9 @@ function TrackerPageInner({
         userRole={userRole}
         onEditRequest={handleEditRequest}
         onStageAction={handleStageAction}
+        selectedIds={selectedIds}
+        onSelectId={handleSelectId}
+        onSelectAll={handleSelectAll}
       />
 
       <Modal
@@ -299,6 +349,7 @@ function TrackerPageInner({
         onClose={handleDrawerClose}
         editingRequest={editingRequest}
         onToast={showToast}
+        userRole={userRole}
       />
 
       {toastMessage && (

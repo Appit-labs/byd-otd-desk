@@ -20,6 +20,9 @@ interface TrackerTableProps {
   userRole: string;
   onEditRequest?: (request: CarRequest) => void;
   onStageAction?: (requestId: number, stage: string, action: string) => void;
+  selectedIds: Set<number>;
+  onSelectId: (id: number) => void;
+  onSelectAll: () => void;
 }
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -275,10 +278,16 @@ export function TrackerTable({
   userRole,
   onEditRequest,
   onStageAction,
+  selectedIds,
+  onSelectId,
+  onSelectAll,
 }: TrackerTableProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
+  const allSelected = requests.length > 0 && requests.every((r) => selectedIds.has(r.id));
+
+  const canSelect = userRole === 'super_admin' || userRole === 'admin';
 
   const toggleExpand = useCallback((id: number) => {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -317,7 +326,7 @@ export function TrackerTable({
   const expandedRequest =
     expandedId !== null ? requests.find((r) => r.id === expandedId) : null;
 
-  const dataColSpan = 1 + 17; // expand + 17 fixed columns
+  const dataColSpan = (canSelect ? 1 : 0) + 1 + 17; // checkbox + expand + 17 columns
 
   // ── Skeleton loading ────────────────────────────────────────
 
@@ -343,6 +352,17 @@ export function TrackerTable({
         <table className={styles.table}>
           <thead>
             <tr>
+              {canSelect && (
+                <th className={styles.colCheckbox} style={{ width: 40, textAlign: 'center' }}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    checked={allSelected}
+                    onChange={onSelectAll}
+                    aria-label="Select all rows"
+                  />
+                </th>
+              )}
               <th style={{ width: 44 }} aria-label="Expand row" />
 
               <th style={{ width: 180 }}>Request</th>
@@ -389,7 +409,22 @@ export function TrackerTable({
                 const canActDelivery = canActOnStage(req, 'delivery', userRole);
 
                 return (
-                  <tr key={req.id}>
+                  <tr
+                    key={req.id}
+                    className={selectedIds.has(req.id) ? styles.selected : undefined}
+                  >
+                    {/* Checkbox (admin/super_admin only) */}
+                    {canSelect && (
+                      <td className={styles.colCheckbox} onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className={styles.checkbox}
+                          checked={selectedIds.has(req.id)}
+                          onChange={() => onSelectId(req.id)}
+                          aria-label={`Select ${req.requestNumber}`}
+                        />
+                      </td>
+                    )}
                     {/* Expand + Edit */}
                     <td className={styles.expandCell}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -407,7 +442,8 @@ export function TrackerTable({
                           )}
                         </button>
                         {onEditRequest &&
-                          (userRole === 'super_admin' || userRole === 'admin') && (
+                          (userRole === 'super_admin' ||
+                           (userRole === 'admin' && req.status === 'active')) && (
                             <button
                               className={styles.expandButton}
                               onClick={(e) => {

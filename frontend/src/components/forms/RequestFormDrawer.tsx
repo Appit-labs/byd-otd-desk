@@ -42,6 +42,7 @@ interface RequestFormDrawerProps {
   onClose: () => void;
   editingRequest?: CarRequest | null;
   onToast?: (message: string) => void;
+  userRole?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -55,6 +56,7 @@ function mapRequestToFormValues(request: CarRequest): RequestFormValues {
     exteriorColorId: request.exteriorColor?.id ? String(request.exteriorColor.id) : '',
     interiorColorId: request.interiorColor?.id ? String(request.interiorColor.id) : '',
     vehicleLocation: request.vehicleLocation ?? '',
+    showroomId: request.showroom?.id ? String(request.showroom.id) : '',
     customerName: request.customerName ?? '',
     customerPhone: request.customerPhone ?? '',
     salesConsultantId: String(request.salesConsultant?.id ?? ''),
@@ -80,6 +82,7 @@ function useDefaultFormValues(editingRequest?: CarRequest | null): RequestFormVa
     exteriorColorId: '',
     interiorColorId: '',
     vehicleLocation: '',
+    showroomId: '',
     customerName: '',
     customerPhone: '',
     salesConsultantId: '',
@@ -97,6 +100,7 @@ export function RequestFormDrawer({
   onClose,
   editingRequest,
   onToast,
+  userRole,
 }: RequestFormDrawerProps) {
   const isEditMode = !!editingRequest;
   const triggerRef = useRef<HTMLElement | null>(null);
@@ -291,8 +295,8 @@ export function RequestFormDrawer({
         {/* Footer */}
         <div className={styles.footer}>
           <div className={styles.footerLeft}>
-            {/* Delete Button (edit mode only) */}
-            {isEditMode && (
+            {/* Delete Button (edit mode + super_admin only) */}
+            {isEditMode && userRole === 'super_admin' && (
               <Button
                 variant="danger"
                 size="sm"

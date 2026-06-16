@@ -1125,6 +1125,7 @@ export class RequestsService {
       d ? d.toISOString().split('T')[0] + ' ' + d.toTimeString().slice(0, 5) : '';
 
     // ── Build XLSX with exceljs ──
+    try {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('OTD Requests');
 
@@ -1222,6 +1223,10 @@ export class RequestsService {
     ws.getCell(footerRow, 1).font = { name: 'Calibri', size: 8, color: { argb: 'FF9CA3AF' } };
     ws.getCell(footerRow, 1).alignment = { horizontal: 'center' };
 
-    return Buffer.from(await wb.xlsx.writeBuffer());
+      return Buffer.from(await wb.xlsx.writeBuffer());
+    } catch (err) {
+      this.logger.error(`XLSX generation failed: ${(err as Error).message}`, (err as Error).stack);
+      throw err;
+    }
   }
 }

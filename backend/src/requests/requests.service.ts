@@ -1124,17 +1124,31 @@ export class RequestsService {
     const fmtDate = (d: Date | null | undefined) =>
       d ? d.toISOString().split('T')[0] + ' ' + d.toTimeString().slice(0, 5) : '';
 
-    // ── Build XLSX with exceljs ──
+    // ═══════════════════════════════════════════════════════════
+    //  Build Professional XLSX with exceljs
+    // ═══════════════════════════════════════════════════════════
     try {
     const wb = new ExcelJS.Workbook();
+    wb.creator = 'BYD OTD Desk';
+    wb.created = new Date();
     const ws = wb.addWorksheet('OTD Requests');
 
-    const DARK = 'FF1A1A2E';
-    const ACCENT = 'FF00C2FF';
+    // ── Design tokens ──
+    const NAVY = 'FF1E293B';
+    const NAVY_LIGHT = 'FF334155';
+    const RED = 'FFDC2626';
+    const BLUE = 'FF00C2FF';
+    const TEAL = 'FF0FF4C6';
     const WHITE = 'FFFFFFFF';
-    const LIGHT_GRAY = 'FFF5F6FA';
-    const BORDER_GRAY = 'FFD1D5DB';
-    const TEXT_DARK = 'FF1F2937';
+    const OFF_WHITE = 'FFF8FAFC';
+    const GRAY_50 = 'FFF9FAFB';
+    const GRAY_100 = 'FFF3F4F6';
+    const GRAY_200 = 'FFE5E7EB';
+    const GRAY_400 = 'FF9CA3AF';
+    const GRAY_600 = 'FF4B5563';
+    const GRAY_800 = 'FF1F2937';
+    const GREEN = 'FF059669';
+    const AMBER = 'FFD97706';
 
     const headers = [
       'Request #', 'Chassis (VIN)', 'Type', 'Brand', 'Model', 'Variant',
@@ -1145,40 +1159,73 @@ export class RequestsService {
       'To Acc.', 'Accessories', 'Final Insp.', 'FI Outcome',
       'GPS Done', 'Registered', 'Delivered', 'Created', 'Remarks',
     ];
+    const COL_COUNT = headers.length; // 31
 
-    // Title row
-    ws.mergeCells(2, 1, 2, 31);
-    ws.getCell('A2').value = 'BYD OTD Desk — Order to Delivery Tracker';
-    ws.getCell('A2').font = { name: 'Calibri', size: 16, bold: true, color: { argb: DARK } };
-    ws.getRow(2).height = 28;
+    // ── Row 1: Top accent bar (thin red line) ──
+    ws.getRow(1).height = 4;
+    for (let c = 1; c <= COL_COUNT; c++) {
+      ws.getCell(1, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: RED } };
+      ws.getCell(1, c).border = { bottom: { style: 'thin', color: { argb: RED } } };
+    }
 
+    // ── Row 2-3: Title block with navy background ──
+    ws.mergeCells(2, 1, 2, COL_COUNT);
+    ws.getCell('A2').value = 'BYD OTD DESK';
+    ws.getCell('A2').font = { name: 'Calibri', size: 20, bold: true, color: { argb: WHITE } };
+    ws.getCell('A2').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
+    ws.getCell('A2').alignment = { horizontal: 'left', vertical: 'middle' };
+    ws.getRow(2).height = 40;
+
+    ws.mergeCells(3, 1, 3, COL_COUNT);
+    ws.getCell('A3').value = 'Order to Delivery — Tracker Export';
+    ws.getCell('A3').font = { name: 'Calibri', size: 11, color: { argb: GRAY_400 } };
+    ws.getCell('A3').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
+    ws.getCell('A3').alignment = { horizontal: 'left', vertical: 'middle' };
+    ws.getRow(3).height = 24;
+
+    // ── Row 4: Separator ──
+    ws.getRow(4).height = 3;
+
+    // ── Row 5: Metadata bar ──
     const periodLabel: Record<string, string> = { week: 'This Week', month: 'This Month', year: 'This Year', all: 'All Time' };
-    ws.mergeCells(3, 1, 3, 31);
-    ws.getCell('A3').value = `Exported: ${periodLabel[period] ?? period} | Date: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} | Total: ${items.length} requests`;
-    ws.getCell('A3').font = { name: 'Calibri', size: 10, color: { argb: 'FF6B7280' } };
-    ws.getRow(3).height = 22;
+    ws.mergeCells(5, 1, 5, COL_COUNT);
+    ws.getCell('A5').value = `${periodLabel[period] ?? period}  •  ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}  •  ${items.length} request${items.length !== 1 ? 's' : ''}  •  Generated ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+    ws.getCell('A5').font = { name: 'Calibri', size: 9, color: { argb: GRAY_600 } };
+    ws.getCell('A5').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRAY_50 } };
+    ws.getCell('A5').alignment = { horizontal: 'left', vertical: 'middle' };
+    ws.getRow(5).height = 22;
 
-    // Header row
-    const HEADER_ROW = 5;
-    ws.getRow(HEADER_ROW).height = 36;
+    // ── Row 6: Spacer ──
+    ws.getRow(6).height = 8;
+
+    // ── Row 7: Column headers ──
+    const HEADER_ROW = 7;
+    ws.getRow(HEADER_ROW).height = 42;
     headers.forEach((h, i) => {
       const cell = ws.getCell(HEADER_ROW, i + 1);
       cell.value = h;
-      cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: WHITE } };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK } };
+      cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: WHITE } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
       cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      cell.border = { bottom: { style: 'medium', color: { argb: ACCENT } } };
+      cell.border = {
+        top: { style: 'thin', color: { argb: NAVY } },
+        bottom: { style: 'medium', color: { argb: BLUE } },
+        left: { style: 'thin', color: { argb: NAVY_LIGHT } },
+        right: { style: 'thin', color: { argb: NAVY_LIGHT } },
+      };
     });
 
-    // Data rows
+    // ── Data rows ──
     items.forEach((r, idx) => {
       const row = HEADER_ROW + 1 + idx;
+      const isEven = idx % 2 === 0;
+      const bg = isEven ? WHITE : OFF_WHITE;
       const vals = [
         r.requestNumber, r.chassisNumber, r.requestType?.label ?? '', r.brand?.label ?? '',
         r.model?.label ?? '', r.variant?.label ?? '', r.exteriorColor?.label ?? '',
         r.interiorColor?.label ?? '', r.vehicleLocation ?? '', r.showroom?.label ?? '',
         r.customerName, r.customerPhone, r.salesConsultant?.label ?? '', r.salesType?.label ?? '',
-        r.hasAccessories ? 'Yes' : 'No', r.hasGps ? 'Yes' : 'No',
+        r.hasAccessories ? '✓' : '—', r.hasGps ? '✓' : '—',
         fmtDate(r.promiseDate), r.status,
         fmtDate(r.storageAt), fmtDate(r.vehicleReceivedAt), fmtDate(r.mechanicalCheckCompletedAt),
         fmtDate(r.pdiCompletedAt), fmtDate(r.sentToAccessoriesAt), fmtDate(r.accessoriesCompletedAt),
@@ -1188,40 +1235,85 @@ export class RequestsService {
       vals.forEach((v, col) => {
         const cell = ws.getCell(row, col + 1);
         cell.value = v ?? '';
-        cell.font = { name: 'Calibri', size: 10, color: { argb: TEXT_DARK } };
+        cell.font = { name: 'Calibri', size: 10, color: { argb: GRAY_800 } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
         cell.alignment = { vertical: 'middle' };
         cell.border = {
-          top: { style: 'thin', color: { argb: BORDER_GRAY } },
-          bottom: { style: 'thin', color: { argb: BORDER_GRAY } },
-          left: { style: 'thin', color: { argb: BORDER_GRAY } },
-          right: { style: 'thin', color: { argb: BORDER_GRAY } },
+          top: { style: 'hair', color: { argb: GRAY_200 } },
+          bottom: { style: 'hair', color: { argb: GRAY_200 } },
+          left: { style: 'hair', color: { argb: GRAY_200 } },
+          right: { style: 'hair', color: { argb: GRAY_200 } },
         };
-        if (idx % 2 === 1) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: LIGHT_GRAY } };
-        // Status color
+        // Request number — accent color
+        if (col === 0) cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: BLUE } };
+        // Status badge
         if (col === 17) {
           const s = String(v).toLowerCase();
-          if (s === 'active') cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF059669' } };
-          else if (s.includes('cancel')) cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFDC2626' } };
-          else if (s.includes('archived')) cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF6B7280' } };
+          if (s === 'active') {
+            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: GREEN } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFF0FDF4' : 'FFECFDF5' } };
+          } else if (s.includes('cancel')) {
+            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: RED } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFFEF2F2' : 'FFFEE2E2' } };
+          } else if (s.includes('archived')) {
+            cell.font = { name: 'Calibri', size: 10, color: { argb: GRAY_600 } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFF9FAFB' : 'FFF3F4F6' } };
+          }
+        }
+        // Checkmark styling
+        if ((col === 14 || col === 15) && v === '✓') {
+          cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: GREEN } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+        if ((col === 14 || col === 15) && v === '—') {
+          cell.font = { name: 'Calibri', size: 10, color: { argb: GRAY_400 } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
         }
       });
     });
 
-    // Column widths
-    [16,20,10,10,12,10,12,12,16,18,18,14,16,12,7,7,14,12,14,14,14,14,14,14,14,16,14,14,14,14,24].forEach((w, i) => {
+    const dataEndRow = HEADER_ROW + items.length;
+
+    // ── Column widths ──
+    [17,22,10,12,14,12,13,13,17,20,20,15,17,14,6,6,15,14,15,15,15,14,14,15,15,18,15,15,15,15,28].forEach((w, i) => {
       ws.getColumn(i + 1).width = w;
     });
 
-    // Freeze + filter
+    // ── Freeze panes + auto-filter ──
     ws.views = [{ state: 'frozen', ySplit: HEADER_ROW }];
-    ws.autoFilter = { from: { row: HEADER_ROW, column: 1 }, to: { row: HEADER_ROW + items.length, column: headers.length } };
+    ws.autoFilter = { from: { row: HEADER_ROW, column: 1 }, to: { row: dataEndRow, column: COL_COUNT } };
 
-    // Footer
-    const footerRow = HEADER_ROW + items.length + 2;
-    ws.mergeCells(footerRow, 1, footerRow, headers.length);
-    ws.getCell(footerRow, 1).value = `BYD OTD Desk — Confidential | ${new Date().toLocaleDateString('en-GB')} | ${items.length} requests`;
-    ws.getCell(footerRow, 1).font = { name: 'Calibri', size: 8, color: { argb: 'FF9CA3AF' } };
-    ws.getCell(footerRow, 1).alignment = { horizontal: 'center' };
+    // ── Summary row ──
+    const summaryRow = dataEndRow + 2;
+    ws.getRow(summaryRow).height = 28;
+    ws.mergeCells(summaryRow, 1, summaryRow, 4);
+    ws.getCell(summaryRow, 1).value = 'SUMMARY';
+    ws.getCell(summaryRow, 1).font = { name: 'Calibri', size: 11, bold: true, color: { argb: NAVY } };
+    ws.getCell(summaryRow, 1).alignment = { horizontal: 'left', vertical: 'middle' };
+    const activeCount = items.filter(r => r.status === 'active').length;
+    const cancelledCount = items.filter(r => r.status === 'cancelled').length;
+    const archivedCount = items.filter(r => r.status?.startsWith('archived')).length;
+    ws.mergeCells(summaryRow, 5, summaryRow, COL_COUNT);
+    ws.getCell(summaryRow, 5).value = `Active: ${activeCount}  •  Cancelled: ${cancelledCount}  •  Archived: ${archivedCount}  •  Total: ${items.length}`;
+    ws.getCell(summaryRow, 5).font = { name: 'Calibri', size: 10, color: { argb: GRAY_600 } };
+    ws.getCell(summaryRow, 5).alignment = { horizontal: 'right', vertical: 'middle' };
+
+    // ── Footer ──
+    const footerRow = summaryRow + 2;
+    ws.getRow(footerRow).height = 20;
+    ws.mergeCells(footerRow, 1, footerRow, COL_COUNT);
+    ws.getCell(footerRow, 1).value = 'BYD OTD Desk  •  Confidential  •  © ' + new Date().getFullYear();
+    ws.getCell(footerRow, 1).font = { name: 'Calibri', size: 8, color: { argb: GRAY_400 }, italic: true };
+    ws.getCell(footerRow, 1).alignment = { horizontal: 'center', vertical: 'middle' };
+    ws.getCell(footerRow, 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRAY_50 } };
+
+    // ── Print setup ──
+    ws.pageSetup.orientation = 'landscape';
+    ws.pageSetup.fitToWidth = 1;
+    ws.pageSetup.fitToHeight = 0;
+    ws.pageSetup.paperSize = 9; // A4
+    ws.pageSetup.margins = { left: 0.3, right: 0.3, top: 0.4, bottom: 0.4, header: 0.3, footer: 0.3 };
+    ws.headerFooter.oddFooter = '&B&08BYD OTD Desk — Page &P of &N';
 
       return Buffer.from(await wb.xlsx.writeBuffer());
     } catch (err) {

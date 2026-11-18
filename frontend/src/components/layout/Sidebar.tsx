@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Car, Eye, Settings, Menu, X, LogOut, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Car, Eye, Settings, ChevronRight, ChevronLeft, LogOut, BarChart3, Sun, Moon } from 'lucide-react';
 import { useAuthStore, getRoleBasedDefaultPath } from '@/stores/auth.store';
+import { useTheme } from '@/hooks/useTheme';
 import type { UserRole } from '@/types';
 import fullLogo from '@/assets/logos/BYD-OTP-DESK_full-logo.png';
 import styles from './Sidebar.module.css';
@@ -17,7 +18,7 @@ const topNavItems: NavItemConfig[] = [
     path: '/dashboard',
     label: 'Dashboard',
     icon: <LayoutDashboard size={20} />,
-    allowedRoles: ['super_admin', 'admin'],
+    allowedRoles: ['super_admin', 'admin', 'nvs', 'qc_nvs', 'mechanical_check', 'pdi', 'accessories', 'registration', 'delivery'],
   },
   {
     path: '/tracker',
@@ -29,7 +30,7 @@ const topNavItems: NavItemConfig[] = [
     path: '/preview',
     label: 'Preview',
     icon: <Eye size={20} />,
-    allowedRoles: ['super_admin', 'admin', 'nvs', 'qc_nvs', 'mechanical_check', 'pdi', 'accessories', 'registration', 'delivery', 'viewer'],
+    allowedRoles: ['super_admin', 'admin', 'viewer'],
   },
   {
     path: '/reports',
@@ -44,7 +45,7 @@ const bottomNavItems: NavItemConfig[] = [
     path: '/settings',
     label: 'Settings',
     icon: <Settings size={20} />,
-    allowedRoles: ['super_admin'],
+    allowedRoles: ['super_admin', 'admin'],
   },
 ];
 
@@ -71,6 +72,7 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const { theme, toggle } = useTheme();
 
   const visibleTopItems = topNavItems.filter(
     (item) => user && item.allowedRoles.includes(user.role)
@@ -83,11 +85,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   return (
     <>
       <button
-        className={styles.hamburger}
+        className={`${styles.hamburger} ${isOpen ? styles.hamburgerOpen : ''}`}
         onClick={onToggle}
         aria-label={isOpen ? 'Close sidebar' : 'Open sidebar'}
       >
-        {isOpen ? <X size={20} /> : <Menu size={20} />}
+        {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
       </button>
 
       {/* Mobile overlay backdrop */}
@@ -98,10 +100,19 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       <aside
         className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}
       >
-        {/* Logo */}
-        <NavLink to={getRoleBasedDefaultPath(user?.role)} className={styles.logo}>
-          <img src={fullLogo} alt="BYD OTD Desk" className={styles.logoImg} />
-        </NavLink>
+        {/* Logo + collapse toggle */}
+        <div className={styles.logo}>
+          <NavLink to={getRoleBasedDefaultPath(user?.role)} style={{ display: 'contents' }}>
+            <img src={fullLogo} alt="BYD OTD Tracker" className={styles.logoImg} />
+          </NavLink>
+          <button
+            className={styles.collapseBtn}
+            onClick={onToggle}
+            aria-label="Collapse sidebar"
+          >
+            <ChevronLeft size={16} />
+          </button>
+        </div>
 
         {/* Top nav items */}
         <nav className={styles.nav}>
@@ -122,23 +133,34 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         {/* Spacer pushes bottom items down */}
         <div style={{ flex: 1 }} />
 
-        {/* Bottom nav items */}
-        {visibleBottomItems.length > 0 && (
-          <nav className={styles.navBottom}>
-            {visibleBottomItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.active : ''}`
-                }
-              >
-                <span className={styles.navIcon}>{item.icon}</span>
-                <span className={styles.navLabel}>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-        )}
+        {/* Bottom section: theme toggle + settings under shared separator */}
+        <nav className={styles.navBottom}>
+          <button
+            className={styles.navItem}
+            onClick={toggle}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            <span className={styles.navIcon}>
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </span>
+            <span className={styles.navLabel}>
+              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            </span>
+          </button>
+          {visibleBottomItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `${styles.navItem} ${isActive ? styles.active : ''}`
+              }
+            >
+              <span className={styles.navIcon}>{item.icon}</span>
+              <span className={styles.navLabel}>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
 
         {/* User profile at bottom */}
         {user && (

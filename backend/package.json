@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "0.1.0",
-  "description": "BYD OTD Desk - Backend API",
+  "description": "BYD OTD Tracker - Backend API",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

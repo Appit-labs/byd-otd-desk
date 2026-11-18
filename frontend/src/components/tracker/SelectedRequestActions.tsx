@@ -43,6 +43,25 @@ const STAGE_LABEL: Record<StageSlug, string> = {
   delivery: 'Delivery',
 };
 
+/** Which non-admin role is authorized for each stage. */
+const STAGE_ROLE: Record<StageSlug, string> = {
+  storage: 'nvs',
+  vehicle_received: 'qc_nvs',
+  mechanical_check: 'mechanical_check',
+  pdi: 'pdi',
+  sent_to_accessories: 'qc_nvs',
+  accessories: 'accessories',
+  final_inspection: 'qc_nvs',
+  gps: 'mechanical_check',
+  registration: 'registration',
+  delivery: 'delivery',
+};
+
+function userCanActOnStage(userRole: string, stage: StageSlug): boolean {
+  if (userRole === 'super_admin') return true;
+  return STAGE_ROLE[stage] === userRole;
+}
+
 function isSkipped(req: CarRequest, stage: StageSlug): boolean {
   switch (stage) {
     case 'pdi':
@@ -152,7 +171,7 @@ export function SelectedRequestActions({
             );
           })}
         </div>
-        {(userRole === 'super_admin' || userRole === 'admin') && (
+        {(userRole === 'super_admin' || userRole === 'admin' || userRole === 'qc_nvs') && (
           <Button variant="primary" size="sm" onClick={() => onReactivateRequest(request.id)}>
             Reactivate
           </Button>
@@ -249,18 +268,24 @@ export function SelectedRequestActions({
           })}
         </div>
         <div style={{ display: 'flex', gap: 'var(--spacing-2)', alignItems: 'center' }}>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setConfirmOpen(true)}
-          >
-            {nextAction.action === 'start' ? (
-              <Play size={14} />
-            ) : (
-              <Check size={14} />
-            )}
-            {actionLabel}
-          </Button>
+          {userCanActOnStage(userRole, nextAction.stage) ? (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setConfirmOpen(true)}
+            >
+              {nextAction.action === 'start' ? (
+                <Play size={14} />
+              ) : (
+                <Check size={14} />
+              )}
+              {actionLabel}
+            </Button>
+          ) : (
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+              No actions available for your role
+            </span>
+          )}
           {(userRole === 'super_admin' || userRole === 'admin') && (
             <>
               <Button
@@ -298,6 +323,7 @@ export function SelectedRequestActions({
                 Remarks (optional)
               </label>
               <textarea
+                name="remarks"
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
                 placeholder="Add remarks about this action..."

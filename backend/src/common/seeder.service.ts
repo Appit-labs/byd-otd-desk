@@ -29,11 +29,83 @@ export class SeederService implements OnModuleInit {
   async seed() {
     this.logger.log('Checking seed data...');
 
+    // Ensure email_config has the new provider/api_key columns (migration fallback)
+    await this.ensureEmailConfigColumns();
+
+    // Backfill duration columns for completed stages with missing calculations
+    await this.backfillDurations();
+
+    // Purge all deprecated (soft-deleted) options first — no reason to keep them
+    await this.purgeDeprecatedOptions();
+
     await this.seedDepartments();
     await this.seedSettings();
     await this.seedUsers();
 
     this.logger.log('Seed check complete.');
+  }
+
+  /** Backfill duration columns for completed stages where duration is NULL. */
+  private async backfillDurations() {
+    try {
+      const mgr = this.optionRepo.manager;
+      const updates: string[] = [
+        `UPDATE car_requests SET pdi_duration = TIMESTAMPDIFF(SECOND, pdi_started_at, pdi_completed_at) WHERE pdi_completed_at IS NOT NULL AND pdi_started_at IS NOT NULL AND pdi_duration IS NULL`,
+        `UPDATE car_requests SET accessories_duration = TIMESTAMPDIFF(SECOND, accessories_started_at, accessories_completed_at) WHERE accessories_completed_at IS NOT NULL AND accessories_started_at IS NOT NULL AND accessories_duration IS NULL`,
+        `UPDATE car_requests SET mechanical_check_duration = TIMESTAMPDIFF(SECOND, mechanical_check_started_at, mechanical_check_completed_at) WHERE mechanical_check_completed_at IS NOT NULL AND mechanical_check_started_at IS NOT NULL AND mechanical_check_duration IS NULL`,
+      ];
+      for (const sql of updates) {
+        const result = await mgr.query(sql);
+        const affected = result?.affectedRows ?? result?.changedRows ?? 0;
+        if (affected > 0) this.logger.log(`Backfilled ${affected} duration(s)`);
+      }
+    } catch (err) {
+      this.logger.warn(`backfillDurations: ${(err as Error).message}`);
+    }
+  }
+
+  /** Ensure email_config table has provider + api_key columns (works on MySQL 5.7+). */
+  private async ensureEmailConfigColumns() {
+    try {
+      const mgr = this.optionRepo.manager;
+      // Try each column individually — catch duplicate errors for idempotency
+      for (const sql of [
+        `ALTER TABLE email_config ADD COLUMN provider VARCHAR(20) NOT NULL DEFAULT 'resend'`,
+        `ALTER TABLE email_config ADD COLUMN api_key VARCHAR(255) NULL`,
+        `ALTER TABLE users ADD COLUMN notifications_enabled TINYINT(1) NOT NULL DEFAULT 1`,
+      ]) {
+        try {
+          await mgr.query(sql);
+        } catch (err: any) {
+          // ER_DUP_FIELD (1060) = column already exists — safe to ignore
+          if (err?.code !== 'ER_DUP_FIELD' && err?.errno !== 1060) throw err;
+        }
+      }
+      this.logger.log('Ensured email_config columns (provider, api_key)');
+    } catch (err) {
+      this.logger.warn(`ensureEmailConfigColumns: ${(err as Error).message}`);
+    }
+  }
+
+  /** Permanently delete all deprecated (isActive=false) options across all settings.
+   *  Options still referenced by live data (FK constraints) are left in place. */
+  private async purgeDeprecatedOptions() {
+    const deprecated = await this.optionRepo.find({ where: { isActive: false } });
+    if (deprecated.length === 0) return;
+
+    let purged = 0;
+    let skipped = 0;
+    // Delete one-by-one so FK violations skip only the offending row
+    for (const opt of deprecated) {
+      try {
+        await this.optionRepo.remove(opt);
+        purged++;
+      } catch {
+        skipped++;
+      }
+    }
+    if (purged > 0) this.logger.log(`Purged ${purged} deprecated option(s).`);
+    if (skipped > 0) this.logger.log(`Kept ${skipped} deprecated option(s) — still referenced by existing data.`);
   }
 
   private async seedDepartments() {
@@ -195,58 +267,141 @@ export class SeederService implements OnModuleInit {
     // ── 2. Brand ──
     const brandSetting = await this.ensureSetting('brand', 'Brand');
     const brandByd = await this.ensureOption(brandSetting.id, 'byd', 'BYD', 1);
-    await this.ensureOption(brandSetting.id, 'denza', 'Denza', 2);
-    await this.ensureOption(brandSetting.id, 'yang_wang', 'Yang Wang', 3);
+    const brandDenza = await this.ensureOption(brandSetting.id, 'denza', 'Denza', 2);
+    const brandYangWang = await this.ensureOption(brandSetting.id, 'yang_wang', 'Yang Wang', 3);
 
     // ── 3. Model (parent = brand) ──
     const modelSetting = await this.ensureSetting('model', 'Model');
-    // All 14 models under BYD
-    await this.ensureOption(modelSetting.id, 'atto3', 'ATTO3', 1, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'atto8', 'ATTO8', 2, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'b5', 'B5', 3, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'b8', 'B8', 4, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'han', 'HAN', 5, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'qinplus', 'QINPLUS', 6, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'seal', 'SEAL', 7, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'seal7', 'SEAL7', 8, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'sealion5', 'SEALION5', 9, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'sealion7', 'SEALION7', 10, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'shark', 'SHARK', 11, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'songplus', 'SONGPLUS', 12, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'ti7', 'Ti7', 13, brandByd.id);
-    await this.ensureOption(modelSetting.id, 'u8', 'U8', 14, brandByd.id);
+
+    // Define correct model → brand mapping based on 2026 BYD Group catalog
+    const modelDefinitions: { value: string; label: string; sortOrder: number; brandId: number }[] = [
+      // BYD brand
+      { value: 'atto3', label: 'ATTO 3', sortOrder: 1, brandId: brandByd.id },
+      { value: 'atto8', label: 'ATTO 8', sortOrder: 2, brandId: brandByd.id },
+      { value: 'han', label: 'HAN', sortOrder: 3, brandId: brandByd.id },
+      { value: 'qinplus', label: 'QIN PLUS', sortOrder: 4, brandId: brandByd.id },
+      { value: 'seal', label: 'SEAL', sortOrder: 5, brandId: brandByd.id },
+      { value: 'seal7', label: 'SEAL 7', sortOrder: 6, brandId: brandByd.id },
+      { value: 'sealion5', label: 'SEALION 5', sortOrder: 7, brandId: brandByd.id },
+      { value: 'sealion7', label: 'SEALION 7', sortOrder: 8, brandId: brandByd.id },
+      { value: 'shark', label: 'SHARK', sortOrder: 9, brandId: brandByd.id },
+      { value: 'songplus', label: 'SONG PLUS', sortOrder: 10, brandId: brandByd.id },
+      { value: 'ti7', label: 'Ti7', sortOrder: 11, brandId: brandByd.id },
+      // Denza brand
+      { value: 'b5', label: 'B5', sortOrder: 12, brandId: brandDenza.id },
+      { value: 'b8', label: 'B8', sortOrder: 13, brandId: brandDenza.id },
+      // Yang Wang brand
+      { value: 'u8', label: 'U8', sortOrder: 14, brandId: brandYangWang.id },
+    ];
+
+    // Replace all model options: deprecate wrong ones, create/update correct ones
+    const existingModels = await this.optionRepo.find({ where: { settingId: modelSetting.id } });
+    const newModelValues = new Set(modelDefinitions.map(m => m.value));
+
+    for (const opt of existingModels) {
+      const def = modelDefinitions.find(m => m.value === opt.value);
+      if (def) {
+        // Update existing option to correct brand/label
+        let changed = false;
+        if (opt.parentId !== def.brandId) { opt.parentId = def.brandId; changed = true; }
+        if (opt.label !== def.label) { opt.label = def.label; changed = true; }
+        if (opt.sortOrder !== def.sortOrder) { opt.sortOrder = def.sortOrder; changed = true; }
+        if (!opt.isActive) { opt.isActive = true; changed = true; }
+        if (changed) { await this.optionRepo.save(opt); this.logger.log(`Updated model: ${opt.label}`); }
+      } else if (opt.isActive) {
+        opt.isActive = false;
+        await this.optionRepo.save(opt);
+        this.logger.log(`Deprecated old model: ${opt.label} (${opt.value})`);
+      }
+    }
+    // Create any missing models
+    for (const def of modelDefinitions) {
+      if (!existingModels.find(e => e.value === def.value)) {
+        await this.optionRepo.save({
+          settingId: modelSetting.id,
+          label: def.label,
+          value: def.value,
+          sortOrder: def.sortOrder,
+          parentId: def.brandId,
+        } as SettingOption);
+        this.logger.log(`Created model: ${def.label}`);
+      }
+    }
 
     // ── 4. Variant (flat list, no parent) ──
     const variantSetting = await this.ensureSetting('variant', 'Variant');
-    await this.ensureOption(variantSetting.id, 'seal7-lux', 'SEAL7-LUX', 1);
-    await this.ensureOption(variantSetting.id, 'seal7-flag', 'SEAL7-FLAG', 2);
-    await this.ensureOption(variantSetting.id, 'b8-flag', 'B8-FLAG', 3);
-    await this.ensureOption(variantSetting.id, 'atto8-lux', 'ATTO8-LUX', 4);
-    await this.ensureOption(variantSetting.id, 'b5-delu', 'B5-DELU', 5);
-    await this.ensureOption(variantSetting.id, 'qin70-lux', 'QIN70-LUX', 6);
-    await this.ensureOption(variantSetting.id, 'qin120-flag', 'QIN120-FLAG', 7);
-    await this.ensureOption(variantSetting.id, 'atto3-lux', 'ATTO3-LUX', 8);
-    await this.ensureOption(variantSetting.id, 'atto3-flag', 'ATTO3-FLAG', 9);
-    await this.ensureOption(variantSetting.id, 'han-flag', 'HAN-FLAG', 10);
-    await this.ensureOption(variantSetting.id, 'b8-delu', 'B8-DELU', 11);
-    await this.ensureOption(variantSetting.id, 'b5-flag', 'B5-FLAG', 12);
-    await this.ensureOption(variantSetting.id, 'atto8-flag', 'ATTO8-FLAG', 13);
-    await this.ensureOption(variantSetting.id, 'qin70-comf', 'QIN70-COMF', 14);
-    await this.ensureOption(variantSetting.id, 'seal-flag', 'SEAL-FLAG', 15);
-    await this.ensureOption(variantSetting.id, 'seali5-flag', 'SEALI5-FLAG', 16);
-    await this.ensureOption(variantSetting.id, 'seali5-lux', 'SEALI5-LUX', 17);
-    await this.ensureOption(variantSetting.id, 'seali-flag', 'SEALI-FLAG', 18);
-    await this.ensureOption(variantSetting.id, 'seali-lux', 'SEALI-LUX', 19);
-    await this.ensureOption(variantSetting.id, 'seal-lux', 'SEAL-LUX', 20);
-    await this.ensureOption(variantSetting.id, 'seal-prem', 'SEAL-PREM', 21);
-    await this.ensureOption(variantSetting.id, 'shark-prem', 'SHARK-PREM', 22);
-    await this.ensureOption(variantSetting.id, 'songp-40', 'SONGP-40', 23);
-    await this.ensureOption(variantSetting.id, 'songp-flag', 'SONGP-FLAG', 24);
-    await this.ensureOption(variantSetting.id, 'songp-lux', 'SONGP-LUX', 25);
-    await this.ensureOption(variantSetting.id, 'songp-prem', 'SONGP-PREM', 26);
-    await this.ensureOption(variantSetting.id, 'ti7-lux', 'TI7-LUX', 27);
-    await this.ensureOption(variantSetting.id, 'ti7-prem', 'TI7-PREM', 28);
-    await this.ensureOption(variantSetting.id, 'u8-lux', 'U8-LUX', 29);
+    // Variant → parent model mapping (model value from the model definitions above)
+    const variantDefinitions: { value: string; label: string; sortOrder: number; parentModelValue: string }[] = [
+      // BYD
+      { value: 'atto3-lux', label: 'ATTO3-LUX', sortOrder: 1, parentModelValue: 'atto3' },
+      { value: 'atto3-flag', label: 'ATTO3-FLAG', sortOrder: 2, parentModelValue: 'atto3' },
+      { value: 'atto8-lux', label: 'ATTO8-LUX', sortOrder: 3, parentModelValue: 'atto8' },
+      { value: 'atto8-flag', label: 'ATTO8-FLAG', sortOrder: 4, parentModelValue: 'atto8' },
+      { value: 'han-flag', label: 'HAN-FLAG', sortOrder: 5, parentModelValue: 'han' },
+      { value: 'qin70-comf', label: 'QIN70-COMF', sortOrder: 6, parentModelValue: 'qinplus' },
+      { value: 'qin70-lux', label: 'QIN70-LUX', sortOrder: 7, parentModelValue: 'qinplus' },
+      { value: 'qin120-flag', label: 'QIN120-FLAG', sortOrder: 8, parentModelValue: 'qinplus' },
+      { value: 'seal-lux', label: 'SEAL-LUX', sortOrder: 9, parentModelValue: 'seal' },
+      { value: 'seal-prem', label: 'SEAL-PREM', sortOrder: 10, parentModelValue: 'seal' },
+      { value: 'seal-flag', label: 'SEAL-FLAG', sortOrder: 11, parentModelValue: 'seal' },
+      { value: 'seal7-lux', label: 'SEAL7-LUX', sortOrder: 12, parentModelValue: 'seal7' },
+      { value: 'seal7-flag', label: 'SEAL7-FLAG', sortOrder: 13, parentModelValue: 'seal7' },
+      { value: 'seali-lux', label: 'SEALI-LUX', sortOrder: 14, parentModelValue: 'sealion5' },
+      { value: 'seali-flag', label: 'SEALI-FLAG', sortOrder: 15, parentModelValue: 'sealion5' },
+      { value: 'seali5-lux', label: 'SEALI5-LUX', sortOrder: 16, parentModelValue: 'sealion5' },
+      { value: 'seali5-flag', label: 'SEALI5-FLAG', sortOrder: 17, parentModelValue: 'sealion5' },
+      { value: 'shark-prem', label: 'SHARK-PREM', sortOrder: 18, parentModelValue: 'shark' },
+      { value: 'songp-40', label: 'SONGP-40', sortOrder: 19, parentModelValue: 'songplus' },
+      { value: 'songp-lux', label: 'SONGP-LUX', sortOrder: 20, parentModelValue: 'songplus' },
+      { value: 'songp-prem', label: 'SONGP-PREM', sortOrder: 21, parentModelValue: 'songplus' },
+      { value: 'songp-flag', label: 'SONGP-FLAG', sortOrder: 22, parentModelValue: 'songplus' },
+      { value: 'ti7-lux', label: 'TI7-LUX', sortOrder: 23, parentModelValue: 'ti7' },
+      { value: 'ti7-prem', label: 'TI7-PREM', sortOrder: 24, parentModelValue: 'ti7' },
+      // Denza
+      { value: 'b5-delu', label: 'B5-DELU', sortOrder: 25, parentModelValue: 'b5' },
+      { value: 'b5-flag', label: 'B5-FLAG', sortOrder: 26, parentModelValue: 'b5' },
+      { value: 'b8-delu', label: 'B8-DELU', sortOrder: 27, parentModelValue: 'b8' },
+      { value: 'b8-flag', label: 'B8-FLAG', sortOrder: 28, parentModelValue: 'b8' },
+      // Yang Wang
+      { value: 'u8-lux', label: 'U8-LUX', sortOrder: 29, parentModelValue: 'u8' },
+    ];
+
+    // Pre-load model options to resolve variant → model parentId links
+    const modelOptions = await this.optionRepo.find({ where: { settingId: modelSetting.id } });
+    const modelValueToId = new Map(modelOptions.map(m => [m.value, m.id]));
+
+    const existingVariants = await this.optionRepo.find({ where: { settingId: variantSetting.id } });
+    const newVariantValues = new Set(variantDefinitions.map(v => v.value));
+
+    for (const opt of existingVariants) {
+      const def = variantDefinitions.find(v => v.value === opt.value);
+      if (def) {
+        let changed = false;
+        const modelId = modelValueToId.get(def.parentModelValue) ?? null;
+        if (opt.label !== def.label) { opt.label = def.label; changed = true; }
+        if (opt.sortOrder !== def.sortOrder) { opt.sortOrder = def.sortOrder; changed = true; }
+        if (opt.parentId !== modelId) { opt.parentId = modelId; changed = true; }
+        if (!opt.isActive) { opt.isActive = true; changed = true; }
+        if (changed) { await this.optionRepo.save(opt); this.logger.log(`Updated variant: ${opt.label}`); }
+      } else if (opt.isActive) {
+        opt.isActive = false;
+        await this.optionRepo.save(opt);
+        this.logger.log(`Deprecated old variant: ${opt.label} (${opt.value})`);
+      }
+    }
+    for (const def of variantDefinitions) {
+      if (!existingVariants.find(e => e.value === def.value)) {
+        const modelId = modelValueToId.get(def.parentModelValue) ?? null;
+        await this.optionRepo.save({
+          settingId: variantSetting.id,
+          label: def.label,
+          value: def.value,
+          sortOrder: def.sortOrder,
+          parentId: modelId,
+        } as SettingOption);
+        this.logger.log(`Created variant: ${def.label}`);
+      }
+    }
 
     // ── 5. Exterior Color ──
     const extColorSetting = await this.ensureSetting('exterior_color', 'Exterior Color');

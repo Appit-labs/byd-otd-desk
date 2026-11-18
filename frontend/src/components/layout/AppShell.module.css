@@ -15,4 +15,8 @@
   .shell {
     padding-left: 0;
   }
+
+  .mainArea {
+    padding-top: calc(var(--spacing-3) + 36px + var(--spacing-3));
+  }
 }

@@ -65,7 +65,17 @@ export class UsersService {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, salt);
     }
     Object.assign(user, updateUserDto);
-    return this.usersRepository.save(user);
+    try {
+      return await this.usersRepository.save(user);
+    } catch (err: any) {
+      if (err?.code === 'ER_DUP_ENTRY') {
+        if (err?.message?.includes('IDX_users_email'))
+          throw new ConflictException('A user with this email already exists.');
+        if (err?.message?.includes('IDX_username'))
+          throw new ConflictException('A user with this username already exists.');
+      }
+      throw err;
+    }
   }
 
   async deactivate(id: number): Promise<void> {

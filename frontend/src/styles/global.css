@@ -96,8 +96,15 @@ code, pre {
 
 /* Selection */
 ::selection {
-  background: rgba(0, 194, 255, 0.3);
+  background: var(--selection-bg);
   color: var(--color-text-primary);
+}
+
+/* Utility: hide on mobile */
+@media (max-width: 640px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
 }
 
 /* Utility: visually hidden */

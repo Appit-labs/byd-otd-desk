@@ -28,9 +28,14 @@ function RootRedirect() {
 
 function HydrateAuth({ children }: { children: React.ReactNode }) {
   const hydrate = useAuthStore((s) => s.hydrate);
+  const user = useAuthStore((s) => s.user);
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+  // Clear all cached data when user identity changes (logout/login switch)
+  useEffect(() => {
+    if (user) queryClient.invalidateQueries();
+  }, [user?.username]);
   return <>{children}</>;
 }
 

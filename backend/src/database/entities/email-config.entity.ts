@@ -1,9 +1,19 @@
 import { Entity, PrimaryGeneratedColumn, Column, UpdateDateColumn } from 'typeorm';
 
+export type EmailProvider = 'resend' | 'smtp';
+
 @Entity('email_config')
 export class EmailConfig {
   @PrimaryGeneratedColumn()
   id: number;
+
+  /** Provider: 'resend' (API) or 'smtp' */
+  @Column({ length: 20, default: 'resend' })
+  provider: EmailProvider;
+
+  /** Resend API key (used when provider = 'resend') */
+  @Column({ name: 'api_key', length: 255, nullable: true })
+  apiKey: string;
 
   @Column({ name: 'smtp_host', length: 255, nullable: true })
   smtpHost: string;

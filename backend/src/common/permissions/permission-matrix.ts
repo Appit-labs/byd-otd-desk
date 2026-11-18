@@ -1,7 +1,7 @@
 import { UserRole } from '../../database/entities/user.entity.js';
 
 /**
- * Central permission matrix for the BYD OTD Desk application.
+ * Central permission matrix for the BYD OTD Tracker application.
  *
  * Maps each role to:
  *  - allowedDepartmentSlugs: which departments the role can perform stage actions on

@@ -2,6 +2,7 @@
   padding: var(--spacing-6);
   max-width: 1400px;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .pageHeader {
@@ -113,8 +114,8 @@
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
   min-height: 280px;
+  width: 100%;
 }
 
 /* ── Period Toggle ──────────────────────────────────────────────────── */
@@ -231,7 +232,26 @@
 
 @media (max-width: 640px) {
   .page {
-    padding: var(--spacing-4);
+    padding: var(--spacing-2);
+  }
+
+  .chartSection {
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
+
+  .chartBody {
+    min-height: 220px;
+  }
+
+  .chartHeader {
+    padding: 0 var(--spacing-2);
+  }
+
+  .card {
+    padding: var(--spacing-3);
   }
 
   .pageHeader {

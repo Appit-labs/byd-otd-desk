@@ -1,4 +1,4 @@
-# BYD OTD Desk — Project Plan
+# BYD OTD Tracker — Project Plan
 ## Car Sales Order-to-Delivery Tracking System
 
 > **OTD** = Order to Delivery. This platform tracks every BYD vehicle from the moment a sales request is created until the car is handed over to the client — with full visibility per department, role-based access control, and real-time pipeline progress.
@@ -29,7 +29,7 @@
 
 ## 1. Project Overview
 
-**App Name:** BYD OTD Desk
+**App Name:** BYD OTD Tracker
 **Purpose:** Internal dealership tool for tracking car sales requests through a multi-department pipeline — from storage retrieval to client delivery — with timed stage transitions, role-based access, and executive dashboards.
 
 **Core Workflow:**
@@ -88,7 +88,7 @@ New Request → Storage → Ready for Accessories → Accessories
 ## 3. UI/UX Design Direction
 
 ### Aesthetic: "Precision Industrial Dark"
-BYD OTD Desk is an **operational command center** — it should feel like a Bloomberg terminal meets a luxury car HMI. Not a generic SaaS dashboard.
+BYD OTD Tracker is an **operational command center** — it should feel like a Bloomberg terminal meets a luxury car HMI. Not a generic SaaS dashboard.
 
 ### Visual Identity
 ```
@@ -918,4 +918,4 @@ App
 
 ---
 
-*Plan version: 1.0 | App: BYD OTD Desk | Stack: NestJS/Fastify + Vite/React + MySQL*
+*Plan version: 1.0 | App: BYD OTD Tracker | Stack: NestJS/Fastify + Vite/React + MySQL*

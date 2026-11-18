@@ -66,11 +66,11 @@ export function TableView({ requests }: TableViewProps) {
             <th>Request #</th>
             <th>Chassis #</th>
             <th>Brand / Model</th>
-            <th>Variant</th>
+            <th className="hide-on-mobile">Variant</th>
             <th>Client</th>
             <th>Stage</th>
             <th>Status</th>
-            <th>Created</th>
+            <th className="hide-on-mobile">Created</th>
             <th>On Time</th>
             <th>Progress</th>
           </tr>
@@ -92,7 +92,7 @@ export function TableView({ requests }: TableViewProps) {
                 <td>{req.brand?.label ?? '--'} / {req.model?.label ?? '--'}</td>
 
                 {/* Variant */}
-                <td>{req.variant?.label ?? '--'}</td>
+                <td className="hide-on-mobile">{req.variant?.label ?? '--'}</td>
 
                 {/* Client */}
                 <td className={styles.clientCell}>
@@ -116,7 +116,7 @@ export function TableView({ requests }: TableViewProps) {
                 </td>
 
                 {/* Created date */}
-                <td className={styles.dateCell}>{formatDate(req.createdAt)}</td>
+                <td className={`${styles.dateCell} hide-on-mobile`}>{formatDate(req.createdAt)}</td>
 
                 {/* On Time / Delay */}
                 <td>

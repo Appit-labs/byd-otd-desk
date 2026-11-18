@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MailerService } from '@nestjs-modules/mailer';
-import { EmailConfig } from '../database/entities/email-config.entity.js';
+import { EmailConfig, type EmailProvider } from '../database/entities/email-config.entity.js';
 import { NotificationLog } from '../database/entities/notification-log.entity.js';
 import { User } from '../database/entities/user.entity.js';
-import type { CarRequest } from '../database/entities/car-request.entity.js';
+import { CarRequest } from '../database/entities/car-request.entity.js';
 import type { UpdateEmailConfigDto } from './dto/update-email-config.dto.js';
 import { SmtpConfigService } from './smtp-config.service.js';
 import { TransportFactory } from './transport.factory.js';
@@ -44,6 +44,8 @@ export class EmailService {
     private readonly notificationLogRepo: Repository<NotificationLog>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(CarRequest)
+    private readonly requestsRepo: Repository<CarRequest>,
     private readonly mailerService: MailerService,
     private readonly smtpConfigService: SmtpConfigService,
     private readonly transportFactory: TransportFactory,
@@ -54,15 +56,17 @@ export class EmailService {
   //  Config Management (kept exactly as before)
   // ─────────────────────────────────────────────────────────────────
 
-  async getConfig(): Promise<Partial<EmailConfig> & { smtpPassword?: string }> {
+  async getConfig(): Promise<Partial<EmailConfig> & { smtpPassword?: string; apiKey?: string }> {
     let config = await this.emailConfigRepo.findOne({ where: {} });
 
     if (!config) {
       config = this.emailConfigRepo.create({
+        provider: 'resend',
         smtpHost: '',
         smtpPort: 587,
         smtpUsername: '',
         smtpPassword: '',
+        apiKey: process.env.RESEND_API_KEY || process.env.FALLBACK_SMTP_PASS || '',
         fromAddress: '',
         fromName: 'OTD BYD Tracker',
         enabled: false,
@@ -70,7 +74,18 @@ export class EmailService {
       config = await this.emailConfigRepo.save(config);
     }
 
-    const masked = { ...config, smtpPassword: config.smtpPassword ? '********' : '' };
+    // Ensure legacy rows have a provider value
+    if (!config.provider) {
+      config.provider = 'resend';
+      await this.emailConfigRepo.save(config);
+    }
+
+    const masked = {
+      ...config,
+      provider: config.provider ?? 'resend',
+      smtpPassword: config.smtpPassword ? '********' : '',
+      apiKey: config.apiKey ? '********' : '',
+    };
     return masked;
   }
 
@@ -81,12 +96,14 @@ export class EmailService {
       config = this.emailConfigRepo.create();
     }
 
-    if (data.smtpHost !== undefined) config.smtpHost = data.smtpHost;
-    if (data.smtpPort !== undefined) config.smtpPort = data.smtpPort;
-    if (data.smtpUsername !== undefined) config.smtpUsername = data.smtpUsername;
-    if (data.smtpPassword !== undefined) config.smtpPassword = data.smtpPassword;
-    if (data.fromAddress !== undefined) config.fromAddress = data.fromAddress;
-    if (data.fromName !== undefined) config.fromName = data.fromName;
+    if (data.provider !== undefined) config.provider = data.provider as EmailProvider;
+    if (data.api_key !== undefined && data.api_key !== '********') config.apiKey = data.api_key;
+    if (data.smtp_host !== undefined) config.smtpHost = data.smtp_host;
+    if (data.smtp_port !== undefined) config.smtpPort = data.smtp_port;
+    if (data.smtp_username !== undefined) config.smtpUsername = data.smtp_username;
+    if (data.smtp_password !== undefined && data.smtp_password !== '********') config.smtpPassword = data.smtp_password;
+    if (data.from_address !== undefined) config.fromAddress = data.from_address;
+    if (data.from_name !== undefined) config.fromName = data.from_name;
     if (data.enabled !== undefined) config.enabled = data.enabled;
 
     const saved = await this.emailConfigRepo.save(config);
@@ -109,15 +126,20 @@ export class EmailService {
     }
 
     try {
-      await this.mailerService.sendMail({
-        to: toEmail,
-        subject: 'OTD BYD Tracker — Test Email',
-        template: 'test-email',
-        context: {
-          sentAt: new Date().toISOString(),
-          smtpHost: config.smtpHost || process.env.FALLBACK_SMTP_HOST || 'smtp.resend.com',
-        },
-      });
+      // Use TransportFactory so live DB config is picked up (not stale module-level transport)
+      const transport = await this.transportFactory.create();
+      try {
+        const fromAddress = config.fromAddress || process.env.FALLBACK_FROM_ADDRESS || 'onboarding@resend.dev';
+        const fromName = config.fromName || process.env.FALLBACK_FROM_NAME || 'BYD OTD Tracker';
+        await transport.sendMail({
+          from: `"${fromName}" <${fromAddress}>`,
+          to: toEmail,
+          subject: 'OTD BYD Tracker — Test Email',
+          html: `<p>This is a test email from your BYD OTD Tracker notification system.</p><p>Sent at: ${new Date().toISOString()}</p><p>Provider: ${config.provider || 'resend'}</p>`,
+        });
+      } finally {
+        transport.close();
+      }
 
       this.logger.log(`Test email sent to ${toEmail}`);
       return { success: true, message: 'Test email sent successfully' };
@@ -238,14 +260,22 @@ export class EmailService {
     const maxAttempts = 3;
     let lastError: Error | null = null;
 
+    const fromAddress = config?.fromAddress || process.env.FALLBACK_FROM_ADDRESS || 'onboarding@resend.dev';
+    const fromName = config?.fromName || process.env.FALLBACK_FROM_NAME || 'BYD OTD Tracker';
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        await this.mailerService.sendMail({
-          to: to.join(', '),
-          subject: options.subject,
-          template: options.template,
-          context: options.context,
-        });
+        const transport = await this.transportFactory.create();
+        try {
+          await transport.sendMail({
+            from: `"${fromName}" <${fromAddress}>`,
+            to: to.join(', '),
+            subject: options.subject,
+            html: this.renderEmailHtml(options.context),
+          });
+        } finally {
+          transport.close();
+        }
 
         // — success: log & return
         this.logger.log(`Email sent to ${to.join(', ')} — subject: "${options.subject}"`);
@@ -347,6 +377,92 @@ export class EmailService {
     if (r.vehicleReceivedAt) return 'Showroom';
     if (r.storageAt) return 'Storage (Dispatched)';
     return 'Created';
+  }
+
+  async debugTriggerNotification(event: string, requestId: number, toEmail?: string) {
+    if (!(event in LEGACY_EVENT_MAP)) {
+      throw new BadRequestException(
+        `Unknown event: "${event}". Valid events: ${Object.keys(LEGACY_EVENT_MAP).join(', ')}`
+      );
+    }
+
+    const request = await this.requestsRepo.findOne({
+      where: { id: requestId },
+      relations: ['brand', 'model', 'variant', 'requestType'],
+    });
+    if (!request) {
+      throw new BadRequestException(`Request #${requestId} not found`);
+    }
+
+    const mappedEvent = LEGACY_EVENT_MAP[event];
+    const payload: NotificationPayload = {
+      requestId: request.id,
+      request: {
+        chassisNumber: request.chassisNumber,
+        brand: request.brand?.label ?? '',
+        model: request.model?.label ?? '',
+        variant: request.variant?.label,
+        customerName: request.customerName,
+        requestType: request.requestType?.value ?? '',
+        currentStage: this.resolveStageLabel(request),
+        hasGps: request.hasGps,
+        hasAccessories: request.hasAccessories,
+      },
+    };
+
+    this.logger.log(`[DEBUG] Emitting ${mappedEvent} for request #${requestId}`);
+    this.eventEmitter.emit(mappedEvent, payload);
+
+    // Send debug email — use explicit recipient if provided, else fall back to admin emails
+    const recipients = toEmail
+      ? [toEmail]
+      : (await this.userRepo.find({
+          where: { role: 'super_admin' as any, isActive: true },
+          select: ['email'],
+        })).map(u => u.email).filter(Boolean) as string[];
+
+    if (recipients.length > 0) {
+      await this.send({
+        to: recipients,
+        subject: `[DEBUG] ${event} — Request #${request.chassisNumber}`,
+        template: 'stage-action',
+        context: {
+          title: `[DEBUG] ${event}`,
+          message: `Debug notification for event "${event}" on request #${requestId} (${request.chassisNumber}).`,
+          request: payload.request,
+          ctaUrl: `${process.env.APP_BASE_URL || 'http://localhost:5173'}/tracker`,
+        },
+        requestId: request.id,
+        event: mappedEvent,
+      });
+    }
+
+    return {
+      success: true,
+      event: mappedEvent,
+      requestId,
+      chassisNumber: request.chassisNumber,
+      message: `Event emitted + direct email sent to ${recipients.length} recipient(s): ${recipients.join(', ')}`,
+    };
+  }
+
+  private renderEmailHtml(context: Record<string, unknown>): string {
+    const req = (context.request as Record<string, any>) || {};
+    return `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f4f8;padding:20px;">
+<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;">
+<div style="background:#e94560;color:#fff;padding:20px;text-align:center;">
+<h1 style="margin:0;font-size:20px;">${context.title || 'OTD BYD Desk'}</h1>
+</div>
+<div style="padding:24px;">
+<p style="color:#333;font-size:15px;">${context.message || ''}</p>
+<table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:13px;">
+<tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Chassis</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:600;">${req.chassisNumber || '—'}</td></tr>
+<tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Brand/Model</td><td style="padding:8px;border-bottom:1px solid #eee;">${[req.brand, req.model, req.variant].filter(Boolean).join(' ') || '—'}</td></tr>
+<tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Customer</td><td style="padding:8px;border-bottom:1px solid #eee;">${req.customerName || '—'}</td></tr>
+<tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Stage</td><td style="padding:8px;border-bottom:1px solid #eee;color:#e94560;font-weight:600;">${req.currentStage || '—'}</td></tr>
+</table>${context.ctaUrl ? `<div style="text-align:center;margin-top:24px;"><a href="${context.ctaUrl}" style="display:inline-block;background:#e94560;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">View in Tracker</a></div>` : ''}</div>
+<div style="padding:12px;text-align:center;color:#999;font-size:11px;">BYD OTD Tracker — Automated Notification</div>
+</div></body></html>`;
   }
 
   private sleep(ms: number): Promise<void> {

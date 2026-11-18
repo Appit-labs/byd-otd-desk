@@ -604,6 +604,11 @@ export class RequestsService {
     }
 
     const now = new Date();
+    // Auto-set start if missing (e.g. request completed without explicit start action)
+    if (!request.pdiStartedAt) {
+      await this.requestsRepository.update(id, { pdiStartedAt: now } as any);
+      request.pdiStartedAt = now;
+    }
     const duration = Math.round(
       (now.getTime() - request.pdiStartedAt.getTime()) / 1000,
     );
@@ -1127,12 +1132,20 @@ export class RequestsService {
     const fmtDate = (d: Date | null | undefined) =>
       d ? d.toISOString().split('T')[0] + ' ' + d.toTimeString().slice(0, 5) : '';
 
+    const calcDuration = (start: Date | null | undefined, end: Date | null | undefined): string => {
+      if (!start || !end) return '';
+      const hours = Math.round((end.getTime() - start.getTime()) / 360000) / 10; // decimal hours
+      if (hours < 1) return `${Math.round(hours * 60)}m`;
+      if (hours < 24) return `${hours.toFixed(1)}h`;
+      return `${(hours / 24).toFixed(1)}d`;
+    };
+
     // ═══════════════════════════════════════════════════════════
     //  Build Professional XLSX with exceljs
     // ═══════════════════════════════════════════════════════════
     try {
     const wb = new ExcelJS.Workbook();
-    wb.creator = 'BYD OTD Desk';
+    wb.creator = 'BYD OTD Tracker';
     wb.created = new Date();
     const ws = wb.addWorksheet('OTD Requests');
 
@@ -1159,15 +1172,15 @@ export class RequestsService {
       'Customer', 'Phone', 'Consultant', 'Sales Type',
       'Acc.', 'GPS', 'Promise Date', 'Status',
       'Storage', 'Received',
-      'MC Start', 'MC Done', 'MC Remarks',
-      'PDI Start', 'PDI Done', 'PDI Remarks',
-      'To Acc.', 'Acc. Start', 'Acc. Done', 'Acc. Remarks',
+      'MC Start', 'MC Done', 'MC Dur.', 'MC Remarks',
+      'PDI Start', 'PDI Done', 'PDI Dur.', 'PDI Remarks',
+      'To Acc.', 'Acc. Start', 'Acc. Done', 'Acc. Dur.', 'Acc. Remarks',
       'Final Insp.', 'FI Outcome', 'FI Remarks',
       'GPS Done', 'Registered',
       'Delivery', 'Delivery Remarks',
       'Created', 'Remarks',
     ];
-    const COL_COUNT = headers.length; // 40
+    const COL_COUNT = headers.length; // 43
 
     // ── Row 1: Top accent bar ──
     ws.getRow(1).height = 4;
@@ -1178,7 +1191,7 @@ export class RequestsService {
 
     // ── Row 2-3: Title ──
     ws.mergeCells(2, 1, 2, COL_COUNT);
-    ws.getCell('A2').value = 'BYD OTD DESK';
+    ws.getCell('A2').value = 'BYD OTD Tracker';
     ws.getCell('A2').font = { name: 'Calibri', size: 20, bold: true, color: { argb: WHITE } };
     ws.getCell('A2').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
     ws.getCell('A2').alignment = { horizontal: 'left', vertical: 'middle' };
@@ -1232,9 +1245,9 @@ export class RequestsService {
         r.hasAccessories ? '✓' : '—', r.hasGps ? '✓' : '—',
         fmtDate(r.promiseDate), r.status,
         fmtDate(r.storageAt), fmtDate(r.vehicleReceivedAt),
-        fmtDate(r.mechanicalCheckStartedAt), fmtDate(r.mechanicalCheckCompletedAt), r.mechanicalCheckRemarks ?? '',
-        fmtDate(r.pdiStartedAt), fmtDate(r.pdiCompletedAt), r.pdiRemarks ?? '',
-        fmtDate(r.sentToAccessoriesAt), fmtDate(r.accessoriesStartedAt), fmtDate(r.accessoriesCompletedAt), r.accessoriesRemarks ?? '',
+        fmtDate(r.mechanicalCheckStartedAt), fmtDate(r.mechanicalCheckCompletedAt), calcDuration(r.mechanicalCheckStartedAt, r.mechanicalCheckCompletedAt), r.mechanicalCheckRemarks ?? '',
+        fmtDate(r.pdiStartedAt), fmtDate(r.pdiCompletedAt), calcDuration(r.pdiStartedAt, r.pdiCompletedAt), r.pdiRemarks ?? '',
+        fmtDate(r.sentToAccessoriesAt), fmtDate(r.accessoriesStartedAt), fmtDate(r.accessoriesCompletedAt), calcDuration(r.accessoriesStartedAt, r.accessoriesCompletedAt), r.accessoriesRemarks ?? '',
         fmtDate(r.finalInspectionAt), r.finalInspectionOutcome ?? '', r.finalInspectionRemarks ?? '',
         fmtDate(r.gpsConfirmedAt), fmtDate(r.registeredAt),
         fmtDate(r.deliveredAt), r.deliveryRemarks ?? '',
@@ -1285,7 +1298,7 @@ export class RequestsService {
     const dataEndRow = HEADER_ROW + items.length;
 
     // ── Column widths ──
-    [16,15,21,9,11,13,10,12,12,16,18,19,14,16,13,5,5,14,13,14,14,14,14,14,14,14,13,13,14,14,14,15,16,14,14,13,14,15,14,22].forEach((w, i) => {
+    [16,15,21,9,11,13,10,12,12,16,18,19,14,16,13,5,5,14,13,14,14,9,14,14,9,14,14,14,9,14,14,14,14,14,9,14,14,15,14,14,14,15,22].forEach((w, i) => {
       ws.getColumn(i + 1).width = w;
     });
 
@@ -1312,7 +1325,7 @@ export class RequestsService {
     const footerRow = summaryRow + 2;
     ws.getRow(footerRow).height = 20;
     ws.mergeCells(footerRow, 1, footerRow, COL_COUNT);
-    ws.getCell(footerRow, 1).value = 'BYD OTD Desk  •  Confidential  •  © ' + new Date().getFullYear();
+    ws.getCell(footerRow, 1).value = 'BYD OTD Tracker  •  Confidential  •  © ' + new Date().getFullYear();
     ws.getCell(footerRow, 1).font = { name: 'Calibri', size: 8, color: { argb: GRAY_400 }, italic: true };
     ws.getCell(footerRow, 1).alignment = { horizontal: 'center', vertical: 'middle' };
     ws.getCell(footerRow, 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRAY_50 } };
@@ -1323,7 +1336,7 @@ export class RequestsService {
     ws.pageSetup.fitToHeight = 0;
     ws.pageSetup.paperSize = 9; // A4
     ws.pageSetup.margins = { left: 0.3, right: 0.3, top: 0.4, bottom: 0.4, header: 0.3, footer: 0.3 };
-    ws.headerFooter.oddFooter = '&B&08BYD OTD Desk — Page &P of &N';
+    ws.headerFooter.oddFooter = '&B&08BYD OTD Tracker — Page &P of &N';
 
       return Buffer.from(await wb.xlsx.writeBuffer());
     } catch (err) {

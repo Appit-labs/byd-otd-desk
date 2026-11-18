@@ -248,8 +248,8 @@ export function TrackerToolbar({
           )}
         </div>
 
-        {/* New Request Button — only for super_admin */}
-        {userRole === 'super_admin' && (
+        {/* New Request Button — super_admin and admin */}
+        {(userRole === 'super_admin' || userRole === 'admin') && (
           <Button size="sm" onClick={onNewRequest}>
             <Plus size={16} />
             New Request

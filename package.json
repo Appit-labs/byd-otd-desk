@@ -2,7 +2,7 @@
   "name": "byd-otd-desk",
   "version": "0.1.0",
   "private": true,
-  "description": "BYD OTD Desk - Order to Delivery Tracking System",
+  "description": "BYD OTD Tracker - Order to Delivery Tracking System",
   "workspaces": [
     "backend",
     "frontend"

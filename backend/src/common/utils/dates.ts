@@ -1,5 +1,5 @@
 /**
- * Working days utility for BYD OTD Desk.
+ * Working days utility for BYD OTD Tracker.
  *
  * Working days = Sunday through Thursday (Friday & Saturday excluded).
  * Used for promise date calculation on car requests.

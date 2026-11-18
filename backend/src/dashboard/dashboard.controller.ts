@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { RolesGuard } from '../auth/roles.guard.js';
@@ -13,7 +13,7 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('stats')
-  @Roles('super_admin', 'admin')
+  @Roles('super_admin', 'admin', 'nvs', 'qc_nvs', 'mechanical_check', 'pdi', 'accessories', 'registration', 'delivery')
   @ApiOperation({ summary: 'Get dashboard stats for a given period' })
   @ApiQuery({
     name: 'period',
@@ -21,12 +21,15 @@ export class DashboardController {
     required: false,
     description: 'Period for stats aggregation',
   })
-  async getStats(@Query('period') period: 'daily' | 'monthly' = 'daily') {
-    return this.dashboardService.getStats(period);
+  async getStats(
+    @Query('period') period: 'daily' | 'monthly' = 'daily',
+    @Req() req: any,
+  ) {
+    return this.dashboardService.getStats(period, req.user?.role);
   }
 
   @Get('comparison')
-  @Roles('super_admin', 'admin')
+  @Roles('super_admin', 'admin', 'nvs', 'qc_nvs', 'mechanical_check', 'pdi', 'accessories', 'registration', 'delivery')
   @ApiOperation({ summary: 'Get daily comparison between current and previous month' })
   @ApiQuery({
     name: 'month',
@@ -38,7 +41,7 @@ export class DashboardController {
   }
 
   @Get('pipeline-summary')
-  @Roles('super_admin', 'admin')
+  @Roles('super_admin', 'admin', 'nvs', 'qc_nvs', 'mechanical_check', 'pdi', 'accessories', 'registration', 'delivery')
   @ApiOperation({ summary: 'Get request count per pipeline stage' })
   async getPipelineSummary() {
     return this.dashboardService.getPipelineSummary();

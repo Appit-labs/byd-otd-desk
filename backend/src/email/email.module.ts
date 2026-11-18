@@ -12,10 +12,11 @@ import { NotificationListener } from './notification.listener.js';
 import { EmailConfig } from '../database/entities/email-config.entity.js';
 import { NotificationLog } from '../database/entities/notification-log.entity.js';
 import { User } from '../database/entities/user.entity.js';
+import { CarRequest } from '../database/entities/car-request.entity.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([EmailConfig, NotificationLog, User]),
+    TypeOrmModule.forFeature([EmailConfig, NotificationLog, User, CarRequest]),
     EventEmitterModule.forRoot(),
     MailerModule.forRootAsync({
       useFactory: () => ({
@@ -33,7 +34,7 @@ import { User } from '../database/entities/user.entity.js';
           },
         },
         defaults: {
-          from: `"${process.env.FALLBACK_FROM_NAME || 'BYD OTD Desk'}" <${process.env.FALLBACK_FROM_ADDRESS || 'onboarding@resend.dev'}>`,
+          from: `"${process.env.FALLBACK_FROM_NAME || 'BYD OTD Tracker'}" <${process.env.FALLBACK_FROM_ADDRESS || 'onboarding@resend.dev'}>`,
         },
         template: {
           dir: join(__dirname, 'templates'),

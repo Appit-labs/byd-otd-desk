@@ -70,4 +70,18 @@ export class EmailController {
     }
     return this.emailService.sendTestEmail(recipient);
   }
+
+  @Post('debug/notify')
+  @Roles('super_admin', 'admin')
+  @ApiOperation({ summary: '[DEBUG] Trigger a notification for a specific event and request' })
+  async debugNotify(
+    @Body('event') event: string,
+    @Body('requestId') requestId: number,
+    @Body('to') toEmail?: string,
+  ) {
+    if (!event || !requestId) {
+      throw new BadRequestException('event and requestId are required');
+    }
+    return this.emailService.debugTriggerNotification(event, requestId, toEmail);
+  }
 }

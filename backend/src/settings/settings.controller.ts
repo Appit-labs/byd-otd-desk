@@ -87,16 +87,14 @@ export class SettingsController {
   }
 
   @Delete(':key/options/:id')
-  @Roles('super_admin', 'admin')
+  @Roles('super_admin')
   @HttpCode(204)
-  @ApiOperation({ summary: 'Hard-delete an option (deprecate if protected)' })
+  @ApiOperation({ summary: 'Permanently delete an option (super_admin only)' })
   async deleteOption(
     @Param('key') key: string,
     @Param('id') id: string,
   ) {
-    // Hard-delete by deprecating (soft-delete). The service will reject
-    // deletion of protected request types (pdi, re_pdi, no_pdi).
-    await this.settingsService.deprecateOption(key, +id);
+    await this.settingsService.hardDeleteOption(key, +id);
   }
 
   @Patch(':key/options/:id/restore')

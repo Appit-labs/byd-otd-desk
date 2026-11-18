@@ -32,12 +32,12 @@
 
 .navItem:hover {
   color: var(--color-text-primary);
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--overlay-hover);
 }
 
 .navItemActive {
   color: var(--color-accent);
-  background-color: rgba(0, 194, 255, 0.08);
+  background-color: rgba(var(--color-accent-rgb), 0.08);
 }
 
 .navIcon {
@@ -89,12 +89,12 @@
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--radius-md);
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--overlay-subtle);
   transition: background-color var(--transition-fast);
 }
 
 .optionRow:hover {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--overlay-hover);
 }
 
 .optionRowDeprecated {
@@ -118,7 +118,7 @@
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   padding: 2px var(--spacing-2);
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--overlay-hover);
   border-radius: var(--radius-sm);
 }
 
@@ -144,7 +144,7 @@
 }
 
 .actionButton:hover {
-  background-color: rgba(255, 255, 255, 0.06);
+  background-color: var(--overlay-pressed);
   color: var(--color-text-primary);
 }
 
@@ -155,7 +155,7 @@
 
 .actionButtonSuccess:hover {
   color: var(--color-accent-alt);
-  background-color: rgba(15, 244, 198, 0.1);
+  background-color: rgba(var(--color-accent-alt-rgb), 0.1);
 }
 
 .restoreLink {
@@ -172,7 +172,7 @@
 
 .restoreLink:hover {
   color: var(--color-accent-alt);
-  background-color: rgba(0, 194, 255, 0.08);
+  background-color: rgba(var(--color-accent-rgb), 0.08);
 }
 
 .deprecatedSeparator {
@@ -200,8 +200,8 @@
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--radius-md);
-  background-color: rgba(0, 194, 255, 0.04);
-  border: 1px solid rgba(0, 194, 255, 0.15);
+  background-color: rgba(var(--color-accent-rgb), 0.04);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.15);
   margin-bottom: var(--spacing-2);
 }
 
@@ -286,7 +286,7 @@
 }
 
 .table tr:hover td {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--overlay-subtle);
 }
 
 .tableCellName {
@@ -310,7 +310,7 @@
 }
 
 .roleBadgeAdmin {
-  background-color: rgba(0, 194, 255, 0.12);
+  background-color: rgba(var(--color-accent-rgb), 0.12);
   color: var(--color-accent);
 }
 
@@ -320,7 +320,7 @@
 }
 
 .roleBadgeViewer {
-  background-color: rgba(107, 122, 153, 0.12);
+  background-color: rgba(var(--color-text-muted-rgb), 0.12);
   color: var(--color-text-muted);
 }
 
@@ -340,7 +340,7 @@
 }
 
 .statusBadgeActive {
-  background-color: rgba(15, 244, 198, 0.12);
+  background-color: rgba(var(--color-accent-alt-rgb), 0.12);
   color: var(--color-accent-alt);
 }
 
@@ -350,12 +350,12 @@
 }
 
 .statusActive {
-  background-color: rgba(15, 244, 198, 0.12);
+  background-color: rgba(var(--color-accent-alt-rgb), 0.12);
   color: var(--color-accent-alt);
 }
 
 .statusInactive {
-  background-color: rgba(107, 122, 153, 0.12);
+  background-color: rgba(var(--color-text-muted-rgb), 0.12);
   color: var(--color-text-muted);
 }
 
@@ -398,11 +398,11 @@
 
 .toggleActivate {
   color: var(--color-accent-alt);
-  background-color: rgba(15, 244, 198, 0.08);
+  background-color: rgba(var(--color-accent-alt-rgb), 0.08);
 }
 
 .toggleActivate:hover {
-  background-color: rgba(15, 244, 198, 0.16);
+  background-color: rgba(var(--color-accent-alt-rgb), 0.16);
 }
 
 .formActions {
@@ -470,7 +470,7 @@
 
 .navCategoryHeader:hover {
   color: var(--color-text-primary);
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--overlay-hover);
 }
 
 .navCategoryIcon {
@@ -519,12 +519,12 @@
 
 .navSubItem:hover {
   color: var(--color-text-primary);
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--overlay-hover);
 }
 
 .navSubItemActive {
-  color: #22c55e;
-  background-color: rgba(34, 197, 94, 0.08);
+  color: var(--color-accent);
+  background-color: rgba(var(--color-accent-rgb), 0.08);
   font-weight: 500;
 }
 
@@ -559,8 +559,8 @@
 }
 
 .emailFormInput:focus {
-  border-color: #22c55e;
-  box-shadow: 0 0 0 1px #22c55e;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
 }
 
 .emailFormInput::placeholder {
@@ -597,7 +597,7 @@
 }
 
 .emailToggleOn {
-  background-color: #22c55e;
+  background-color: var(--color-accent);
 }
 
 .emailToggleOff {
@@ -633,9 +633,9 @@
 }
 
 .toastSuccess {
-  background-color: rgba(34, 197, 94, 0.15);
-  border: 1px solid #22c55e;
-  color: #22c55e;
+  background-color: rgba(var(--color-accent-rgb), 0.15);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
 }
 
 .toastError {
@@ -809,5 +809,23 @@
   .formActions {
     flex-direction: column-reverse;
     gap: var(--spacing-2);
+  }
+
+  /* Email form — full-width on mobile */
+  .emailTestRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .emailFormInput {
+    width: 100%;
+  }
+
+  .emailToggle {
+    align-self: flex-start;
+  }
+
+  .debugGrid {
+    grid-template-columns: 1fr !important;
   }
 }

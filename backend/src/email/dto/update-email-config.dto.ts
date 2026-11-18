@@ -4,44 +4,56 @@ import {
   IsInt,
   IsBoolean,
   IsEmail,
+  IsIn,
   Min,
   Max,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateEmailConfigDto {
+  @ApiPropertyOptional({ example: 'resend', enum: ['resend', 'smtp'] })
+  @IsOptional()
+  @IsString()
+  @IsIn(['resend', 'smtp'])
+  provider?: string;
+
+  @ApiPropertyOptional({ example: 're_xxxx' })
+  @IsOptional()
+  @IsString()
+  api_key?: string;
+
   @ApiPropertyOptional({ example: 'smtp.gmail.com' })
   @IsOptional()
   @IsString()
-  smtpHost?: string;
+  smtp_host?: string;
 
   @ApiPropertyOptional({ example: 587 })
   @IsOptional()
   @IsInt()
   @Min(1)
   @Max(65535)
-  smtpPort?: number;
+  smtp_port?: number;
 
   @ApiPropertyOptional({ example: 'user@gmail.com' })
   @IsOptional()
   @IsString()
-  smtpUsername?: string;
+  smtp_username?: string;
 
   @ApiPropertyOptional({ example: 'app-password' })
   @IsOptional()
   @IsString()
-  smtpPassword?: string;
+  smtp_password?: string;
 
   @ApiPropertyOptional({ example: 'noreply@talentino.com' })
   @IsOptional()
   @IsString()
   @IsEmail()
-  fromAddress?: string;
+  from_address?: string;
 
   @ApiPropertyOptional({ example: 'OTD BYD Tracker' })
   @IsOptional()
   @IsString()
-  fromName?: string;
+  from_name?: string;
 
   @ApiPropertyOptional({ example: true })
   @IsOptional()

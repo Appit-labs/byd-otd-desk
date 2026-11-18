@@ -160,16 +160,16 @@ export function ComparisonBarChart({ data, isLoading }: ComparisonBarChartProps)
             tickLine={false}
             allowDecimals={false}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--overlay-subtle)' }} />
           <Bar
             dataKey="This Month"
-            fill="#00C2FF"
+            fill="var(--color-accent)"
             radius={[3, 3, 0, 0]}
             maxBarSize={12}
           />
           <Bar
             dataKey="Last Month"
-            fill="#6B7A99"
+            fill="var(--color-text-muted)"
             radius={[3, 3, 0, 0]}
             maxBarSize={12}
           />

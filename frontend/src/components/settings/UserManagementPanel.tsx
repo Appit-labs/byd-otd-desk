@@ -59,6 +59,15 @@ const emptyForm: UserFormData = {
 export function UserManagementPanel() {
   const { data: users, isLoading: usersLoading } = useUsers();
   const createUser = useCreateUser();
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const showToast = (msg: string, type: 'success' | 'error') => {
+    setToast({ message: msg, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+  const errorHandler = (err: any) => {
+    const msg = err?.response?.data?.error || err?.message || 'An unexpected error occurred';
+    showToast(msg, 'error');
+  };
   const updateUser = useUpdateUser();
   const toggleStatus = useToggleUserStatus();
 
@@ -145,7 +154,7 @@ export function UserManagementPanel() {
           ...(form.password ? { password: form.password } : {}),
           role: form.role,
         },
-        { onSuccess: closeModal }
+        { onSuccess: () => { closeModal(); showToast('User updated.', 'success'); }, onError: errorHandler }
       );
     } else {
       createUser.mutate(
@@ -156,7 +165,7 @@ export function UserManagementPanel() {
           password: form.password,
           role: form.role,
         },
-        { onSuccess: closeModal }
+        { onSuccess: () => { closeModal(); showToast('User created.', 'success'); }, onError: errorHandler }
       );
     }
   };
@@ -168,15 +177,18 @@ export function UserManagementPanel() {
       `Are you sure you want to ${label} user "${user.fullName ?? user.username}"?`
     );
     if (!confirmed) return;
-    toggleStatus.mutate({ id: user.id, isActive: !isActive });
+    toggleStatus.mutate(
+      { id: user.id, isActive: !isActive },
+      { onError: errorHandler }
+    );
   };
 
   const handleToggleNotifications = (user: User) => {
     const enabled = !user.notificationsEnabled;
-    updateUser.mutate({
-      id: user.id,
-      notificationsEnabled: enabled,
-    });
+    updateUser.mutate(
+      { id: user.id, notificationsEnabled: enabled },
+      { onError: errorHandler }
+    );
   };
 
   if (usersLoading) {
@@ -368,6 +380,14 @@ export function UserManagementPanel() {
           </div>
         </div>
       </Modal>
+
+      {toast && (
+        <div
+          className={`${styles.toast} ${toast.type === 'success' ? styles.toastSuccess : styles.toastError}`}
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

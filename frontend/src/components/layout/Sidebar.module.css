@@ -3,14 +3,15 @@
 .sidebar {
   position: fixed;
   top: var(--spacing-3);
-  left: var(--spacing-3);
+  left: 0;
   height: calc(100vh - var(--spacing-3) * 2);
   width: 64px;
-  background: rgba(17, 19, 24, 0.88);
+  background: var(--glass-surface);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--color-border);
-  border-radius: 20px;
+  border-left: none;
+  border-radius: 0 20px 20px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -23,7 +24,7 @@
 .sidebar.open,
 .sidebar:hover {
   width: 210px;
-  border-radius: 24px;
+  border-radius: 0 24px 24px 0;
 }
 
 /* ── Logo ──────────────────────────────────────────── */
@@ -38,6 +39,7 @@
   padding: 0 var(--spacing-2);
   overflow: hidden;
   width: 100%;
+  position: relative;
 }
 
 .logoImg {
@@ -45,13 +47,42 @@
   height: auto;
   width: 48px;
   max-width: 100%;
-  filter: brightness(0) invert(1);
+  filter: var(--logo-filter);
   transition: width var(--transition-base);
 }
 
 .sidebar:hover .logoImg,
 .sidebar.open .logoImg {
   width: 110px;
+}
+
+/* Collapse toggle inside sidebar — right of logo */
+.collapseBtn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+  position: absolute;
+  right: var(--spacing-2);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.collapseBtn:hover {
+  color: var(--color-text-primary);
+  background: var(--overlay-hover);
+}
+
+.sidebar:hover .collapseBtn,
+.sidebar.open .collapseBtn {
+  display: flex;
 }
 
 /* ── Nav ───────────────────────────────────────────── */
@@ -68,16 +99,16 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  width: 100%;
-  padding: 0 var(--spacing-2);
-  margin-top: var(--spacing-2);
-  margin-bottom: var(--spacing-1);
+  width: calc(100% - var(--spacing-2));
+  padding: var(--spacing-2) 0 0;
+  margin: var(--spacing-1) auto;
   border-top: 1px solid var(--color-border);
 }
 
 .navItem {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-3);
   padding: var(--spacing-2) var(--spacing-3);
   border-radius: var(--radius-lg);
@@ -90,14 +121,20 @@
   position: relative;
 }
 
+/* When expanded, left-align text */
+.sidebar:hover .navItem,
+.sidebar.open .navItem {
+  justify-content: flex-start;
+}
+
 .navItem:hover {
   color: var(--color-text-primary);
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--overlay-hover);
 }
 
 .navItem.active {
   color: var(--color-accent);
-  background-color: rgba(0, 194, 255, 0.08);
+  background-color: var(--overlay-accent);
 }
 
 .navIcon {
@@ -126,12 +163,14 @@
   display: flex;
   align-items: center;
   gap: 0;
+  width: calc(100% - var(--spacing-2));
   padding: var(--spacing-2);
   margin: auto var(--spacing-1) var(--spacing-1);
   border-top: 1px solid var(--color-border);
   flex-shrink: 0;
   border-radius: 0;
   transition: all var(--transition-base);
+  overflow: hidden;
 }
 
 .profileAvatar {
@@ -153,6 +192,8 @@
   display: none;
   flex-direction: column;
   min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .profileName {
@@ -187,7 +228,7 @@
 
 .profileLogout:hover {
   color: var(--color-danger);
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--overlay-danger);
 }
 
 .sidebar:hover .profileInfo,
@@ -216,13 +257,15 @@
 
 @media (max-width: 1024px) {
   .sidebar {
-    top: 0;
+    top: var(--spacing-3);
     left: 0;
-    height: 100vh;
-    border-radius: 0;
-    transform: translateX(-100%);
-    width: 220px !important;
+    height: calc(100vh - var(--spacing-3) * 2);
+    border-radius: 0 20px 20px 0;
+    border-left: none;
+    transform: translateX(calc(-100% - var(--spacing-3)));
+    width: 230px !important;
     z-index: calc(var(--z-sidebar) + 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .sidebar.open {
@@ -239,8 +282,14 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--overlay-modal);
     z-index: var(--z-sidebar);
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .hamburger {
@@ -253,12 +302,18 @@
     width: 36px;
     height: 36px;
     border-radius: var(--radius-md);
-    background: rgba(17, 19, 24, 0.85);
+    background: var(--glass-surface);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid var(--color-border);
     color: var(--color-text-primary);
     cursor: pointer;
     z-index: calc(var(--z-sidebar) + 2);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* When sidebar is open, hide hamburger — collapseBtn inside sidebar takes over */
+  .hamburgerOpen {
+    display: none;
   }
 }

@@ -9,6 +9,7 @@ RUN npm ci --workspace=frontend
 COPY frontend/tsconfig.json ./frontend/
 COPY frontend/index.html ./frontend/
 COPY frontend/vite.config.ts ./frontend/
+COPY frontend/public ./frontend/public
 COPY frontend/src ./frontend/src
 
 RUN npm run build --workspace=frontend

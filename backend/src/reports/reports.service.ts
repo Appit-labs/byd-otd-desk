@@ -57,11 +57,11 @@ export class ReportsService {
       .createQueryBuilder('r')
       .select('COUNT(r.id)', 'totalRequests')
       .addSelect(
-        'AVG(CASE WHEN r.pdi_duration IS NOT NULL THEN r.pdi_duration END)',
+        'AVG(CASE WHEN r.pdi_completed_at IS NOT NULL THEN COALESCE(r.pdi_duration, TIMESTAMPDIFF(SECOND, r.pdi_started_at, r.pdi_completed_at)) END)',
         'avgPdiDuration',
       )
       .addSelect(
-        'AVG(CASE WHEN r.accessories_duration IS NOT NULL THEN r.accessories_duration END)',
+        'AVG(CASE WHEN r.accessories_completed_at IS NOT NULL THEN COALESCE(r.accessories_duration, TIMESTAMPDIFF(SECOND, r.accessories_started_at, r.accessories_completed_at)) END)',
         'avgAccessoriesDuration',
       )
       .where('r.created_at >= :start', { start })
@@ -91,15 +91,14 @@ export class ReportsService {
     const format =
       period === 'monthly'
         ? "DATE_FORMAT(r.pdi_completed_at, '%Y-%m')"
-        : 'DATE(r.pdi_completed_at)';
+        : "DATE_FORMAT(r.pdi_completed_at, '%Y-%m-%d')";
 
     const rows = await this.requestsRepo
       .createQueryBuilder('r')
       .select(format, 'period')
-      .addSelect('AVG(r.pdi_duration)', 'avgDuration')
+      .addSelect('AVG(COALESCE(r.pdi_duration, TIMESTAMPDIFF(SECOND, r.pdi_started_at, r.pdi_completed_at)))', 'avgDuration')
       .addSelect('COUNT(r.id)', 'count')
-      .where('r.pdi_duration IS NOT NULL')
-      .andWhere('r.pdi_completed_at IS NOT NULL')
+      .where('r.pdi_completed_at IS NOT NULL')
       .groupBy('period')
       .orderBy('period', 'ASC')
       .getRawMany<{ period: string; avgDuration: string; count: string }>();
@@ -119,15 +118,14 @@ export class ReportsService {
     const format =
       period === 'monthly'
         ? "DATE_FORMAT(r.accessories_completed_at, '%Y-%m')"
-        : 'DATE(r.accessories_completed_at)';
+        : "DATE_FORMAT(r.accessories_completed_at, '%Y-%m-%d')";
 
     const rows = await this.requestsRepo
       .createQueryBuilder('r')
       .select(format, 'period')
-      .addSelect('AVG(r.accessories_duration)', 'avgDuration')
+      .addSelect('AVG(COALESCE(r.accessories_duration, TIMESTAMPDIFF(SECOND, r.accessories_started_at, r.accessories_completed_at)))', 'avgDuration')
       .addSelect('COUNT(r.id)', 'count')
-      .where('r.accessories_duration IS NOT NULL')
-      .andWhere('r.accessories_completed_at IS NOT NULL')
+      .where('r.accessories_completed_at IS NOT NULL')
       .groupBy('period')
       .orderBy('period', 'ASC')
       .getRawMany<{ period: string; avgDuration: string; count: string }>();

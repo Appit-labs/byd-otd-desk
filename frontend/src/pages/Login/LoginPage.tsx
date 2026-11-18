@@ -80,8 +80,8 @@ export function LoginPage() {
         <div className={styles.header}>
           <img
             src={fullLogo}
-            alt="BYD OTD Desk"
-            style={{ height: 60, margin: '0 auto 20px', filter: 'brightness(0) invert(1)' }}
+            alt="BYD OTD Tracker"
+            style={{ height: 60, margin: '0 auto 20px', filter: 'var(--logo-filter)' }}
           />
           <p className={styles.subtitle}>Sign in to your account</p>
         </div>

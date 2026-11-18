@@ -15,6 +15,7 @@ import { ComparisonBarChart } from '@/components/dashboard/ComparisonBarChart';
 import { PipelineFunnelChart } from '@/components/dashboard/PipelineFunnelChart';
 import { RecentRequestsTable } from '@/components/dashboard/RecentRequestsTable';
 import { Skeleton } from '@/components/ui/Skeleton';
+import sharedStyles from '@/components/dashboard/dashboard-shared.module.css';
 import styles from './dashboard.module.css';
 
 type Period = 'daily' | 'monthly';
@@ -27,8 +28,8 @@ const PERIOD_OPTIONS: { value: Period; label: string }[] = [
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
 
-  // Redirect viewers
-  if (user?.role === 'viewer') {
+  // Dashboard is for all authenticated users except viewer
+  if (!user || user.role === 'viewer') {
     return (
       <div className={styles.page}>
         <div className={styles.errorContainer}>
@@ -42,6 +43,8 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
   const [period, setPeriod] = useState<Period>('daily');
   const currentMonth = useMemo(() => format(new Date(), 'yyyy-MM'), []);
 
@@ -65,7 +68,7 @@ function DashboardContent() {
   // Determine completion rate color
   const completionRate = statsQuery.data?.completionRate ?? 0;
   const completionColor =
-    completionRate >= 80 ? 'var(--color-accent-alt)' : 'var(--color-warning)';
+    completionRate >= 80 ? 'var(--color-success)' : 'var(--color-warning)';
 
   return (
     <div className={styles.page}>
@@ -97,7 +100,7 @@ function DashboardContent() {
             alignItems: 'center',
             gap: 'var(--spacing-2)',
             padding: 'var(--spacing-3) var(--spacing-4)',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            backgroundColor: 'var(--overlay-danger)',
             border: '1px solid var(--color-danger)',
             borderRadius: 'var(--radius-lg)',
             color: 'var(--color-danger)',
@@ -115,9 +118,9 @@ function DashboardContent() {
 
       {/* Loading state */}
       {isLoading ? (
-        <LoadingGrid />
-      ) : (
-        /* Dashboard Grid */
+        <LoadingGrid isAdmin={isAdmin} />
+      ) : isAdmin ? (
+        /* ═══════════ Admin / Super Admin — full dashboard ═══════════ */
         <div className={styles.grid}>
           {/* Welcome Card */}
           <div style={{ gridArea: 'welcome' }}>
@@ -179,12 +182,61 @@ function DashboardContent() {
             />
           </div>
         </div>
+      ) : (
+        /* ═══════════ Operational roles — Welcome + Pending Actions ═══════════ */
+        <div className={styles.grid}>
+          <div style={{ gridArea: 'welcome' }}>
+            <WelcomeCard activeRequestCount={activeRequestCount} />
+          </div>
+          <div style={{ gridArea: 'daily-requests' }}>
+            <div className={sharedStyles.cardWrapper}>
+              <p className={sharedStyles.cardTitle}>PENDING ACTIONS</p>
+              <p style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'var(--text-3xl)',
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                margin: 0,
+                lineHeight: 1.1,
+              }}>
+                {statsQuery.data?.pendingActions ?? 0}
+              </p>
+              <p style={{
+                color: 'var(--color-text-muted)',
+                fontSize: 'var(--text-xs)',
+                marginTop: 'var(--spacing-2)',
+                marginBottom: 0,
+              }}>
+                Requests waiting for your action
+              </p>
+              <div style={{
+                marginTop: 'var(--spacing-3)',
+                height: 3,
+                width: '40px',
+                borderRadius: 2,
+                backgroundColor: 'var(--color-accent)',
+              }} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
-function LoadingGrid() {
+function LoadingGrid({ isAdmin = true }: { isAdmin?: boolean }) {
+  if (!isAdmin) {
+    return (
+      <div className={styles.grid}>
+        <div style={{ gridArea: 'welcome' }}>
+          <Skeleton variant="card" height="160px" />
+        </div>
+        <div style={{ gridArea: 'daily-requests' }}>
+          <Skeleton variant="card" height="160px" />
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={styles.grid}>
       <div style={{ gridArea: 'welcome' }}>

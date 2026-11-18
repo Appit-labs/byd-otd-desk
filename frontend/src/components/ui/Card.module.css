@@ -6,6 +6,12 @@
   transition: box-shadow var(--transition-base);
 }
 
+@media (max-width: 640px) {
+  .card {
+    padding: var(--spacing-3);
+  }
+}
+
 .card:hover {
   box-shadow: var(--shadow-glow);
 }

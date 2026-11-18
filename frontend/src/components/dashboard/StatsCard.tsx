@@ -20,7 +20,7 @@ export function StatsCard({
   delay = 0.1,
 }: StatsCardProps) {
   const isPositive = trend >= 0;
-  const trendColor = isPositive ? 'var(--color-accent-alt)' : 'var(--color-danger)';
+  const trendColor = isPositive ? 'var(--color-success)' : 'var(--color-danger)';
 
   return (
     <motion.div

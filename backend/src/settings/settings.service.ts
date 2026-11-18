@@ -176,6 +176,22 @@ export class SettingsService {
     return this.optionsRepository.save(option);
   }
 
+  async hardDeleteOption(
+    settingKey: string,
+    optionId: number,
+  ): Promise<void> {
+    const option = await this.findOptionOrThrow(settingKey, optionId);
+
+    // Prevent deletion of protected request types
+    if (settingKey === 'request_type' && PROTECTED_REQUEST_TYPES.includes(option.value)) {
+      throw new ForbiddenException(
+        `The request type "${option.label}" (${option.value}) cannot be deleted.`,
+      );
+    }
+
+    await this.optionsRepository.remove(option);
+  }
+
   async reorderOptions(
     settingKey: string,
     dto: ReorderDto,

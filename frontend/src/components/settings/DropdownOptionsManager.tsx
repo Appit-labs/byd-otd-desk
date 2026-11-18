@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Pencil, X, Check, ArrowUp, ArrowDown, Ban } from 'lucide-react';
+import { Plus, Pencil, X, Check, ArrowUp, ArrowDown, Ban, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import {
@@ -8,9 +8,11 @@ import {
   useEditOption,
   useDeprecateOption,
   useRestoreOption,
+  useDeleteOption,
   useReorderOptions,
   type SettingsOption,
 } from '@/hooks/useSettings';
+import { useAuthStore } from '@/stores/auth.store';
 import styles from './settings.module.css';
 
 interface DropdownOptionsManagerProps {
@@ -45,6 +47,9 @@ export function DropdownOptionsManager({
   const deprecateOption = useDeprecateOption();
   const restoreOption = useRestoreOption();
   const reorderOptions = useReorderOptions();
+  const deleteOption = useDeleteOption();
+  const currentUser = useAuthStore((s) => s.user);
+  const isSuperAdmin = currentUser?.role === 'super_admin';
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newLabel, setNewLabel] = useState('');
@@ -154,6 +159,14 @@ export function DropdownOptionsManager({
 
   const handleRestore = (id: number) => {
     restoreOption.mutate({ settingKey, id });
+  };
+
+  const handleDelete = (opt: SettingsOption) => {
+    const confirmed = window.confirm(
+      `Permanently delete "${opt.label}"? This cannot be undone.`
+    );
+    if (!confirmed) return;
+    deleteOption.mutate({ settingKey, id: opt.id });
   };
 
   const handleMoveUp = (index: number) => {
@@ -410,6 +423,16 @@ export function DropdownOptionsManager({
               >
                 <span className={styles.restoreLink}>Restore</span>
               </button>
+              {isSuperAdmin && (
+                <button
+                  className={`${styles.actionButton} ${styles.actionButtonDanger}`}
+                  onClick={() => handleDelete(opt)}
+                  title="Delete permanently"
+                  aria-label="Delete permanently"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
           </div>
         ))}

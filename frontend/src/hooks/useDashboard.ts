@@ -8,6 +8,7 @@ export interface DashboardStats {
   completedRequests: number;
   completionRate: number;
   trend: number;
+  pendingActions: number;
 }
 
 export interface ComparisonDay {

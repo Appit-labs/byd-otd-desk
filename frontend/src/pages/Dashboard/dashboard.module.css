@@ -2,6 +2,7 @@
   padding: var(--spacing-6);
   max-width: 1400px;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .pageHeader {
@@ -62,32 +63,65 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: auto auto auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto;
   gap: var(--spacing-5);
   grid-template-areas:
     "welcome    daily-requests    completed"
     "chart      chart             chart"
-    "pipeline   pipeline          recent";
+    "pipeline   pipeline          pipeline"
+    "recent     recent            recent";
+}
+
+/* Ensure grid children don't overflow */
+.grid > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* ── Responsive breakpoints ────────────────────────────────────────── */
 
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
+  .page {
+    padding: var(--spacing-5);
+  }
   .grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto auto;
     grid-template-areas:
-      "welcome    welcome"
-      "daily-requests completed"
-      "chart      chart"
-      "pipeline   recent"
-      "pipeline   recent";
+      "welcome           welcome"
+      "daily-requests    completed"
+      "chart             chart"
+      "pipeline          pipeline"
+      "recent            recent";
+  }
+}
+
+@media (max-width: 1000px) {
+  .page {
+    padding: var(--spacing-3);
+  }
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto auto auto;
+    grid-template-areas:
+      "welcome"
+      "daily-requests"
+      "completed"
+      "chart"
+      "pipeline"
+      "recent";
   }
 }
 
 @media (max-width: 768px) {
   .page {
-    padding: var(--spacing-4);
+    padding: var(--spacing-2);
   }
 
   .grid {

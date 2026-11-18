@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { RefreshCw, AlertCircle, Search, LayoutGrid, Table2 } from 'lucide-react';
+import { RefreshCw, AlertCircle, Search, LayoutGrid, Table2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRequests } from '@/hooks/useRequests';
 import { useDepartments } from '@/hooks/useDepartments';
+import { useAuthStore } from '@/stores/auth.store';
 import type { RequestFilters } from '@/hooks/useRequests';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { PreviewFilters } from '@/components/preview/PreviewFilters';
@@ -14,7 +15,7 @@ type ViewMode = 'cards' | 'table';
 
 const VIEW_STORAGE_KEY = 'byd-otd-preview-view';
 const DEFAULT_VIEW: ViewMode = 'table';
-const MAX_LIMIT = 100;
+const MAX_LIMIT = 20;
 
 function getDateRangeFilter(
   dateRange: string,
@@ -81,7 +82,7 @@ function SkeletonCard() {
               flex: 1,
               height: 8,
               borderRadius: 4,
-              background: 'rgba(107, 122, 153, 0.1)',
+              background: 'rgba(var(--color-text-muted-rgb), 0.1)',
             }}
           />
         ))}
@@ -92,6 +93,18 @@ function SkeletonCard() {
 }
 
 export default function PreviewPage() {
+  const user = useAuthStore((s) => s.user);
+  // Preview is for super_admin, admin, and viewer only
+  if (user && !['super_admin', 'admin', 'viewer'].includes(user.role)) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.errorBanner}>
+          <p>You do not have access to the Preview page.</p>
+        </div>
+      </div>
+    );
+  }
+
   const [filters, setFilters] = useState<PreviewFiltersState>({
     status: '',
     departmentId: '',
@@ -100,6 +113,7 @@ export default function PreviewPage() {
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredView);
   const [completedExpanded, setCompletedExpanded] = useState(false);
+  const [page, setPage] = useState(1);
 
   // Persist view mode choice across navigations within the session
   useEffect(() => {
@@ -120,9 +134,10 @@ export default function PreviewPage() {
         : undefined,
       search: search || undefined,
       ...dateFilter,
+      page,
       limit: MAX_LIMIT,
     };
-  }, [filters.status, filters.departmentId, filters.dateRange, search]);
+  }, [filters.status, filters.departmentId, filters.dateRange, search, page]);
 
   const {
     data: requestsData,
@@ -147,6 +162,7 @@ export default function PreviewPage() {
   const handleFiltersChange = useCallback(
     (newFilters: PreviewFiltersState) => {
       setFilters(newFilters);
+      setPage(1);
     },
     [],
   );
@@ -170,7 +186,7 @@ export default function PreviewPage() {
               className={styles.searchInput}
               placeholder="Search requests..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             />
           </div>
           <div className={styles.viewToggle}>
@@ -246,6 +262,29 @@ export default function PreviewPage() {
           completedExpanded={completedExpanded}
           onToggleCompleted={handleToggleCompleted}
         />
+      )}
+
+      {/* ── Pagination ───────────────────────── */}
+      {showData && (requestsData?.total ?? 0) > MAX_LIMIT && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 16 }}>
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            style={{ padding: '6px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)', color: 'var(--color-text-primary)', cursor: page <= 1 ? 'default' : 'pointer', opacity: page <= 1 ? 0.5 : 1 }}
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+            Page {page} of {Math.ceil((requestsData?.total ?? 0) / MAX_LIMIT)}
+          </span>
+          <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={page >= Math.ceil((requestsData?.total ?? 0) / MAX_LIMIT)}
+            style={{ padding: '6px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)', color: 'var(--color-text-primary)', cursor: page >= Math.ceil((requestsData?.total ?? 0) / MAX_LIMIT) ? 'default' : 'pointer', opacity: page >= Math.ceil((requestsData?.total ?? 0) / MAX_LIMIT) ? 0.5 : 1 }}
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
       )}
 
       {/* ── Empty State (after loading, no data) ── */}

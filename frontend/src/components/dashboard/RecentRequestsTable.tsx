@@ -74,10 +74,10 @@ export function RecentRequestsTable({ requests, isLoading }: RecentRequestsTable
             <thead>
               <tr>
                 <HeaderCell>Request #</HeaderCell>
-                <HeaderCell>Car Number</HeaderCell>
-                <HeaderCell>Client</HeaderCell>
+                <HeaderCell>Car #</HeaderCell>
+                <HeaderCell className="hide-on-mobile">Client</HeaderCell>
                 <HeaderCell>Status</HeaderCell>
-                <HeaderCell>Created</HeaderCell>
+                <HeaderCell className="hide-on-mobile">Created</HeaderCell>
               </tr>
             </thead>
             <tbody>
@@ -93,7 +93,7 @@ export function RecentRequestsTable({ requests, isLoading }: RecentRequestsTable
                     }}
                     onMouseEnter={(e) => {
                       (e.currentTarget as HTMLElement).style.backgroundColor =
-                        'rgba(255, 255, 255, 0.02)';
+                        'var(--overlay-subtle)';
                     }}
                     onMouseLeave={(e) => {
                       (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
@@ -115,7 +115,7 @@ export function RecentRequestsTable({ requests, isLoading }: RecentRequestsTable
                         {req.chassisNumber}
                       </span>
                     </td>
-                    <td style={tdStyle}>
+                    <td style={tdStyle} className="hide-on-mobile">
                       <span style={{ color: 'var(--color-text-primary)' }}>
                         {req.customerName}
                       </span>
@@ -126,7 +126,7 @@ export function RecentRequestsTable({ requests, isLoading }: RecentRequestsTable
                         label={req.status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                       />
                     </td>
-                    <td style={tdStyle}>
+                    <td style={tdStyle} className="hide-on-mobile">
                       <span
                         style={{
                           color: 'var(--color-text-muted)',
@@ -148,9 +148,10 @@ export function RecentRequestsTable({ requests, isLoading }: RecentRequestsTable
   );
 }
 
-function HeaderCell({ children }: { children: React.ReactNode }) {
+function HeaderCell({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <th
+      className={className}
       style={{
         textAlign: 'left',
         padding: 'var(--spacing-2) var(--spacing-3)',

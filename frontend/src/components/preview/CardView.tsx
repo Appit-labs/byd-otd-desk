@@ -131,7 +131,7 @@ export function CardView({
                       color: 'var(--color-accent)',
                       cursor: 'pointer',
                       background: 'none',
-                      border: '1px solid rgba(0, 194, 255, 0.2)',
+                      border: '1px solid rgba(var(--color-accent-rgb), 0.2)',
                       borderRadius: 'var(--radius-md)',
                       padding: 'var(--spacing-2) var(--spacing-4)',
                       transition: 'all var(--transition-fast)',

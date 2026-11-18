@@ -86,6 +86,69 @@ const STAGE_LABELS: Record<string, string> = {
   delivery: 'Delivery',
 };
 
+/** Ordered stage slugs matching the pipeline. */
+const STAGE_SLUGS = [
+  'storage', 'vehicle_received', 'mechanical_check', 'pdi',
+  'sent_to_accessories', 'accessories', 'final_inspection',
+  'gps', 'registration', 'delivery',
+] as const;
+
+type StageSlug = (typeof STAGE_SLUGS)[number];
+
+/** Maps each stage to the non-admin role authorized to act on it. */
+const STAGE_ROLE: Record<StageSlug, string> = {
+  storage: 'nvs',
+  vehicle_received: 'qc_nvs',
+  mechanical_check: 'mechanical_check',
+  pdi: 'pdi',
+  sent_to_accessories: 'qc_nvs',
+  accessories: 'accessories',
+  final_inspection: 'qc_nvs',
+  gps: 'mechanical_check',
+  registration: 'registration',
+  delivery: 'delivery',
+};
+
+function getCurrentStageForRequest(req: CarRequest): StageSlug | null {
+  for (const stage of STAGE_SLUGS) {
+    if (!isStageCompleteForReq(req, stage)) return stage;
+  }
+  return null;
+}
+
+function isStageCompleteForReq(req: CarRequest, stage: StageSlug): boolean {
+  if (isSkippedForReq(req, stage)) return true;
+  switch (stage) {
+    case 'storage': return !!req.storageAt;
+    case 'vehicle_received': return !!req.vehicleReceivedAt;
+    case 'mechanical_check': return !!req.mechanicalCheckCompletedAt;
+    case 'pdi': return !!req.pdiCompletedAt;
+    case 'sent_to_accessories': return !!req.sentToAccessoriesAt;
+    case 'accessories': return !!req.accessoriesCompletedAt;
+    case 'final_inspection': return !!req.finalInspectionAt;
+    case 'gps': return !!req.gpsConfirmedAt;
+    case 'registration': return !!req.registeredAt;
+    case 'delivery': return !!req.deliveredAt;
+    default: return false;
+  }
+}
+
+function isSkippedForReq(req: CarRequest, stage: StageSlug): boolean {
+  switch (stage) {
+    case 'pdi': return req.requestType?.value === 'no_pdi';
+    case 'sent_to_accessories':
+    case 'accessories':
+      return !req.hasAccessories && (!req.accessories || req.accessories.length === 0);
+    case 'gps': return !req.hasGps;
+    default: return false;
+  }
+}
+
+function canActOnCommonStage(userRole: string, stage: StageSlug): boolean {
+  if (userRole === 'super_admin') return true;
+  return STAGE_ROLE[stage] === userRole;
+}
+
 function TrackerPageInner({
   userRole,
 }: {
@@ -406,36 +469,64 @@ function TrackerPageInner({
         );
       })()}
 
-      {selectedIds.size > 1 && (userRole === 'super_admin' || userRole === 'admin') && (
+      {selectedIds.size > 1 && (() => {
+        const selectedReqs = requests.filter(r => selectedIds.has(r.id));
+        const allActive = selectedReqs.every(r => r.status === 'active');
+        const allSameStage = allActive && selectedReqs.every(r => {
+          const s1 = getCurrentStageForRequest(selectedReqs[0]);
+          const s2 = getCurrentStageForRequest(r);
+          return s1 === s2;
+        });
+        const commonStage = allSameStage ? getCurrentStageForRequest(selectedReqs[0]) : null;
+        const canActCommonStage = commonStage ? canActOnCommonStage(userRole, commonStage) : false;
+
+        return (
         <div className={styles.actionToolbar}>
           <span className={styles.actionToolbarTitle}>
             {selectedIds.size} requests selected
           </span>
-          <div style={{ display: 'flex', gap: 'var(--spacing-2)', marginLeft: 'auto' }}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const ids = Array.from(selectedIds);
-                ids.forEach(id => handleArchiveRequest(id));
-              }}
-            >
-              Archive All
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const ids = Array.from(selectedIds);
-                ids.forEach(id => handleCancelRequest(id));
-              }}
-              style={{ color: 'var(--color-error)' }}
-            >
-              Cancel All
-            </Button>
+          <div style={{ display: 'flex', gap: 'var(--spacing-2)', marginLeft: 'auto', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {canActCommonStage && commonStage && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  const ids = Array.from(selectedIds);
+                  ids.forEach(id => handleStageAction(id, commonStage, 'start', false));
+                }}
+              >
+                Start All ({STAGE_LABELS[commonStage] || commonStage})
+              </Button>
+            )}
+            {(userRole === 'super_admin' || userRole === 'admin') && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const ids = Array.from(selectedIds);
+                    ids.forEach(id => handleArchiveRequest(id));
+                  }}
+                >
+                  Archive All
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const ids = Array.from(selectedIds);
+                    ids.forEach(id => handleCancelRequest(id));
+                  }}
+                  style={{ color: 'var(--color-danger)' }}
+                >
+                  Cancel All
+                </Button>
+              </>
+            )}
           </div>
         </div>
-      )}
+        );
+      })()}
 
       <TrackerTable
         requests={requests}

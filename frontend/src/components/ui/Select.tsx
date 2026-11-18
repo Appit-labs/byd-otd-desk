@@ -44,7 +44,7 @@ export function Select({
         </RadixSelect.Trigger>
 
         <RadixSelect.Portal>
-          <RadixSelect.Content className={styles.content} position="popper" sideOffset={4}>
+          <RadixSelect.Content className={styles.content} position="popper" sideOffset={4} collisionPadding={8} avoidCollisions={true}>
             <RadixSelect.Viewport>
               {options.map((option) => (
                 <RadixSelect.Item

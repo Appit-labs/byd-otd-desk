@@ -69,7 +69,7 @@
 .sectionCount {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
-  background: rgba(107, 122, 153, 0.12);
+  background: rgba(var(--color-text-muted-rgb), 0.12);
   padding: 1px 8px;
   border-radius: 999px;
 }
@@ -261,7 +261,7 @@
 }
 
 .viewBtnActive {
-  background: rgba(0, 194, 255, 0.1);
+  background: rgba(var(--color-accent-rgb), 0.1);
   color: var(--color-accent);
 }
 

@@ -41,13 +41,13 @@
 /* Variants */
 .primary {
   background-color: var(--color-accent);
-  color: #000;
+  color: #fff;
   border: 1px solid var(--color-accent);
 }
 
 .primary:hover:not(:disabled) {
-  background-color: rgba(0, 194, 255, 0.85);
-  box-shadow: 0 0 16px rgba(0, 194, 255, 0.3);
+  background-color: rgba(var(--color-accent-rgb), 0.85);
+  box-shadow: 0 0 16px rgba(var(--color-accent-rgb), 0.3);
 }
 
 .primary:active:not(:disabled) {
@@ -62,18 +62,21 @@
 
 .secondary:hover:not(:disabled) {
   border-color: var(--color-accent);
-  background-color: rgba(0, 194, 255, 0.06);
+  background-color: rgba(var(--color-accent-rgb), 0.06);
 }
 
 .danger {
-  background-color: var(--color-danger);
-  color: #fff;
+  background-color: transparent;
+  color: var(--color-danger);
   border: 1px solid var(--color-danger);
 }
 
 .danger:hover:not(:disabled) {
-  background-color: rgba(239, 68, 68, 0.85);
-  box-shadow: 0 0 16px rgba(239, 68, 68, 0.3);
+  background-color: var(--overlay-danger);
+}
+
+.danger:active:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.18);
 }
 
 .ghost {
@@ -106,22 +109,22 @@
 }
 
 .primary .spinner {
-  border-color: rgba(0, 0, 0, 0.2);
-  border-top-color: #000;
-}
-
-.secondary .spinner {
-  border-color: rgba(0, 194, 255, 0.3);
-  border-top-color: var(--color-accent);
-}
-
-.danger .spinner {
   border-color: rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
 }
 
+.secondary .spinner {
+  border-color: rgba(var(--color-accent-rgb), 0.3);
+  border-top-color: var(--color-accent);
+}
+
+.danger .spinner {
+  border-color: var(--color-border);
+  border-top-color: var(--color-danger);
+}
+
 .ghost .spinner {
-  border-color: rgba(107, 122, 153, 0.3);
+  border-color: rgba(var(--color-text-muted-rgb), 0.3);
   border-top-color: var(--color-text-muted);
 }
 

@@ -48,7 +48,7 @@ services:
       FALLBACK_SMTP_USER: ${FALLBACK_SMTP_USER:-resend}
       FALLBACK_SMTP_PASS: ${FALLBACK_SMTP_PASS}
       FALLBACK_FROM_ADDRESS: ${FALLBACK_FROM_ADDRESS:-onboarding@resend.dev}
-      FALLBACK_FROM_NAME: ${FALLBACK_FROM_NAME:-BYD OTD Desk}
+      FALLBACK_FROM_NAME: ${FALLBACK_FROM_NAME:-BYD OTD Tracker}
     networks:
       - byd-otd-network
 

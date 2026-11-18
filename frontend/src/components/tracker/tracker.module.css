@@ -228,7 +228,7 @@
 }
 
 .exportOption:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--overlay-hover);
 }
 
 /* Table Wrapper - Horizontal Scroll */
@@ -262,7 +262,7 @@
 .table thead th {
   position: sticky;
   top: 0;
-  background: rgba(17, 19, 24, 0.98);
+  background: var(--color-surface);
   z-index: 2;
   font-family: var(--font-display);
   font-size: var(--text-xs);
@@ -274,7 +274,7 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.table thead th:first-child {
+.table thead th:first-child:not(.colCheckbox) {
   padding-left: var(--spacing-4);
 }
 
@@ -284,15 +284,15 @@
 }
 
 .table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--overlay-subtle);
 }
 
 .table tbody tr.selected {
-  background: rgba(0, 194, 255, 0.04);
+  background: rgba(var(--color-accent-rgb), 0.04);
 }
 
 .table tbody tr.expanded {
-  background: rgba(0, 194, 255, 0.02);
+  background: rgba(var(--color-accent-rgb), 0.02);
 }
 
 .table tbody tr:last-child td {
@@ -313,6 +313,7 @@
 .colCheckbox {
   width: 40px;
   text-align: center;
+  padding: 0 var(--spacing-3) !important;
 }
 
 .colRequest {
@@ -358,7 +359,7 @@
 .requestNumber {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  background: rgba(107, 122, 153, 0.12);
+  background: rgba(var(--color-text-muted-rgb), 0.12);
   color: var(--color-text-primary);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
@@ -393,12 +394,12 @@
   flex: 1;
   height: 4px;
   border-radius: 2px;
-  background: rgba(107, 122, 153, 0.2);
+  background: rgba(var(--color-text-muted-rgb), 0.2);
   transition: background var(--transition-base);
 }
 
 .progressStep.completed {
-  background: var(--color-accent-alt);
+  background: var(--color-success);
 }
 
 .progressStep.active {
@@ -463,25 +464,25 @@
 }
 
 .actionBtnStart {
-  background: rgba(0, 194, 255, 0.1);
+  background: rgba(var(--color-accent-rgb), 0.1);
   color: var(--color-accent);
-  border: 1px solid rgba(0, 194, 255, 0.2);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.2);
 }
 
 .actionBtnStart:hover:not(:disabled) {
-  background: rgba(0, 194, 255, 0.18);
+  background: rgba(var(--color-accent-rgb), 0.18);
   border-color: var(--color-accent);
 }
 
 .actionBtnComplete {
-  background: rgba(15, 244, 198, 0.1);
-  color: var(--color-accent-alt);
-  border: 1px solid rgba(15, 244, 198, 0.2);
+  background: rgba(var(--color-success-rgb), 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(var(--color-success-rgb), 0.2);
 }
 
 .actionBtnComplete:hover:not(:disabled) {
-  background: rgba(15, 244, 198, 0.18);
-  border-color: var(--color-accent-alt);
+  background: rgba(var(--color-success-rgb), 0.18);
+  border-color: var(--color-success);
 }
 
 .actionBtn:disabled {
@@ -611,7 +612,7 @@
 
 .skeletonCell {
   height: 16px;
-  background: rgba(107, 122, 153, 0.1);
+  background: rgba(var(--color-text-muted-rgb), 0.1);
   border-radius: var(--radius-sm);
   animation: shimmer 1.5s ease-in-out infinite;
 }
@@ -671,7 +672,7 @@
 }
 
 .columnMenuItem:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--overlay-hover);
 }
 
 .columnMenuCheckbox {
@@ -688,9 +689,10 @@
   gap: var(--spacing-4);
   padding: var(--spacing-3) var(--spacing-4);
   margin-bottom: var(--spacing-3);
-  background: rgba(0, 194, 255, 0.06);
-  border: 1px solid rgba(0, 194, 255, 0.15);
+  background: rgba(var(--color-accent-rgb), 0.06);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.15);
   border-radius: var(--radius-lg);
+  flex-wrap: wrap;
 }
 
 .actionToolbarTitle {
@@ -716,18 +718,33 @@
 }
 
 .progressDotDone {
-  background: var(--color-accent-alt);
-  box-shadow: 0 0 6px rgba(15, 244, 198, 0.4);
+  background: var(--color-success);
+  box-shadow: 0 0 6px rgba(var(--color-success-rgb), 0.4);
 }
 
 .progressDotActive {
   background: var(--color-accent);
-  box-shadow: 0 0 8px rgba(0, 194, 255, 0.5);
+  box-shadow: 0 0 8px rgba(var(--color-accent-rgb), 0.5);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 .progressDotEmpty {
   background: var(--color-border);
+}
+
+@media (max-width: 640px) {
+  .actionToolbar {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+  .actionToolbarTitle {
+    text-align: center;
+  }
+  .actionToolbarProgress {
+    justify-content: center;
+    flex: none;
+  }
 }
 
 @keyframes pulse {
@@ -752,7 +769,7 @@
 .readyCell {
   padding: var(--spacing-2) var(--spacing-3);
   vertical-align: middle;
-  background: rgba(107, 122, 153, 0.02);
+  background: rgba(var(--color-text-muted-rgb), 0.02);
   border-left: 1px dashed rgba(30, 34, 48, 0.5);
   white-space: nowrap;
   overflow: hidden;
@@ -852,7 +869,7 @@
 
 .expandButton:hover,
 .expandButton:focus-visible {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--overlay-pressed);
   color: var(--color-text-primary);
   outline: none;
 }
@@ -863,4 +880,52 @@
 
 .clickable {
   cursor: pointer;
+}
+
+/* Mobile: auto-fit table */
+@media (max-width: 640px) {
+  .table {
+    table-layout: auto;
+    min-width: 0;
+  }
+  .table th,
+  .table td {
+    padding: var(--spacing-2);
+    font-size: var(--text-xs);
+  }
+}
+
+/* ── Mobile: responsive toolbar + dropdowns ────────────────────────── */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .toolbarLeft {
+    flex-wrap: wrap;
+  }
+  .toolbarRight {
+    flex-wrap: wrap;
+  }
+  .searchWrapper {
+    width: 100%;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .filterDropdown {
+    right: auto;
+    left: 0;
+    min-width: 220px;
+    max-width: calc(100vw - 32px);
+  }
+  .exportDropdown {
+    right: auto;
+    left: 0;
+    min-width: 160px;
+  }
+  .columnMenu {
+    right: auto;
+    left: 0;
+    max-width: calc(100vw - 32px);
+  }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate professional XLSX export for BYD OTD Desk tracker data."""
+"""Generate professional XLSX export for BYD OTD Tracker tracker data."""
 import sys, json, io, os
 from datetime import datetime
 from openpyxl import Workbook
@@ -63,7 +63,7 @@ def build_xlsx(data: list[dict], period: str, logo_path: str | None = None) -> b
         ws.add_image(img, "A1")
 
     ws.merge_cells("A2:AE2")
-    ws["A2"] = "BYD OTD Desk — Order to Delivery Tracker"
+    ws["A2"] = "BYD OTD Tracker — Order to Delivery Tracker"
     ws["A2"].font = title_font
     ws["A2"].alignment = Alignment(horizontal="left", vertical="center")
     ws.row_dimensions[2].height = 28
@@ -161,7 +161,7 @@ def build_xlsx(data: list[dict], period: str, logo_path: str | None = None) -> b
     # ── Footer ──
     footer_row = HEADER_ROW + len(data) + 2
     ws.merge_cells(f"A{footer_row}:{last_col}{footer_row}")
-    ws[f"A{footer_row}"] = f"BYD OTD Desk — Confidential | Generated {datetime.now().strftime('%d/%m/%Y %H:%M')} | {len(data)} requests"
+    ws[f"A{footer_row}"] = f"BYD OTD Tracker — Confidential | Generated {datetime.now().strftime('%d/%m/%Y %H:%M')} | {len(data)} requests"
     ws[f"A{footer_row}"].font = Font(name="Calibri", size=8, color="9CA3AF")
     ws[f"A{footer_row}"].alignment = Alignment(horizontal="center")
 

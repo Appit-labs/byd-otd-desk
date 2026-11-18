@@ -169,3 +169,21 @@ export function useReorderOptions() {
     },
   });
 }
+
+export function useDeleteOption() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      settingKey,
+      id,
+    }: {
+      settingKey: string;
+      id: number;
+    }) => {
+      await api.delete(`/v1/settings/${settingKey}/options/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+    },
+  });
+}

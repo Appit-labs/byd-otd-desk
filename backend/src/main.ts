@@ -16,9 +16,15 @@ async function bootstrap() {
     new FastifyAdapter({ logger: true }),
   );
 
-  // CORS
+  // CORS — PUBLIC_URL allows the zrok public domain to be added at startup
+  const corsOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3030'];
+  const publicUrl = process.env.PUBLIC_URL;
+  if (publicUrl) {
+    corsOrigins.push(publicUrl);
+  }
+
   await app.register(fastifyCors, {
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3030'],
+    origin: corsOrigins,
     credentials: true,
   });
 
@@ -45,7 +51,7 @@ async function bootstrap() {
 
   // Swagger
   const config = new DocumentBuilder()
-    .setTitle('BYD OTD Desk API')
+    .setTitle('BYD OTD Tracker API')
     .setDescription('Order to Delivery Tracking System')
     .setVersion('1.0')
     .addBearerAuth()

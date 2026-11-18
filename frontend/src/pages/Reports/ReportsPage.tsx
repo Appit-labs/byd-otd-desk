@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { AlertTriangle, AlertCircle } from 'lucide-react';
@@ -44,6 +44,30 @@ const CHART_COLORS = [
 ];
 
 const SEVEN_DAYS_LABEL = '7-day target';
+
+function formatPeriodLabel(raw: string, period: 'monthly' | 'daily'): string {
+  if (period === 'daily') {
+    // raw is YYYY-MM-DD → "Jun 17"
+    const d = new Date(raw + 'T00:00:00');
+    if (isNaN(d.getTime())) return raw;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  // raw is YYYY-MM → "Jun 2026"
+  const [y, m] = raw.split('-');
+  if (!y || !m) return raw;
+  const d = new Date(parseInt(y), parseInt(m) - 1, 1);
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+function useIsMobile() {
+  const [m, setM] = useState(() => typeof window !== 'undefined' && window.innerWidth < 640);
+  useEffect(() => {
+    const h = () => setM(window.innerWidth < 640);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+  return m;
+}
 
 type Period = 'monthly' | 'daily';
 
@@ -154,7 +178,7 @@ function ReportsContent() {
             alignItems: 'center',
             gap: 'var(--spacing-2)',
             padding: 'var(--spacing-3) var(--spacing-4)',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            backgroundColor: 'var(--overlay-danger)',
             border: '1px solid var(--color-danger)',
             borderRadius: 'var(--radius-lg)',
             color: 'var(--color-danger)',
@@ -323,11 +347,11 @@ function PdiDurationChart({
   const chartData = useMemo(
     () =>
       (data ?? []).map((d) => ({
-        period: d.period,
+        period: formatPeriodLabel(d.period, period),
         days: secondsToDays(d.avgDurationSeconds),
         requests: d.count,
       })),
-    [data],
+    [data, period],
   );
 
   const targetDays = targetSeconds ? secondsToDays(targetSeconds) : 7;
@@ -413,11 +437,11 @@ function AccDurationChart({
   const chartData = useMemo(
     () =>
       (data ?? []).map((d) => ({
-        period: d.period,
+        period: formatPeriodLabel(d.period, period),
         days: secondsToDays(d.avgDurationSeconds),
         requests: d.count,
       })),
-    [data],
+    [data, period],
   );
 
   const targetDays = targetSeconds ? secondsToDays(targetSeconds) : 7;
@@ -625,6 +649,7 @@ function TypeChart({ data }: { data?: GroupedCount[] }) {
 // ── Requests by Model ────────────────────────────────────────────────────
 
 function ModelChart({ data }: { data?: GroupedCount[] }) {
+  const isMobile = useIsMobile();
   return (
     <div className={styles.chartSection}>
       <div className={styles.chartHeader}>
@@ -634,23 +659,23 @@ function ModelChart({ data }: { data?: GroupedCount[] }) {
         {!data || data.length === 0 ? (
           <EmptyState text="No model data available" />
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={isMobile ? 240 : 300}>
             <BarChart
               data={data}
               layout="vertical"
-              margin={{ left: 20, right: 20 }}
+              margin={{ left: 0, right: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
               <XAxis
                 type="number"
                 allowDecimals={false}
-                tick={{ fontSize: 12, fill: 'var(--color-text-muted)' }}
+                tick={{ fontSize: isMobile ? 10 : 12, fill: 'var(--color-text-muted)' }}
               />
               <YAxis
                 type="category"
                 dataKey="name"
-                width={120}
-                tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }}
+                width={isMobile ? 80 : 120}
+                tick={{ fontSize: isMobile ? 10 : 11, fill: 'var(--color-text-muted)' }}
               />
               <Tooltip
                 contentStyle={{
@@ -676,6 +701,7 @@ function ModelChart({ data }: { data?: GroupedCount[] }) {
 // ── Requests by Consultant ───────────────────────────────────────────────
 
 function ConsultantChart({ data }: { data?: GroupedCount[] }) {
+  const isMobile = useIsMobile();
   return (
     <div className={`${styles.chartSection} ${styles.chartSectionFull}`}>
       <div className={styles.chartHeader}>
@@ -690,23 +716,23 @@ function ConsultantChart({ data }: { data?: GroupedCount[] }) {
         {!data || data.length === 0 ? (
           <EmptyState text="No consultant data available" />
         ) : (
-          <ResponsiveContainer width="100%" height={340}>
+          <ResponsiveContainer width="100%" height={isMobile ? 280 : 340}>
             <BarChart
               data={data}
               layout="vertical"
-              margin={{ left: 20, right: 20 }}
+              margin={{ left: 0, right: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
               <XAxis
                 type="number"
                 allowDecimals={false}
-                tick={{ fontSize: 12, fill: 'var(--color-text-muted)' }}
+                tick={{ fontSize: isMobile ? 10 : 12, fill: 'var(--color-text-muted)' }}
               />
               <YAxis
                 type="category"
                 dataKey="name"
-                width={150}
-                tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }}
+                width={isMobile ? 90 : 150}
+                tick={{ fontSize: isMobile ? 10 : 11, fill: 'var(--color-text-muted)' }}
               />
               <Tooltip
                 contentStyle={{

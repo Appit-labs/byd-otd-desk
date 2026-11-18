@@ -21,6 +21,7 @@ export type SettingsSection =
 interface SettingsNavProps {
   activeSection: SettingsSection;
   onSectionChange: (s: SettingsSection) => void;
+  isSuperAdmin?: boolean;
 }
 
 interface CategoryGroup {
@@ -70,7 +71,7 @@ const groups: CategoryGroup[] = [
   },
 ];
 
-export function SettingsNav({ activeSection, onSectionChange }: SettingsNavProps) {
+export function SettingsNav({ activeSection, onSectionChange, isSuperAdmin }: SettingsNavProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     Vehicle: true,
     Sales: false,
@@ -94,9 +95,13 @@ export function SettingsNav({ activeSection, onSectionChange }: SettingsNavProps
     return expanded[label] ?? false;
   };
 
+  const visibleGroups = isSuperAdmin
+    ? groups
+    : groups.filter((g) => g.label !== 'System');
+
   return (
     <nav className={styles.nav}>
-      {groups.map((group) => (
+      {visibleGroups.map((group) => (
         <div key={group.label} className={styles.navCategory}>
           <button
             className={styles.navCategoryHeader}

@@ -1,0 +1,385 @@
+<!doctype html>
+{# ==========================================================================
+   OFFER OF EMPLOYMENT — Jinja2 / HTML template
+   Converted from: INT-IMS-HR-9027 - Final Offer of Employment (Overseas) v02.docx
+
+   HOW TO RENDER
+   This file is a Jinja2 template. Render it with a context dict, e.g.:
+
+       from jinja2 import Environment, FileSystemLoader
+       env = Environment(loader=FileSystemLoader("."))
+       html = env.get_template("offer_of_employment.html.j2").render(**context)
+
+   It is plain HTML/CSS (no external stylesheet needed) so the rendered
+   output can be opened directly in a browser, emailed, or piped into a
+   PDF engine such as WeasyPrint / wkhtmltopdf.
+
+   Note on layout: the source .docx used Word's "continuous, 2-column
+   section" formatting purely so the letter would fit on one printed page.
+   That column-flow behaviour doesn't translate reliably to HTML/CSS across
+   browsers and PDF engines, so this template uses a single, clean flowing
+   column instead — it reproduces the same content and visual hierarchy
+   (tables, headings, numbered clauses) without the fragile pagination.
+
+   EXPECTED VARIABLES
+   ---------------------------------------------------------------------
+   Company / branding
+     logo_url                    str  - URL or data-URI for the company logo
+     footer_graphic_url          str  - URL or data-URI for the footer accent graphic
+     company_name                str  - short brand name, e.g. "INTALEQ"
+     company_legal_name          str  - full legal name
+     company_address_lines       list[str] - one or more address lines
+     hr_phone                    str
+     hr_email                    str
+     signatory_name              str
+     signatory_title             str
+
+   Offer identifiers
+     ref_no                      str  - e.g. "INT-IMS-HR-9027-A000X"
+     position_title              str
+
+   Candidate / role details (table 1)
+     date_of_offer                str
+     full_name                    str
+     job_title                    str
+     grade                        str
+     reporting_to                 str
+
+   Compensation (table 2) — REPEATING ROWS
+     currency                     str  - e.g. "QAR"
+     entitlements                 list[dict] - each: {"name": str, "amount": number|None}
+     total_monthly_payout         number
+
+   Benefits (table 3) — REPEATING ROWS
+     benefits                     list[dict] - each: {"label": str, "value": str}
+
+   Offer mechanics
+     offer_validity_days          int
+
+   Appendix — REPEATING LIST ITEMS
+     offer_conditions             list[str]  - "Terms and Condition of Offer" clauses (1.1, 1.2, ...)
+     employment_terms             list[dict] - "Terms and Conditions of Employment" clauses (2.1, 2.2, ...)
+                                                each: {"heading": str, "body": str}
+   ========================================================================== #}
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Offer of Employment{% if full_name %} — {{ full_name }}{% endif %}</title>
+<style>
+  @page {
+    size: A4;
+    margin: 24mm 18mm 20mm 18mm;
+    @bottom-left {
+      content: "{{ company_legal_name|default('Intaleq Technology Consulting and Services') }}";
+      font-family: Calibri, Arial, sans-serif;
+      font-size: 8pt;
+      font-weight: bold;
+      color: #1a1a1a;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: Calibri, "Helvetica Now Display", Arial, sans-serif;
+    color: #1a1a1a;
+    font-size: 10.5pt;
+    line-height: 1.38;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 32px;
+  }
+
+  .page + .page {
+    page-break-before: always;
+    border-top: 1px solid #eee;
+  }
+
+  /* ---------- Header ---------- */
+  .letterhead { margin-bottom: 16px; }
+  .letterhead img.logo { height: 42px; display: block; }
+  .ref-no { margin-top: 12px; font-weight: bold; font-size: 10pt; }
+
+  /* ---------- Titles ---------- */
+  h1.doc-title {
+    text-align: center;
+    font-size: 12.5pt;
+    font-weight: bold;
+    text-decoration: underline;
+    margin: 18px 0 16px;
+  }
+  h2.section-title {
+    font-size: 11.5pt;
+    font-weight: bold;
+    text-align: center;
+    margin: 18px 0 10px;
+  }
+
+  p { margin: 0 0 10px; text-align: justify; }
+
+  /* ---------- Tables ---------- */
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+    font-size: 10pt;
+  }
+  table.data-table th,
+  table.data-table td {
+    border: 1px solid #1a1a1a;
+    padding: 5px 8px;
+    vertical-align: middle;
+    text-align: left;
+  }
+  table.data-table th { font-weight: bold; }
+  table.entitlements td:last-child,
+  table.entitlements th:last-child { text-align: right; width: 30%; }
+  table.entitlements tr.total td { font-weight: bold; }
+  table.benefits td:first-child { font-weight: bold; width: 34%; }
+  table.candidate-info td:first-child { font-weight: bold; width: 34%; }
+
+  /* ---------- Numbered clause lists ---------- */
+  h3.clause-group-title {
+    font-size: 11pt;
+    font-weight: bold;
+    margin: 16px 0 8px;
+  }
+  ol.clause-list {
+    list-style: none;
+    margin: 0 0 6px;
+    padding: 0;
+  }
+  ol.clause-list > li {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  ol.clause-list > li > .num { font-weight: bold; flex: 0 0 30px; }
+  ol.clause-list > li > .clause-body { flex: 1; text-align: justify; }
+  ol.clause-list > li > .clause-body .clause-heading { font-weight: bold; }
+
+  /* ---------- Signature blocks ---------- */
+  .signature-block { margin-top: 16px; }
+  .signature-line {
+    margin: 22px 0 4px;
+    border-bottom: 1px solid #1a1a1a;
+    width: 260px;
+  }
+  .signature-name { font-weight: bold; }
+  .signature-title { font-weight: bold; }
+
+  .fill-field { margin: 12px 0; }
+  .fill-field .blank {
+    display: inline-block;
+    border-bottom: 1px solid #1a1a1a;
+    min-width: 220px;
+    height: 1em;
+  }
+
+  .end-marker { text-align: center; font-style: italic; margin-top: 20px; }
+
+  /* ---------- Footer ---------- */
+  .page-footer {
+    margin-top: 28px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .page-footer .company-address { font-size: 8pt; line-height: 1.3; }
+  .page-footer .company-address strong { display: block; }
+  .page-footer img.footer-graphic { height: 50px; opacity: 0.95; }
+</style>
+</head>
+<body>
+
+  {# ======================= PAGE 1 — OFFER LETTER ======================= #}
+  <div class="page">
+
+    <div class="letterhead">
+      <img class="logo" src="{{ logo_url|default('assets/intaleq-logo.png') }}" alt="{{ company_name|default('INTALEQ') }}">
+      <div class="ref-no">Ref. No: {{ ref_no }}</div>
+    </div>
+
+    <h1 class="doc-title">Offer of Employment</h1>
+
+    <p>
+      We are pleased to extend this Offer of Employment to you from {{ company_name|default('INTALEQ') }}
+      for the role of <strong>&lsquo;{{ position_title }}&rsquo;</strong> with the below Terms and Conditions.
+    </p>
+
+    {# -------- Candidate details — fixed fields -------- #}
+    <table class="data-table candidate-info">
+      <tr><td>Date of Offer:</td><td>{{ date_of_offer }}</td></tr>
+      <tr><td>Full Name:</td><td>{{ full_name }}</td></tr>
+      <tr><td>Job Title:</td><td>{{ job_title }}</td></tr>
+      <tr><td>Grade:</td><td>{{ grade }}</td></tr>
+      <tr><td>Reporting to:</td><td>{{ reporting_to }}</td></tr>
+    </table>
+
+    {# -------- Entitlements — REPEATING ROWS -------- #}
+    <table class="data-table entitlements">
+      <thead>
+        <tr>
+          <th>Entitlements (Monthly)</th>
+          <th>Amt ({{ currency|default('QAR') }})</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in entitlements %}
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ "{:,.2f}".format(item.amount) if item.amount is not none and item.amount != "" else "-" }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="total">
+          <td>Total Monthly Payout</td>
+          <td>{{ "{:,.2f}".format(total_monthly_payout) }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="section-title">Benefits and Other Conditions</h2>
+
+    {# -------- Benefits — REPEATING ROWS -------- #}
+    <table class="data-table benefits">
+      {% for b in benefits %}
+      <tr>
+        <td>{{ b.label }}</td>
+        <td>{{ b.value }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <p>
+      This offer is subject to the Terms and Conditions set out in the Appendix attached to this
+      Offer of Employment. To confirm your acceptance of this offer, please sign and return to us
+      a copy of this original offer. This offer will remain valid for {{ offer_validity_days }}
+      days from the date mentioned above. If we do not receive any response from you within the
+      offer&rsquo;s validity period, our offer will be withdrawn.
+    </p>
+
+    <p>
+      Should you have any queries, please contact us on telephone no. {{ hr_phone }} or via email on
+      <a href="mailto:{{ hr_email }}">{{ hr_email }}</a>
+    </p>
+
+    <p>We look forward to welcoming you at {{ company_name|default('INTALEQ') }} soon.</p>
+
+    <p>Yours sincerely,</p>
+
+    <div class="signature-block">
+      <div class="signature-line"></div>
+      <div class="signature-name">{{ signatory_name }}</div>
+      <div class="signature-title">{{ signatory_title }}</div>
+    </div>
+
+    <p style="margin-top:16px;">
+      I, the undersigned, hereby confirm that I accept the Terms and Conditions above and the
+      employment with {{ company_name|default('INTALEQ') }} and have read and understood the terms
+      of the offer outlined above.
+    </p>
+
+    <div class="fill-field">Name: <span class="blank"></span></div>
+    <div class="fill-field">Joining Date: <span class="blank"></span></div>
+    <div class="fill-field">Signature: <span class="blank"></span></div>
+    <div class="fill-field">Date: <span class="blank"></span></div>
+
+    <div class="page-footer">
+      <div class="company-address">
+        <strong>{{ company_legal_name|default('Intaleq Technology Consulting and Services') }}</strong>
+        {% for line in company_address_lines %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+      </div>
+      <img class="footer-graphic" src="{{ footer_graphic_url|default('assets/footer-triangles.png') }}" alt="">
+    </div>
+  </div>
+
+  {# ======================= PAGE 2 — APPENDIX ======================= #}
+  <div class="page">
+
+    <div class="letterhead">
+      <img class="logo" src="{{ logo_url|default('assets/intaleq-logo.png') }}" alt="{{ company_name|default('INTALEQ') }}">
+    </div>
+
+    <h1 class="doc-title">Appendix: General Terms and Conditions</h1>
+
+    <p>
+      Employment with {{ company_name|default('INTALEQ') }} does not become official until the
+      contract is signed. On commencing employment with {{ company_name|default('INTALEQ') }}, you
+      will be required to sign 1) a formal contract of employment under Qatar Labor Law and 2) an
+      undertaking on confidential information, patents, discoveries, and inventions.
+    </p>
+
+    <p>
+      <strong>Disclaimer:</strong> {{ company_name|default('INTALEQ') }} has not authorized any
+      recruitment agency or any third party to negotiate compensation and/or terms and conditions
+      of your employment with you on our behalf. {{ company_name|default('INTALEQ') }} shall not be
+      held accountable and liable for any such terms and conditions of employment proposed and
+      agreed to by any third party other than the HR department of {{ company_name|default('INTALEQ') }}.
+    </p>
+
+    <p>This offer is subject to the following Terms and Conditions as set out in sections below:</p>
+
+    {# -------- Section 1 — Terms and Condition of Offer — REPEATING LIST ITEMS -------- #}
+    <h3 class="clause-group-title">1.&nbsp; Terms and Condition of Offer:</h3>
+    <ol class="clause-list">
+      {% for clause in offer_conditions %}
+      <li>
+        <span class="num">1.{{ loop.index }}</span>
+        <span class="clause-body">{{ clause }}</span>
+      </li>
+      {% endfor %}
+    </ol>
+
+    {# -------- Section 2 — Terms and Conditions of Employment — REPEATING LIST ITEMS -------- #}
+    <h3 class="clause-group-title">2.&nbsp; Terms and Conditions of Employment:</h3>
+    <p>The key Terms and Conditions of your employment are outlined below:</p>
+    <ol class="clause-list">
+      {% for term in employment_terms %}
+      <li>
+        <span class="num">2.{{ loop.index }}</span>
+        <span class="clause-body">
+          <span class="clause-heading">{{ term.heading }}:</span>
+          {{ term.body }}
+        </span>
+      </li>
+      {% endfor %}
+    </ol>
+
+    <p>
+      <strong><u>Note:</u></strong> while we endeavor to ensure that the Terms and Conditions outlined in
+      this Offer Letter and Appendix are up to date, policies are regularly being reviewed and updated,
+      and the content of the Company&rsquo;s currently published and applicable policies and procedures
+      will therefore always supersede all other communication whether official or unofficial in nature.
+    </p>
+
+    <p>
+      I, the undersigned, hereby confirm that I accept the terms and conditions above and the employment
+      with {{ company_name|default('INTALEQ') }} and have read and understood the terms of the offer
+      outlined above:
+    </p>
+
+    <div class="fill-field">Name: <span class="blank"></span></div>
+    <div class="fill-field">Signature: <span class="blank"></span></div>
+    <div class="fill-field">Date: <span class="blank"></span></div>
+
+    <div class="end-marker">-- END --</div>
+
+    <div class="page-footer">
+      <div class="company-address">
+        <strong>{{ company_legal_name|default('Intaleq Technology Consulting and Services') }}</strong>
+        {% for line in company_address_lines %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+      </div>
+      <img class="footer-graphic" src="{{ footer_graphic_url|default('assets/footer-triangles.png') }}" alt="">
+    </div>
+  </div>
+
+</body>
+</html>

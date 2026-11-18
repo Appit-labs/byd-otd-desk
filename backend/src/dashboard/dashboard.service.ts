@@ -18,6 +18,7 @@ export interface StatsResult {
   completedRequests: number;
   completionRate: number;
   trend: number;
+  pendingActions: number;
 }
 
 export interface ComparisonDay {
@@ -90,7 +91,7 @@ export class DashboardService {
     };
   }
 
-  async getStats(period: 'daily' | 'monthly'): Promise<StatsResult> {
+  async getStats(period: 'daily' | 'monthly', userRole?: string): Promise<StatsResult> {
     const now = new Date();
     const { start, end, prevStart, prevEnd } = this.getPeriodRange(now, period);
 
@@ -129,11 +130,26 @@ export class DashboardService {
           ? 100
           : 0;
 
+    // Count pending actions for the user's role
+    let pendingActions = 0;
+    if (userRole && userRole !== 'super_admin' && userRole !== 'admin' && userRole !== 'viewer') {
+      const activeRequests = await this.requestsRepository.find({
+        where: { status: RequestStatus.ACTIVE },
+        relations: ['requestType'],
+      });
+      pendingActions = activeRequests.filter((req) => {
+        const current = this.pipelineStageResolver.resolveCurrentStage(req);
+        if (!current) return false;
+        return this.pipelineStageResolver.isRoleAuthorizedForStage(userRole, current.stage);
+      }).length;
+    }
+
     return {
       totalRequests,
       completedRequests,
       completionRate,
       trend,
+      pendingActions,
     };
   }
 
@@ -196,38 +212,55 @@ export class DashboardService {
       order: { pipelineOrder: 'ASC' },
     });
 
-    const stages: PipelineStageStat[] = await Promise.all(
-      departments.map(async (dept) => {
-        const startedQb = this.transitionsRepository
-          .createQueryBuilder('t')
-          .select('t.requestId')
-          .where('t.department_id = :deptId', { deptId: dept.id })
-          .andWhere('t.action = :started', { started: TransitionAction.STARTED });
+    // Map department slugs → which PipelineStage(s) they represent
+    const DEPT_TO_STAGES: Record<string, PipelineStage[]> = {
+      storage: [PipelineStage.CREATED, PipelineStage.STORAGE, PipelineStage.SHOWROOM],
+      mechanical_check: [PipelineStage.MECHANICAL_CHECK],
+      pdi: [PipelineStage.PDI],
+      accessories: [PipelineStage.SENT_TO_ACCESSORIES, PipelineStage.ACCESSORIES],
+      final_inspection: [PipelineStage.FINAL_INSPECTION],
+      gps: [PipelineStage.GPS],
+      registration: [PipelineStage.REGISTRATION],
+      delivery: [PipelineStage.DELIVERY],
+    };
 
-        const completedQb = this.transitionsRepository
-          .createQueryBuilder('t2')
-          .select('t2.requestId')
-          .where('t2.department_id = :deptId2', { deptId2: dept.id })
-          .andWhere('t2.action = :completed', { completed: TransitionAction.COMPLETED });
+    const allRequests = await this.requestsRepository.find();
+    const activeRequests = allRequests.filter(r => r.status !== RequestStatus.CANCELLED);
 
-        const count = await this.transitionsRepository
-          .createQueryBuilder('t3')
-          .where(`t3.request_id IN (${startedQb.getQuery()})`)
-          .andWhere(`t3.request_id NOT IN (${completedQb.getQuery()})`)
-          .andWhere('t3.department_id = :deptId3', { deptId3: dept.id })
-          .setParameters(startedQb.getParameters())
-          .setParameters(completedQb.getParameters())
-          .getCount();
+    // Resolve each request to its current pipeline stage.
+    // Fully-completed requests (resolveCurrentStage returns null) go to a
+    // synthetic "completed" bucket, not to Delivery.
+    const stageCounts = new Map<PipelineStage, number>();
+    let completedCount = 0;
+    for (const req of activeRequests) {
+      const current = this.pipelineStageResolver.resolveCurrentStage(req);
+      if (current) {
+        stageCounts.set(current.stage, (stageCounts.get(current.stage) ?? 0) + 1);
+      } else {
+        completedCount++;
+      }
+    }
+    const stages: PipelineStageStat[] = departments.map((dept) => {
+      const mappedStages = DEPT_TO_STAGES[dept.slug] ?? [];
+      const count = mappedStages.reduce((sum, stage) => sum + (stageCounts.get(stage) ?? 0), 0);
 
-        return {
-          departmentId: dept.id,
-          departmentName: dept.name,
-          slug: dept.slug,
-          pipelineOrder: dept.pipelineOrder,
-          count,
-        };
-      }),
-    );
+      return {
+        departmentId: dept.id,
+        departmentName: dept.name,
+        slug: dept.slug,
+        pipelineOrder: dept.pipelineOrder,
+        count,
+      };
+    });
+
+    // Append a synthetic "Completed" entry for requests that finished all stages
+    stages.push({
+      departmentId: 0,
+      departmentName: 'Completed',
+      slug: 'completed',
+      pipelineOrder: stages.length + 1,
+      count: completedCount,
+    });
 
     return { stages };
   }

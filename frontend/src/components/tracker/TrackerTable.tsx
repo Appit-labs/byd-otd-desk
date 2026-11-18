@@ -287,7 +287,7 @@ export function TrackerTable({
   const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
   const allSelected = requests.length > 0 && requests.every((r) => selectedIds.has(r.id));
 
-  const canSelect = userRole === 'super_admin' || userRole === 'admin';
+  const canSelect = userRole !== 'viewer';
 
   const toggleExpand = useCallback((id: number) => {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -322,9 +322,6 @@ export function TrackerTable({
   const handleStageAction = useCallback((reqId: number, stage: string, action: string) => {
     onStageAction?.(reqId, stage, action);
   }, [onStageAction]);
-
-  const expandedRequest =
-    expandedId !== null ? requests.find((r) => r.id === expandedId) : null;
 
   const dataColSpan = (canSelect ? 1 : 0) + 1 + 17; // checkbox + expand + 17 columns
 
@@ -409,6 +406,7 @@ export function TrackerTable({
                 const canActDelivery = canActOnStage(req, 'delivery', userRole);
 
                 return (
+                  <>
                   <tr
                     key={req.id}
                     className={selectedIds.has(req.id) ? styles.selected : undefined}
@@ -724,23 +722,22 @@ export function TrackerTable({
                       />
                     </td>
                   </tr>
+                  {expandedId === req.id && (
+                    <tr className={styles.detailRow}>
+                      <td colSpan={dataColSpan}>
+                        <div className={styles.detailCell}>
+                          <RequestDetailCard
+                            request={req}
+                            onEditRequest={onEditRequest}
+                            userRole={userRole}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </>
                 );
               })
-            )}
-
-            {/* Expanded detail row */}
-            {expandedRequest && (
-              <tr className={styles.detailRow}>
-                <td colSpan={dataColSpan}>
-                  <div className={styles.detailCell}>
-                    <RequestDetailCard
-                      request={expandedRequest}
-                      onEditRequest={onEditRequest}
-                      userRole={userRole}
-                    />
-                  </div>
-                </td>
-              </tr>
             )}
           </tbody>
         </table>

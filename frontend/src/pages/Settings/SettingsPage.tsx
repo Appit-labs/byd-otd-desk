@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { ShieldAlert } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { SettingsNav, type SettingsSection } from '@/components/settings/SettingsNav';
 import { DropdownOptionsManager } from '@/components/settings/DropdownOptionsManager';
@@ -34,9 +35,27 @@ const dropdownDefs: Record<string, DropdownDef> = {
   sales_type: { key: 'sales_type', label: 'Sales Types' },
 };
 
+function AccessDenied({ message }: { message: string }) {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 'var(--spacing-12)',
+      gap: 'var(--spacing-4)',
+      color: 'var(--color-text-muted)',
+    }}>
+      <ShieldAlert size={40} />
+      <p style={{ fontSize: 'var(--text-sm)', textAlign: 'center' }}>{message}</p>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const user = useAuthStore((s) => s.user);
   const [activeSection, setActiveSection] = useState<SettingsSection>('brand');
+  const isSuperAdmin = user?.role === 'super_admin';
 
   // Admin and Super Admin can access settings
   if (user?.role !== 'super_admin' && user?.role !== 'admin') {
@@ -50,8 +69,10 @@ export default function SettingsPage() {
       case 'final_inspection':
         return <FinalInspectionOptionsManager />;
       case 'users':
+        if (!isSuperAdmin) return <AccessDenied message="User management is restricted to Super Admins." />;
         return <UserManagementPanel />;
       case 'email_config':
+        if (!isSuperAdmin) return <AccessDenied message="Email configuration is restricted to Super Admins." />;
         return <EmailConfigPanel />;
       default: {
         const def = dropdownDefs[activeSection];
@@ -78,6 +99,7 @@ export default function SettingsPage() {
         <SettingsNav
           activeSection={activeSection}
           onSectionChange={setActiveSection}
+          isSuperAdmin={isSuperAdmin}
         />
         <div className={styles.content}>{renderContent()}</div>
       </div>

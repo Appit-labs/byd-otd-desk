@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -6,6 +6,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from 'recharts';
 import { Card } from '@/components/ui/Card';
 import type { PipelineStage } from '@/hooks/useDashboard';
@@ -15,15 +16,15 @@ interface PipelineFunnelChartProps {
   isLoading: boolean;
 }
 
-// BYD-inspired gradient colors
+// BYD-inspired gradient colors — teal (primary) → purple → green
 const STAGE_COLORS = [
-  '#00C2FF', // accent blue
-  '#00A8E8',
-  '#0099CC',
-  '#0FF4C6', // accent teal
-  '#0DDFB0',
-  '#0AC49A',
-  '#00E676', // green
+  '#00B4D8', // brand teal (primary accent)
+  '#009EC0',
+  '#0077B6',
+  '#9C27B0', // process purple (secondary accent)
+  '#8827B0',
+  '#4B3FCF',
+  '#00C853', // green (success milestone)
 ];
 
 function CustomTooltip({
@@ -68,7 +69,18 @@ function CustomTooltip({
   );
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isMobile;
+}
+
 export function PipelineFunnelChart({ data, isLoading }: PipelineFunnelChartProps) {
+  const isMobile = useIsMobile();
   const sortedData = useMemo(() => {
     if (!data) return [];
     return [...data].sort((a, b) => a.pipelineOrder - b.pipelineOrder);
@@ -114,7 +126,7 @@ export function PipelineFunnelChart({ data, isLoading }: PipelineFunnelChartProp
 
   return (
     <Card title="Pipeline Funnel">
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
         <BarChart
           data={sortedData}
           layout="vertical"
@@ -127,16 +139,16 @@ export function PipelineFunnelChart({ data, isLoading }: PipelineFunnelChartProp
             dataKey="departmentName"
             tick={{
               fill: 'var(--color-text-primary)',
-              fontSize: 13,
+              fontSize: isMobile ? 11 : 13,
               fontWeight: 500,
             }}
             axisLine={false}
             tickLine={false}
-            width={130}
+            width={isMobile ? 90 : 130}
           />
           <Tooltip
             content={<CustomTooltip />}
-            cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+            cursor={{ fill: 'var(--overlay-subtle)' }}
           />
           <Bar
             dataKey="count"
@@ -148,7 +160,18 @@ export function PipelineFunnelChart({ data, isLoading }: PipelineFunnelChartProp
               fontSize: 12,
               fontWeight: 600,
             }}
-          />
+          >
+            {sortedData.map((stage, idx) => (
+              <Cell
+                key={stage.slug}
+                fill={
+                  stage.slug === 'completed'
+                    ? '#10B981'
+                    : STAGE_COLORS[idx % STAGE_COLORS.length]
+                }
+              />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
       {sortedData.length > 0 && (

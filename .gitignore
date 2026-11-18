@@ -9,3 +9,7 @@ coverage/
 docker-compose.override.yml
 .refact/
 .understand-anything/
+*.deb
+*.AppImage
+*.msi
+*.dmg

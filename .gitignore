@@ -8,3 +8,4 @@ coverage/
 *.tsbuildinfo
 docker-compose.override.yml
 .refact/
+.understand-anything/
